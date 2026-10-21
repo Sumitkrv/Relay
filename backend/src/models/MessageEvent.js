@@ -7,6 +7,11 @@ const messageEventSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    index: true
+  },
   messageId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message',
@@ -69,5 +74,7 @@ const messageEventSchema = new mongoose.Schema({
 
 messageEventSchema.index({ ownerId: 1, messageId: 1, timestamp: -1 });
 messageEventSchema.index({ ownerId: 1, eventType: 1, timestamp: -1 });
+messageEventSchema.index({ workspaceId: 1, messageId: 1, timestamp: -1 });
+messageEventSchema.index({ workspaceId: 1, eventType: 1, timestamp: -1 });
 
 export default mongoose.model('MessageEvent', messageEventSchema);

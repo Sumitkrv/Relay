@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const schema=new mongoose.Schema({
   ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
+  workspaceId:{type:mongoose.Schema.Types.ObjectId,ref:'Workspace',index:true},
   campaignId:{type:mongoose.Schema.Types.ObjectId,ref:'Campaign',required:true,index:true},
   mode:{type:String,enum:['mock'],default:'mock'},
   trigger:{type:String,enum:['manual','scheduled'],default:'manual'},
@@ -13,6 +14,8 @@ const schema=new mongoose.Schema({
   scheduledFor:Date,summary:{type:mongoose.Schema.Types.Mixed,default:{}}
 },{timestamps:true});
 schema.index({ownerId:1,campaignId:1,status:1});
+schema.index({workspaceId:1,campaignId:1,status:1});
 schema.index({ownerId:1,campaignId:1,createdAt:-1});
+schema.index({workspaceId:1,campaignId:1,createdAt:-1});
 schema.index({ownerId:1,campaignId:1,scheduledFor:1},{unique:true,partialFilterExpression:{trigger:'scheduled'}});
 export default mongoose.model('CampaignExecution',schema);

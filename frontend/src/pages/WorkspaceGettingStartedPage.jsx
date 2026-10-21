@@ -20,11 +20,18 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWorkspace } from '../context/WorkspaceContext';
+import IndustryConfigHub from '../components/industry/IndustryConfigHub';
+import MockConnectionCard from '../components/mock/MockConnectionCard';
+import DemoJourneyProgress from '../components/mock/DemoJourneyProgress';
+import InboundSimulatorModal from '../components/mock/InboundSimulatorModal';
+import AutomationTestConsole from '../components/mock/AutomationTestConsole';
 
 export default function WorkspaceGettingStartedPage() {
   const { user, logout } = useAuth();
   const { currentWorkspace, membership, loading, refreshWorkspace } = useWorkspace();
   const navigate = useNavigate();
+  const [showInboundModal, setShowInboundModal] = useState(false);
+  const [showTestConsole, setShowTestConsole] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -180,6 +187,33 @@ export default function WorkspaceGettingStartedPage() {
           </div>
         </div>
 
+        {/* Industry Configuration & Presets Hub (SaaS Prompt 6) */}
+        <IndustryConfigHub />
+
+        {/* Multi-Tenant WhatsApp Mock Engine (SaaS Prompt 8) */}
+        <div className="space-y-6">
+          <MockConnectionCard
+            onOpenInboundModal={() => setShowInboundModal(true)}
+            onOpenTestConsole={() => setShowTestConsole(true)}
+          />
+          <DemoJourneyProgress
+            onOpenInboundModal={() => setShowInboundModal(true)}
+            onOpenTestConsole={() => setShowTestConsole(true)}
+          />
+        </div>
+
+        {/* Inbound Simulator Modal */}
+        <InboundSimulatorModal
+          isOpen={showInboundModal}
+          onClose={() => setShowInboundModal(false)}
+        />
+
+        {/* Automation Test Console Modal */}
+        <AutomationTestConsole
+          isOpen={showTestConsole}
+          onClose={() => setShowTestConsole(false)}
+        />
+
         {/* Roadmap & Next Steps for Multi-Tenant Rollout */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
           <div>
@@ -191,21 +225,21 @@ export default function WorkspaceGettingStartedPage() {
 
           <div className="space-y-4">
             {/* Step 1: Industry Config (Prompt 6) */}
-            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
-                1
+            <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 flex items-center justify-center font-bold text-sm shrink-0">
+                ✓
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-bold text-slate-900">
                     Industry Presets & Dynamic CRM Fields
                   </h3>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800">
-                    SaaS Prompt 6
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 border border-emerald-300 text-emerald-800">
+                    Active & Ready
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Relay will initialize tailored fields, broadcast templates, and keyword auto-reply rules specifically for your selected industry (<strong>{ws.industryKey}</strong>).
+                  Tailored contact fields, broadcast templates, and keyword auto-reply rules are active for your vertical (<strong>{ws.industryKey}</strong>).
                 </p>
               </div>
             </div>

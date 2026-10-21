@@ -5,6 +5,7 @@ import CampaignExecution from '../models/CampaignExecution.js';
 import CampaignMessageJob from '../models/CampaignMessageJob.js';
 import ConversationMessage from '../models/ConversationMessage.js';
 import Conversation from '../models/Conversation.js';
+import Workspace from '../models/Workspace.js';
 import mockWhatsAppProvider from './mockWhatsAppProvider.js';
 import { recordMessageEvent } from './messageEventService.js';
 import { evaluateRecipientEligibility } from './messagePreparationService.js';
@@ -46,6 +47,7 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
 
   await recordMessageEvent({
     ownerId: message.ownerId,
+    workspaceId: message.workspaceId,
     messageId: message._id,
     eventType: 'PROCESSING_STARTED',
     previousStatus: 'QUEUED',
@@ -54,6 +56,25 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
     attemptNumber: message.attemptCount,
     correlationId: message.correlationId
   });
+
+  // 0. Workspace Suspension Safety Check - pause dispatch without destroying jobs
+  if (message.workspaceId) {
+    const ws = await Workspace.findById(message.workspaceId).select('status');
+    if (ws && ws.status === 'SUSPENDED') {
+      await Message.updateOne(
+        { _id: message._id, leaseOwner: workerId },
+        {
+          $set: {
+            status: 'QUEUED',
+            leaseOwner: '',
+            leaseUntil: null,
+            failureReason: 'Workspace is suspended. Message dispatch paused.'
+          }
+        }
+      );
+      return false;
+    }
+  }
 
   // 1. If linked to a CampaignExecution, verify execution is still running/queued
   let campaignExecution = null;
@@ -241,6 +262,7 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
 
     await recordMessageEvent({
       ownerId: message.ownerId,
+      workspaceId: message.workspaceId,
       messageId: message._id,
       eventType: 'MOCK_SEND_SUCCEEDED',
       previousStatus: 'PROCESSING',
@@ -253,6 +275,7 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
 
     await recordMessageEvent({
       ownerId: message.ownerId,
+      workspaceId: message.workspaceId,
       messageId: message._id,
       eventType: 'MESSAGE_COMPLETED',
       previousStatus: 'SIMULATED_SENT',
@@ -280,14 +303,16 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
 
     // Record synthetic ConversationMessage for Inbox representation
     try {
-      let conversation = await Conversation.findOne({
-        ownerId: message.ownerId,
-        contactId: message.contactId
-      });
+      const convQuery = message.workspaceId
+        ? { workspaceId: message.workspaceId, contactId: message.contactId }
+        : { ownerId: message.ownerId, contactId: message.contactId };
+
+      let conversation = await Conversation.findOne(convQuery);
 
       if (!conversation) {
         conversation = await Conversation.create({
           ownerId: message.ownerId,
+          workspaceId: message.workspaceId || null,
           contactId: message.contactId,
           lastMessageAt: finishedAt,
           status: 'Open'
@@ -296,6 +321,7 @@ export async function processMessageJob(messageId, workerId = `msg-worker-${proc
 
       await ConversationMessage.create({
         ownerId: message.ownerId,
+        workspaceId: message.workspaceId || null,
         conversationId: conversation._id,
         contactId: message.contactId,
         direction: 'outbound',
@@ -512,17 +538,34 @@ export async function messageWorkerTick(workerId = `msg-worker-${process.pid}`) 
       }
     }
 
-    // 4. Batch Processing: Process queued messages
-    for (let i = 0; i < 15; i++) {
-      const candidate = await Message.findOne({ status: 'QUEUED' })
-        .sort({ createdAt: 1 })
-        .select('_id')
-        .lean();
+    // 4. Batch Processing with Multi-Tenant Fairness:
+    // Interleave processing across distinct workspaces to prevent one tenant from monopolizing the worker
+    const activeWorkspaces = await Message.distinct('workspaceId', { status: 'QUEUED', workspaceId: { $ne: null } });
+    if (activeWorkspaces && activeWorkspaces.length > 1) {
+      let turns = 0;
+      for (const wsId of activeWorkspaces) {
+        if (turns >= 15) break;
+        const candidate = await Message.findOne({ status: 'QUEUED', workspaceId: wsId })
+          .sort({ createdAt: 1 })
+          .select('_id')
+          .lean();
+        if (candidate) {
+          await processMessageJob(candidate._id, workerId);
+          turns++;
+        }
+      }
+    } else {
+      for (let i = 0; i < 15; i++) {
+        const candidate = await Message.findOne({ status: 'QUEUED' })
+          .sort({ createdAt: 1 })
+          .select('_id')
+          .lean();
 
-      if (!candidate) break;
+        if (!candidate) break;
 
-      const processed = await processMessageJob(candidate._id, workerId);
-      if (!processed) break;
+        const processed = await processMessageJob(candidate._id, workerId);
+        if (!processed) break;
+      }
     }
 
   } catch (err) {
@@ -575,8 +618,13 @@ export function stopMessageWorker() {
 /**
  * Returns comprehensive queue health and operational metrics.
  */
-export async function getQueueHealth(ownerId = null) {
-  const query = ownerId ? { ownerId } : {};
+export async function getQueueHealth(ownerId = null, workspaceId = null) {
+  let query = {};
+  if (workspaceId) {
+    query = { workspaceId };
+  } else if (ownerId) {
+    query = { ownerId };
+  }
 
   const [counts, processingCount] = await Promise.all([
     Message.aggregate([

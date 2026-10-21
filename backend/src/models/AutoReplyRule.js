@@ -7,6 +7,11 @@ const autoReplyRuleSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    index: true
+  },
   name: {
     type: String,
     required: true,
@@ -81,5 +86,6 @@ const autoReplyRuleSchema = new mongoose.Schema({
 });
 
 autoReplyRuleSchema.index({ ownerId: 1, enabled: 1, priority: 1 });
+autoReplyRuleSchema.index({ workspaceId: 1, enabled: 1 });
 
 export default mongoose.model('AutoReplyRule', autoReplyRuleSchema);

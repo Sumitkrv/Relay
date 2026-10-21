@@ -21,14 +21,22 @@ import {
   Terminal,
   Play,
   CheckCircle,
+  CreditCard,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import settingsService from '../services/settings';
 import { getSystemMessagingStatus, runMockDiagnostic } from '../services/messages';
 import PageHeader from '../components/PageHeader';
 import DeveloperTestingCenter from '../components/DeveloperTestingCenter';
+import IndustryConfigHub from '../components/industry/IndustryConfigHub';
+import MockConnectionCard from '../components/mock/MockConnectionCard';
+import InboundSimulatorModal from '../components/mock/InboundSimulatorModal';
+import AutomationTestConsole from '../components/mock/AutomationTestConsole';
+import DemoJourneyProgress from '../components/mock/DemoJourneyProgress';
+import WhatsAppConnectionManager from '../components/whatsapp/WhatsAppConnectionManager';
+import BillingDashboard from '../components/billing/BillingDashboard';
 
-const VALID_TABS = ['profile', 'business', 'security', 'integrations', 'preferences', 'about', 'developer'];
+const VALID_TABS = ['profile', 'business', 'billing', 'security', 'integrations', 'whatsapp', 'preferences', 'about', 'developer'];
 
 const IANA_TIMEZONES = [
   'Asia/Kolkata',
@@ -52,11 +60,16 @@ const CALLING_CODES = [
 export default function SettingsPage() {
   const { user, updateUser, refreshUser } = useAuth();
 
-  // Active tab synchronized with URL hash
-  const [activeTab, setActiveTab] = useState(() => {
+  const resolveTab = () => {
+    const path = window.location.pathname.toLowerCase();
+    if (path.endsWith('/billing')) return 'billing';
+    if (path.endsWith('/whatsapp')) return 'whatsapp';
     const hash = window.location.hash.replace('#', '').toLowerCase();
     return VALID_TABS.includes(hash) ? hash : 'profile';
-  });
+  };
+
+  // Active tab synchronized with URL hash
+  const [activeTab, setActiveTab] = useState(resolveTab);
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -67,6 +80,10 @@ export default function SettingsPage() {
 
   // System Readiness Overview
   const [systemStatus, setSystemStatus] = useState(null);
+
+  // Simulation Modals (SaaS Prompt 8)
+  const [showInboundModal, setShowInboundModal] = useState(false);
+  const [showTestConsole, setShowTestConsole] = useState(false);
 
   // Tab 1: Profile State
   const [profileName, setProfileName] = useState(user?.name || '');
@@ -141,6 +158,15 @@ export default function SettingsPage() {
   // Sync hash deep-linking with browser history
   useEffect(() => {
     const handleHash = () => {
+      const path = window.location.pathname.toLowerCase();
+      if (path.endsWith('/billing')) {
+        setActiveTab('billing');
+        return;
+      }
+      if (path.endsWith('/whatsapp')) {
+        setActiveTab('whatsapp');
+        return;
+      }
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (VALID_TABS.includes(hash)) {
         setActiveTab(hash);
@@ -439,6 +465,14 @@ export default function SettingsPage() {
             aria-selected={activeTab === 'business'}
           >
             <Building2 size={16} /> Business Profile
+          </button>
+          <button
+            type="button"
+            className={`settings-nav-item ${activeTab === 'billing' ? 'active selected' : ''}`}
+            onClick={() => switchTab('billing')}
+            aria-selected={activeTab === 'billing'}
+          >
+            <CreditCard size={16} /> Subscription &amp; Billing
           </button>
           <button
             type="button"
@@ -898,6 +932,10 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </form>
+
+              <div style={{ marginTop: '28px', borderTop: '1px solid var(--color-border-subtle)', paddingTop: '24px' }}>
+                <IndustryConfigHub />
+              </div>
             </section>
           )}
 
@@ -1200,7 +1238,7 @@ export default function SettingsPage() {
           )}
 
           {/* TAB 4: WHATSAPP INTEGRATION PANEL */}
-          {activeTab === 'integrations' && (
+          {(activeTab === 'integrations' || activeTab === 'whatsapp') && (
             <section className="panel settings-panel" id="integrations" aria-labelledby="tab-integrations">
               <div
                 style={{
@@ -1210,7 +1248,7 @@ export default function SettingsPage() {
                 }}
               >
                 <h2 style={{ fontSize: '18px', fontWeight: 700 }} id="tab-integrations">
-                  WhatsApp Cloud API Integration
+                  WhatsApp Cloud API &amp; Connection Manager
                 </h2>
                 <p
                   style={{
@@ -1219,11 +1257,25 @@ export default function SettingsPage() {
                     margin: '4px 0 0',
                   }}
                 >
-                  Inspect Meta WhatsApp Business connection state, sending engine mode, and webhook readiness.
+                  Manage per-business WhatsApp senders, official coexistence onboarding, and test automation safely.
                 </p>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '880px' }}>
+                {/* Complete Per-Business WhatsApp Connection Manager (SaaS Prompt 9) */}
+                <WhatsAppConnectionManager workspace={user} />
+
+                {/* Multi-Tenant WhatsApp Mock Engine (SaaS Prompt 8) */}
+                <MockConnectionCard
+                  onOpenInboundModal={() => setShowInboundModal(true)}
+                  onOpenTestConsole={() => setShowTestConsole(true)}
+                />
+
+                <DemoJourneyProgress
+                  onOpenInboundModal={() => setShowInboundModal(true)}
+                  onOpenTestConsole={() => setShowTestConsole(true)}
+                />
+
                 {/* Official API and Mode Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
                   <div
@@ -1980,8 +2032,24 @@ export default function SettingsPage() {
           {activeTab === 'developer' && (
             <DeveloperTestingCenter />
           )}
+
+          {/* TAB: SUBSCRIPTION & BILLING */}
+          {activeTab === 'billing' && (
+            <BillingDashboard />
+          )}
         </div>
       </div>
+
+      {/* Simulation Modals (SaaS Prompt 8) */}
+      <InboundSimulatorModal
+        isOpen={showInboundModal}
+        onClose={() => setShowInboundModal(false)}
+        onComplete={() => fetchMessagingHealth && fetchMessagingHealth()}
+      />
+      <AutomationTestConsole
+        isOpen={showTestConsole}
+        onClose={() => setShowTestConsole(false)}
+      />
     </div>
   );
 }

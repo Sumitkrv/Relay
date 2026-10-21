@@ -7,6 +7,11 @@ const ruleExecutionSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    index: true
+  },
   conversationId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Conversation',
@@ -65,5 +70,7 @@ const ruleExecutionSchema = new mongoose.Schema({
 });
 
 ruleExecutionSchema.index({ ownerId: 1, conversationId: 1, createdAt: -1 });
+ruleExecutionSchema.index({ workspaceId: 1, conversationId: 1, createdAt: -1 });
+ruleExecutionSchema.index({ workspaceId: 1, ruleId: 1, createdAt: -1 });
 
 export default mongoose.model('RuleExecution', ruleExecutionSchema);

@@ -52,9 +52,11 @@ export function interpolateVariables(templateText, contact = {}, user = {}) {
 
   const vars = {
     name: fullName,
+    customer_name: fullName,
     first_name: firstName,
     city,
     project,
+    service_name: contact.interestedService || contact.industry || 'services',
     property_type: propertyType,
     business_name: businessName
   };

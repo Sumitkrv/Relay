@@ -29,6 +29,7 @@
     "libphonenumber-js": "^1.13.15",
     "mongoose": "^8.9.5",
     "multer": "^2.4.0",
+    "razorpay": "^2.9.8",
     "yauzl": "^3.4.0"
   },
   "devDependencies": {
