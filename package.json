@@ -1,0 +1,31 @@
+{
+  "name": "freelance-whatsapp-automation-crm",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "dev:backend": "npm --prefix backend run dev",
+    "start:backend": "npm --prefix backend start",
+    "demo:seed": "npm --prefix backend run seed:demo",
+    "demo:reset": "npm --prefix backend run demo:reset",
+    "test:unit": "npm --prefix backend test",
+    "test:integration": "npm --prefix backend test",
+    "test:mock-provider": "node --test backend/test/prompt5MessagingEngine.test.js",
+    "test:all": "node --test backend/test/*.test.js && node --test frontend/test/*.test.js",
+    "saas:migration:status": "node backend/src/scripts/migrateM2WWorkspace.js --status",
+    "saas:migration:dry-run": "node backend/src/scripts/migrateM2WWorkspace.js --dry-run",
+    "saas:migration:execute": "node backend/src/scripts/migrateM2WWorkspace.js --execute",
+    "saas:migration:verify": "node backend/src/scripts/migrateM2WWorkspace.js --verify",
+    "saas:migration:rollback": "node backend/src/scripts/migrateM2WWorkspace.js --rollback"
+  },
+  "description": "Relay — Single-Operator Real Estate WhatsApp Automation CRM. Production-structured with complete internal operations and offline Mock WhatsApp Provider.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

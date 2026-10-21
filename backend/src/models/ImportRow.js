@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,required:true,index:true},importJobId:{type:mongoose.Schema.Types.ObjectId,ref:'ImportJob',required:true,index:true},sheetName:{type:String,required:true},sourceRowNumber:{type:Number,required:true},raw:{type:mongoose.Schema.Types.Mixed,default:{}},normalized:{type:mongoose.Schema.Types.Mixed,default:{}},status:{type:String,default:'staged',index:true},errors:{type:[mongoose.Schema.Types.Mixed],default:[]},existingContactId:{type:mongoose.Schema.Types.ObjectId,ref:'Contact',default:null},contactId:{type:mongoose.Schema.Types.ObjectId,ref:'Contact',default:null},updatedAt:{type:Date,default:Date.now}},{timestamps:true,suppressReservedKeysWarning:true});
+schema.index({importJobId:1,sheetName:1,sourceRowNumber:1},{unique:true});schema.index({ownerId:1,importJobId:1,status:1});
+export default mongoose.model('ImportRow',schema);

@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},name:{type:String,required:true,trim:true,minlength:3,maxlength:120},description:{type:String,trim:true,default:'',maxlength:800},status:{type:String,enum:['Draft','Validated','Published','Active','Paused','Archived'],default:'Draft',index:true},activeVersionId:{type:mongoose.Schema.Types.ObjectId,ref:'WorkflowVersion',default:null},draftVersionId:{type:mongoose.Schema.Types.ObjectId,ref:'WorkflowVersion',default:null},triggerSummary:{type:String,default:'Manual Trigger'},createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},archivedAt:Date},{timestamps:true});
+schema.index({ownerId:1,status:1,updatedAt:-1});
+export default mongoose.model('AutomationWorkflow',schema);

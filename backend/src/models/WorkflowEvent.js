@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},workflowId:{type:mongoose.Schema.Types.ObjectId,ref:'AutomationWorkflow',required:true,index:true},executionId:{type:mongoose.Schema.Types.ObjectId,ref:'WorkflowExecution',default:null,index:true},contactId:{type:mongoose.Schema.Types.ObjectId,ref:'Contact',default:null,index:true},nodeId:{type:String,default:''},eventType:{type:String,required:true,maxlength:80},metadata:{type:mongoose.Schema.Types.Mixed,default:{}}},{timestamps:{createdAt:true,updatedAt:false}});schema.index({ownerId:1,executionId:1,nodeId:1,eventType:1},{unique:true,sparse:true});
+export default mongoose.model('WorkflowEvent',schema);

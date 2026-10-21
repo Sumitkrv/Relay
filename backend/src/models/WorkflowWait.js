@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},executionId:{type:mongoose.Schema.Types.ObjectId,ref:'WorkflowExecution',required:true,index:true},nodeId:{type:String,required:true},nextNodeId:{type:String,default:''},resumeAt:{type:Date,required:true,index:true},timezone:{type:String,required:true,default:'UTC'},status:{type:String,enum:['Waiting','Ready','Resumed','Cancelled','Expired'],default:'Waiting',index:true}},{timestamps:true});schema.index({status:1,resumeAt:1});
+export default mongoose.model('WorkflowWait',schema);

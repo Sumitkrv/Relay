@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},importJobId:{type:mongoose.Schema.Types.ObjectId,ref:'ImportJob',required:true,index:true},sourceSheet:{type:String,default:''},sourceRowNumber:{type:Number,required:true},errorCode:{type:String,required:true},errorMessage:{type:String,required:true,maxlength:1000},suggestedCorrection:{type:String,default:'',maxlength:500},safeRowSnapshot:{type:mongoose.Schema.Types.Mixed,default:{}}},{timestamps:true});schema.index({importJobId:1,sourceSheet:1,sourceRowNumber:1,errorCode:1},{unique:true});
+export default mongoose.model('ImportError',schema);

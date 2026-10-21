@@ -1,0 +1,3492 @@
+{
+  "backupId": "bkp_freelance_automation_crm_1792515290811",
+  "databaseName": "freelance_automation_crm",
+  "createdAt": "2026-10-20T16:54:50.811Z",
+  "collectionCount": 66,
+  "collections": [
+    {
+      "name": "userpreferences",
+      "documentCount": 1,
+      "indexCount": 2,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "userpreferences.json"
+    },
+    {
+      "name": "messageevents",
+      "documentCount": 130,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "messageId": 1
+          },
+          "name": "messageId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "timestamp": 1
+          },
+          "name": "timestamp_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "messageId": 1,
+            "timestamp": -1
+          },
+          "name": "ownerId_1_messageId_1_timestamp_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "eventType": 1,
+            "timestamp": -1
+          },
+          "name": "ownerId_1_eventType_1_timestamp_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "messageevents.json"
+    },
+    {
+      "name": "contactgroups",
+      "documentCount": 8,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "normalizedName": 1
+          },
+          "name": "ownerId_1_normalizedName_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_updatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "contactgroups.json"
+    },
+    {
+      "name": "audiencesegments",
+      "documentCount": 6,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "segmentType": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_segmentType_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true
+        }
+      ],
+      "dataFile": "audiencesegments.json"
+    },
+    {
+      "name": "importjobs",
+      "documentCount": 2,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "importjobs.json"
+    },
+    {
+      "name": "templatemedias",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "storageKey": 1
+          },
+          "name": "storageKey_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "mediaType": 1
+          },
+          "name": "mediaType_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "storageStatus": 1
+          },
+          "name": "storageStatus_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "storageStatus": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_storageStatus_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "templatemedias.json"
+    },
+    {
+      "name": "workflowwaits",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "executionId": 1
+          },
+          "name": "executionId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "resumeAt": 1
+          },
+          "name": "resumeAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "resumeAt": 1
+          },
+          "name": "status_1_resumeAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "workflowwaits.json"
+    },
+    {
+      "name": "messagetemplates",
+      "documentCount": 14,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isArchived": 1
+          },
+          "name": "isArchived_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "isArchived": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_isArchived_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "businessCategory": 1,
+            "intendedService": 1
+          },
+          "name": "ownerId_1_businessCategory_1_intendedService_1",
+          "background": true
+        }
+      ],
+      "dataFile": "messagetemplates.json"
+    },
+    {
+      "name": "campaignaudiences",
+      "documentCount": 60,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignId": 1
+          },
+          "name": "campaignId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "snapshotVersion": 1,
+            "contactId": 1
+          },
+          "name": "ownerId_1_campaignId_1_snapshotVersion_1_contactId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "snapshotVersion": 1,
+            "eligibilityStatus": 1,
+            "contactId": 1
+          },
+          "name": "ownerId_1_campaignId_1_snapshotVersion_1_eligibilityStatus_1_contactId_1",
+          "background": true
+        }
+      ],
+      "dataFile": "campaignaudiences.json"
+    },
+    {
+      "name": "contactactivities",
+      "documentCount": 12,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_contactId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "contactactivities.json"
+    },
+    {
+      "name": "chatbottestsessions",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "chatbotId": 1
+          },
+          "name": "chatbotId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "chatbotId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_chatbotId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "chatbottestsessions.json"
+    },
+    {
+      "name": "leadconversions",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "conversionType": 1
+          },
+          "name": "ownerId_1_contactId_1_conversionType_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "convertedAt": -1
+          },
+          "name": "ownerId_1_convertedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "leadconversions.json"
+    },
+    {
+      "name": "deals",
+      "documentCount": 0,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "stageId": 1
+          },
+          "name": "stageId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "stageId": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_stageId_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_contactId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "archivedAt": 1,
+            "expectedCloseAt": 1
+          },
+          "name": "ownerId_1_archivedAt_1_expectedCloseAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "deals.json"
+    },
+    {
+      "name": "reportgenerations",
+      "documentCount": 32,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "savedReportId": 1
+          },
+          "name": "savedReportId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "expiresAt": 1
+          },
+          "name": "expiresAt_1",
+          "background": true,
+          "expireAfterSeconds": 0
+        }
+      ],
+      "dataFile": "reportgenerations.json"
+    },
+    {
+      "name": "chatbotversions",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "chatbotId": 1
+          },
+          "name": "chatbotId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "chatbotId": 1,
+            "versionNumber": 1
+          },
+          "name": "ownerId_1_chatbotId_1_versionNumber_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "chatbotversions.json"
+    },
+    {
+      "name": "users",
+      "documentCount": 2,
+      "indexCount": 2,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "email": 1
+          },
+          "name": "email_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "users.json"
+    },
+    {
+      "name": "proposaltemplates",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "proposaltemplates.json"
+    },
+    {
+      "name": "leadscoringrulehistories",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "version": -1
+          },
+          "name": "ownerId_1_version_-1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "leadscoringrulehistories.json"
+    },
+    {
+      "name": "importmappingpresets",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "importmappingpresets.json"
+    },
+    {
+      "name": "leadscoringrulesets",
+      "documentCount": 2,
+      "indexCount": 2,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "leadscoringrulesets.json"
+    },
+    {
+      "name": "importrows",
+      "documentCount": 2,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "importJobId": 1
+          },
+          "name": "importJobId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "importJobId": 1,
+            "sheetName": 1,
+            "sourceRowNumber": 1
+          },
+          "name": "importJobId_1_sheetName_1_sourceRowNumber_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "importJobId": 1,
+            "status": 1
+          },
+          "name": "ownerId_1_importJobId_1_status_1",
+          "background": true
+        }
+      ],
+      "dataFile": "importrows.json"
+    },
+    {
+      "name": "audiencesegmentmembers",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "segmentId": 1
+          },
+          "name": "segmentId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "segmentId": 1,
+            "contactId": 1
+          },
+          "name": "ownerId_1_segmentId_1_contactId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "audiencesegmentmembers.json"
+    },
+    {
+      "name": "campaignmessagejobs",
+      "documentCount": 60,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "executionId": 1
+          },
+          "name": "executionId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "executionId": 1,
+            "contactId": 1
+          },
+          "name": "ownerId_1_executionId_1_contactId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "leaseUntil": 1,
+            "createdAt": 1
+          },
+          "name": "status_1_leaseUntil_1_createdAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "campaignmessagejobs.json"
+    },
+    {
+      "name": "workflowevents",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workflowId": 1
+          },
+          "name": "workflowId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "executionId": 1
+          },
+          "name": "executionId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "executionId": 1,
+            "nodeId": 1,
+            "eventType": 1
+          },
+          "name": "ownerId_1_executionId_1_nodeId_1_eventType_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        }
+      ],
+      "dataFile": "workflowevents.json"
+    },
+    {
+      "name": "campaignactivities",
+      "documentCount": 68,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignId": 1
+          },
+          "name": "campaignId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_campaignId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "campaignactivities.json"
+    },
+    {
+      "name": "proposals",
+      "documentCount": 0,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "dealId": 1
+          },
+          "name": "dealId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "proposalNumber": 1
+          },
+          "name": "ownerId_1_proposalNumber_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "dealId": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_dealId_1_updatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "proposals.json"
+    },
+    {
+      "name": "conversations",
+      "documentCount": 7,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "lastActivityAt": -1
+          },
+          "name": "ownerId_1_lastActivityAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "lastActivityAt": -1
+          },
+          "name": "ownerId_1_status_1_lastActivityAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "source": 1,
+            "status": 1
+          },
+          "name": "ownerId_1_contactId_1_source_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "activeWorkspaceKey": 1
+          },
+          "name": "activeWorkspaceKey_1",
+          "background": true,
+          "unique": true,
+          "partialFilterExpression": {
+            "activeWorkspaceKey": {
+              "$type": "string"
+            }
+          }
+        }
+      ],
+      "dataFile": "conversations.json"
+    },
+    {
+      "name": "conversationactivities",
+      "documentCount": 188,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_conversationId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "conversationactivities.json"
+    },
+    {
+      "name": "workflowsettings",
+      "documentCount": 2,
+      "indexCount": 2,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "workflowsettings.json"
+    },
+    {
+      "name": "leadscores",
+      "documentCount": 5,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1
+          },
+          "name": "ownerId_1_contactId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "score": -1,
+            "calculatedAt": -1
+          },
+          "name": "ownerId_1_score_-1_calculatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "leadscores.json"
+    },
+    {
+      "name": "leadscorehistories",
+      "documentCount": 5,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_contactId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "leadscorehistories.json"
+    },
+    {
+      "name": "crminsights",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "insightKey": 1
+          },
+          "name": "ownerId_1_insightKey_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "crminsights.json"
+    },
+    {
+      "name": "workflowschedules",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workflowId": 1
+          },
+          "name": "workflowId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "nextRunAt": 1
+          },
+          "name": "nextRunAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "nextRunAt": 1,
+            "leaseUntil": 1
+          },
+          "name": "status_1_nextRunAt_1_leaseUntil_1",
+          "background": true
+        }
+      ],
+      "dataFile": "workflowschedules.json"
+    },
+    {
+      "name": "workflowversions",
+      "documentCount": 8,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workflowId": 1
+          },
+          "name": "workflowId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "workflowId": 1,
+            "versionNumber": 1
+          },
+          "name": "ownerId_1_workflowId_1_versionNumber_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "workflowversions.json"
+    },
+    {
+      "name": "internalnotes",
+      "documentCount": 35,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_conversationId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_contactId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "workflowExecutionId": 1,
+            "workflowNodeId": 1
+          },
+          "name": "ownerId_1_workflowExecutionId_1_workflowNodeId_1",
+          "background": true,
+          "unique": true,
+          "partialFilterExpression": {
+            "workflowExecutionId": {
+              "$type": "objectId"
+            }
+          }
+        }
+      ],
+      "dataFile": "internalnotes.json"
+    },
+    {
+      "name": "workspaces",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "slug": 1
+          },
+          "name": "slug_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdBy": 1
+          },
+          "name": "createdBy_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "status_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "createdBy": 1,
+            "status": 1
+          },
+          "name": "createdBy_1_status_1",
+          "background": true
+        }
+      ],
+      "dataFile": "workspaces.json"
+    },
+    {
+      "name": "leadscorejobs",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1
+          },
+          "name": "ownerId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "activeKey": 1
+          },
+          "name": "activeKey_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        }
+      ],
+      "dataFile": "leadscorejobs.json"
+    },
+    {
+      "name": "campaigns",
+      "documentCount": 10,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_status_1_updatedAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "activeExecutionId": 1
+          },
+          "name": "activeExecutionId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "mockSchedule.status": 1,
+            "mockSchedule.startAt": 1
+          },
+          "name": "ownerId_1_mockSchedule.status_1_mockSchedule.startAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "campaigns.json"
+    },
+    {
+      "name": "dealconversions",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "dealId": 1
+          },
+          "name": "ownerId_1_dealId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "convertedAt": -1
+          },
+          "name": "ownerId_1_convertedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "dealconversions.json"
+    },
+    {
+      "name": "followuptasks",
+      "documentCount": 0,
+      "indexCount": 12,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "dueAt": 1
+          },
+          "name": "dueAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "dueAt": 1
+          },
+          "name": "ownerId_1_status_1_dueAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1,
+            "dueAt": 1
+          },
+          "name": "ownerId_1_conversationId_1_dueAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "recommendationId": 1
+          },
+          "name": "ownerId_1_recommendationId_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "dealId": 1
+          },
+          "name": "dealId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "proposalId": 1
+          },
+          "name": "proposalId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "dealId": 1,
+            "dueAt": 1
+          },
+          "name": "ownerId_1_dealId_1_dueAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "workflowExecutionId": 1,
+            "workflowNodeId": 1
+          },
+          "name": "ownerId_1_workflowExecutionId_1_workflowNodeId_1",
+          "background": true,
+          "unique": true,
+          "partialFilterExpression": {
+            "workflowExecutionId": {
+              "$type": "objectId"
+            }
+          }
+        }
+      ],
+      "dataFile": "followuptasks.json"
+    },
+    {
+      "name": "proposalversions",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "proposalId": 1
+          },
+          "name": "proposalId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "proposalId": 1,
+            "versionNumber": 1
+          },
+          "name": "ownerId_1_proposalId_1_versionNumber_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "proposalversions.json"
+    },
+    {
+      "name": "contactcategories",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "normalizedName": 1
+          },
+          "name": "ownerId_1_normalizedName_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "contactcategories.json"
+    },
+    {
+      "name": "workflowexecutions",
+      "documentCount": 0,
+      "indexCount": 9,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workflowId": 1
+          },
+          "name": "workflowId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "triggerEventId": 1
+          },
+          "name": "ownerId_1_triggerEventId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "leaseUntil": 1,
+            "updatedAt": 1
+          },
+          "name": "status_1_leaseUntil_1_updatedAt_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "workflowId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_workflowId_1_contactId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "resumeAt": 1
+          },
+          "name": "status_1_resumeAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "workflowexecutions.json"
+    },
+    {
+      "name": "contacts",
+      "documentCount": 71,
+      "indexCount": 22,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isArchived": 1
+          },
+          "name": "isArchived_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isDeleted": 1
+          },
+          "name": "isDeleted_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "phoneNumber": 1
+          },
+          "name": "owner_phone_unique",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "isDeleted": 1,
+            "isArchived": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_isDeleted_1_isArchived_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "leadStatus": 1,
+            "priority": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_leadStatus_1_priority_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "tags": 1
+          },
+          "name": "ownerId_1_tags_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "fullName": 1
+          },
+          "name": "ownerId_1_fullName_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "email": 1
+          },
+          "name": "ownerId_1_email_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "companyName": 1
+          },
+          "name": "ownerId_1_companyName_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "interestedService": 1
+          },
+          "name": "ownerId_1_interestedService_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "location": 1
+          },
+          "name": "ownerId_1_location_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "businessCategory": 1,
+            "businessSubcategory": 1
+          },
+          "name": "ownerId_1_businessCategory_1_businessSubcategory_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "clientClassification": 1
+          },
+          "name": "clientClassification_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isSuppressed": 1
+          },
+          "name": "isSuppressed_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isDemo": 1
+          },
+          "name": "isDemo_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "city": 1
+          },
+          "name": "ownerId_1_city_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "interestedProject": 1
+          },
+          "name": "ownerId_1_interestedProject_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "groups": 1
+          },
+          "name": "ownerId_1_groups_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "isSuppressed": 1
+          },
+          "name": "ownerId_1_isSuppressed_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "isDemo": 1
+          },
+          "name": "ownerId_1_isDemo_1",
+          "background": true
+        }
+      ],
+      "dataFile": "contacts.json"
+    },
+    {
+      "name": "ruleexecutions",
+      "documentCount": 165,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_conversationId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "ruleexecutions.json"
+    },
+    {
+      "name": "automationworkflows",
+      "documentCount": 8,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_status_1_updatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "automationworkflows.json"
+    },
+    {
+      "name": "messagedrafts",
+      "documentCount": 2,
+      "indexCount": 2,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1
+          },
+          "name": "ownerId_1_conversationId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "messagedrafts.json"
+    },
+    {
+      "name": "messages",
+      "documentCount": 61,
+      "indexCount": 15,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "messageId": 1
+          },
+          "name": "messageId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignId": 1
+          },
+          "name": "campaignId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignRunId": 1
+          },
+          "name": "campaignRunId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignJobId": 1
+          },
+          "name": "campaignJobId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "idempotencyKey": 1
+          },
+          "name": "idempotencyKey_1",
+          "background": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_status_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_campaignId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignRunId": 1,
+            "status": 1
+          },
+          "name": "ownerId_1_campaignRunId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_contactId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "idempotencyKey": 1
+          },
+          "name": "ownerId_1_idempotencyKey_1",
+          "background": true,
+          "unique": true,
+          "sparse": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1,
+            "leaseUntil": 1,
+            "scheduledAt": 1,
+            "nextRetryAt": 1
+          },
+          "name": "status_1_leaseUntil_1_scheduledAt_1_nextRetryAt_1",
+          "background": true
+        }
+      ],
+      "dataFile": "messages.json"
+    },
+    {
+      "name": "inboxnotifications",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "recipientUserId": 1
+          },
+          "name": "recipientUserId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "recipientUserId": 1,
+            "isRead": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_recipientUserId_1_isRead_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "inboxnotifications.json"
+    },
+    {
+      "name": "quickreplies",
+      "documentCount": 20,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "category": 1
+          },
+          "name": "category_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "isActive": 1
+          },
+          "name": "isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "category": 1,
+            "isActive": 1
+          },
+          "name": "ownerId_1_category_1_isActive_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true
+        }
+      ],
+      "dataFile": "quickreplies.json"
+    },
+    {
+      "name": "securityauditlogs",
+      "documentCount": 65,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "action": 1
+          },
+          "name": "action_1",
+          "background": true
+        }
+      ],
+      "dataFile": "securityauditlogs.json"
+    },
+    {
+      "name": "followuprecommendations",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "recommendationKey": 1
+          },
+          "name": "ownerId_1_recommendationKey_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_status_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "followuprecommendations.json"
+    },
+    {
+      "name": "campaignexecutions",
+      "documentCount": 1,
+      "indexCount": 7,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "campaignId": 1
+          },
+          "name": "campaignId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "status": 1
+          },
+          "name": "ownerId_1_campaignId_1_status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_campaignId_1_createdAt_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "campaignId": 1,
+            "scheduledFor": 1
+          },
+          "name": "ownerId_1_campaignId_1_scheduledFor_1",
+          "background": true,
+          "unique": true,
+          "partialFilterExpression": {
+            "trigger": "scheduled"
+          }
+        }
+      ],
+      "dataFile": "campaignexecutions.json"
+    },
+    {
+      "name": "savedreports",
+      "documentCount": 0,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_updatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "savedreports.json"
+    },
+    {
+      "name": "businessprofiles",
+      "documentCount": 1,
+      "indexCount": 3,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workspaceId": 1
+          },
+          "name": "workspaceId_1",
+          "background": true
+        }
+      ],
+      "dataFile": "businessprofiles.json"
+    },
+    {
+      "name": "importerrors",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "importJobId": 1
+          },
+          "name": "importJobId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "importJobId": 1,
+            "sourceRowNumber": 1,
+            "errorCode": 1
+          },
+          "name": "importJobId_1_sourceRowNumber_1_errorCode_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "importJobId": 1,
+            "sourceSheet": 1,
+            "sourceRowNumber": 1,
+            "errorCode": 1
+          },
+          "name": "importJobId_1_sourceSheet_1_sourceRowNumber_1_errorCode_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "importerrors.json"
+    },
+    {
+      "name": "templateversions",
+      "documentCount": 5,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "templateId": 1
+          },
+          "name": "templateId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "templateId": 1,
+            "versionNumber": -1
+          },
+          "name": "ownerId_1_templateId_1_versionNumber_-1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "templateversions.json"
+    },
+    {
+      "name": "autoreplyrules",
+      "documentCount": 12,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "priority": 1
+          },
+          "name": "priority_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "enabled": 1
+          },
+          "name": "enabled_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "enabled": 1,
+            "priority": 1
+          },
+          "name": "ownerId_1_enabled_1_priority_1",
+          "background": true
+        }
+      ],
+      "dataFile": "autoreplyrules.json"
+    },
+    {
+      "name": "dealactivities",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "dealId": 1
+          },
+          "name": "dealId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "dealId": 1,
+            "createdAt": -1
+          },
+          "name": "ownerId_1_dealId_1_createdAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "dealactivities.json"
+    },
+    {
+      "name": "consentrecords",
+      "documentCount": 26,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "contactId": 1,
+            "recordedAt": -1
+          },
+          "name": "ownerId_1_contactId_1_recordedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "consentrecords.json"
+    },
+    {
+      "name": "pipelinestages",
+      "documentCount": 8,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "position": 1
+          },
+          "name": "ownerId_1_position_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "name": 1
+          },
+          "name": "ownerId_1_name_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "pipelinestages.json"
+    },
+    {
+      "name": "conversationmessages",
+      "documentCount": 8,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "conversationId": 1
+          },
+          "name": "conversationId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "contactId": 1
+          },
+          "name": "contactId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "conversationId": 1,
+            "occurredAt": -1,
+            "_id": -1
+          },
+          "name": "ownerId_1_conversationId_1_occurredAt_-1__id_-1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "_fts": "text",
+            "_ftsx": 1
+          },
+          "name": "ownerId_1_messageBody_text",
+          "background": true,
+          "weights": {
+            "messageBody": 1
+          },
+          "default_language": "english",
+          "language_override": "language",
+          "textIndexVersion": 3
+        }
+      ],
+      "dataFile": "conversationmessages.json"
+    },
+    {
+      "name": "chatbotdefinitions",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "status": 1,
+            "updatedAt": -1
+          },
+          "name": "ownerId_1_status_1_updatedAt_-1",
+          "background": true
+        }
+      ],
+      "dataFile": "chatbotdefinitions.json"
+    },
+    {
+      "name": "workspacememberships",
+      "documentCount": 0,
+      "indexCount": 6,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "workspaceId": 1
+          },
+          "name": "workspaceId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1
+          },
+          "name": "userId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "workspaceId": 1,
+            "userId": 1
+          },
+          "name": "workspaceId_1_userId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "userId": 1,
+            "status": 1
+          },
+          "name": "userId_1_status_1",
+          "background": true
+        }
+      ],
+      "dataFile": "workspacememberships.json"
+    },
+    {
+      "name": "migrationcheckpoints",
+      "documentCount": 0,
+      "indexCount": 5,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "migrationId": 1
+          },
+          "name": "migrationId_1",
+          "background": true,
+          "unique": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "status": 1
+          },
+          "name": "status_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "verifiedOwnerId": 1
+          },
+          "name": "verifiedOwnerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "targetWorkspaceId": 1
+          },
+          "name": "targetWorkspaceId_1",
+          "background": true
+        }
+      ],
+      "dataFile": "migrationcheckpoints.json"
+    },
+    {
+      "name": "workflowstepexecutions",
+      "documentCount": 0,
+      "indexCount": 4,
+      "indexes": [
+        {
+          "v": 2,
+          "key": {
+            "_id": 1
+          },
+          "name": "_id_"
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1
+          },
+          "name": "ownerId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "executionId": 1
+          },
+          "name": "executionId_1",
+          "background": true
+        },
+        {
+          "v": 2,
+          "key": {
+            "ownerId": 1,
+            "executionId": 1,
+            "nodeId": 1
+          },
+          "name": "ownerId_1_executionId_1_nodeId_1",
+          "background": true,
+          "unique": true
+        }
+      ],
+      "dataFile": "workflowstepexecutions.json"
+    }
+  ],
+  "totalDocuments": 1112,
+  "status": "COMPLETED"
+}

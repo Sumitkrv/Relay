@@ -1,0 +1,10 @@
+[
+{"_id":"6ad5b0c5e9d039808e1c8c6f","ownerId":"6ad4721f6b71d66171962808","name":"New Opportunity","position":0,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.834Z","updatedAt":"2026-10-19T05:55:17.834Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c70","ownerId":"6ad4721f6b71d66171962808","name":"Contacted","position":1,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.834Z","updatedAt":"2026-10-19T05:55:17.834Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c71","ownerId":"6ad4721f6b71d66171962808","name":"Interested","position":2,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.834Z","updatedAt":"2026-10-19T05:55:17.834Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c72","ownerId":"6ad4721f6b71d66171962808","name":"Requirements Discussion","position":3,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.835Z","updatedAt":"2026-10-19T05:55:17.835Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c73","ownerId":"6ad4721f6b71d66171962808","name":"Proposal Sent","position":4,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.835Z","updatedAt":"2026-10-19T05:55:17.835Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c74","ownerId":"6ad4721f6b71d66171962808","name":"Negotiation","position":5,"category":"open","isTerminal":false,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.835Z","updatedAt":"2026-10-19T05:55:17.835Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c75","ownerId":"6ad4721f6b71d66171962808","name":"Won","position":6,"category":"won","isTerminal":true,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.835Z","updatedAt":"2026-10-19T05:55:17.835Z"},
+{"_id":"6ad5b0c5e9d039808e1c8c76","ownerId":"6ad4721f6b71d66171962808","name":"Lost","position":7,"category":"lost","isTerminal":true,"isArchived":false,"__v":0,"createdAt":"2026-10-19T05:55:17.835Z","updatedAt":"2026-10-19T05:55:17.835Z"}
+]

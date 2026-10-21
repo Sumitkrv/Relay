@@ -1,0 +1,5 @@
+import mongoose from 'mongoose';
+import { CONSENT_STATUSES } from './Contact.js';
+const consentRecordSchema=new mongoose.Schema({ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},workspaceId:{type:mongoose.Schema.Types.ObjectId,ref:'Workspace',index:true},contactId:{type:mongoose.Schema.Types.ObjectId,ref:'Contact',required:true,index:true},status:{type:String,enum:CONSENT_STATUSES,required:true},consentPurpose:{type:String,required:true,trim:true,maxlength:240},consentedBusinessName:{type:String,trim:true,default:'',maxlength:120},consentSource:{type:String,required:true,trim:true,maxlength:160},evidenceReference:{type:String,trim:true,default:'',maxlength:1000},consentCapturedAt:{type:Date,required:true},recordedAt:{type:Date,default:Date.now,immutable:true},recordedBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true}},{timestamps:false});
+consentRecordSchema.index({ownerId:1,contactId:1,recordedAt:-1});
+export default mongoose.model('ConsentRecord',consentRecordSchema);

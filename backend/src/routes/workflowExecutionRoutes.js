@@ -1,0 +1,2 @@
+import {Router} from 'express';import {requireAuth} from '../middleware/auth.js';import {asyncHandler} from '../utils/asyncHandler.js';import {executionDetail,executionSteps,executionLogs,cancelExecution} from '../controllers/workflowController.js';
+const r=Router();r.use(requireAuth);r.get('/:id/steps',asyncHandler(executionSteps));r.get('/:id/logs',asyncHandler(executionLogs));r.post('/:id/cancel',asyncHandler(cancelExecution));r.get('/:id',asyncHandler(executionDetail));export default r;

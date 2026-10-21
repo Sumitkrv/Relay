@@ -1,0 +1,12 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import App from './App';
+import { AuthProvider } from './context/AuthContext';
+import { WorkspaceProvider } from './context/WorkspaceContext';
+import ErrorBoundary from './components/ErrorBoundary';
+import './styles.css';
+import './sales.css';
+import './importPage.css';
+createRoot(document.getElementById('root')).render(<React.StrictMode><BrowserRouter><AuthProvider><WorkspaceProvider><ErrorBoundary><App /><Toaster position="top-right" /></ErrorBoundary></WorkspaceProvider></AuthProvider></BrowserRouter></React.StrictMode>);

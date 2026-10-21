@@ -1,0 +1,13 @@
+import {Router} from 'express';
+import multer from 'multer';
+import rateLimit from 'express-rate-limit';
+import os from 'node:os';
+import fs from 'node:fs';
+import path from 'node:path';
+import {requireAuth} from '../middleware/auth.js';
+import {asyncHandler} from '../utils/asyncHandler.js';
+import * as c from '../controllers/importController.js';
+const router=Router();const tempDir=path.join(os.tmpdir(),'relay-imports');export async function cleanupImportTempFiles(){await fs.promises.mkdir(tempDir,{recursive:true,mode:0o700});const cutoff=Date.now()-24*60*60*1000;for(const name of await fs.promises.readdir(tempDir)){const file=path.join(tempDir,name);try{const stat=await fs.promises.stat(file);if(stat.isFile()&&stat.mtimeMs<cutoff)await fs.promises.unlink(file);}catch{}}}const storage=multer.diskStorage({destination(_req,_file,cb){fs.mkdir(tempDir,{recursive:true,mode:0o700},error=>{if(!error)fs.chmod(tempDir,0o700,()=>cb(null,tempDir));else cb(error);});},filename(_req,_file,cb){cb(null,`${Date.now()}-${Math.random().toString(36).slice(2)}.upload`);}});const upload=multer({storage,limits:{fileSize:Number(process.env.IMPORT_MAX_FILE_BYTES)||10*1024*1024,files:1},fileFilter(_req,file,cb){const ext=path.extname(file.originalname).toLowerCase();cb(ext==='.xlsx'||ext==='.csv'?null:Object.assign(new Error('Only .xlsx and .csv files are supported. Legacy .xls files are not accepted.'),{status:415}),true);}});const uploadLimit=rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:true,legacyHeaders:false,message:{message:'Upload limit reached. Try again later.'}});
+router.use(requireAuth);
+router.get('/history',asyncHandler(c.history));router.get('/mapping-presets',asyncHandler(c.listPresets));router.post('/mapping-presets',asyncHandler(c.savePreset));router.delete('/mapping-presets/:id',asyncHandler(c.deletePreset));router.get('/template',asyncHandler(c.template));router.post('/upload',uploadLimit,upload.single('file'),asyncHandler(c.upload));router.get('/:id/preview',asyncHandler(c.preview));router.patch('/:id/mapping',asyncHandler(c.updateMapping));router.post('/:id/validate',asyncHandler(c.validate));router.post('/:id/execute',asyncHandler(c.execute));router.get('/:id/status',asyncHandler(c.status));router.get('/:id/errors',asyncHandler(c.errors));router.get('/:id/error-report',asyncHandler(c.errorReport));router.post('/:id/retry',asyncHandler(c.retry));router.get('/:id',asyncHandler(c.details));
+export default router;

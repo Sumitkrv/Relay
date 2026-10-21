@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import * as c from '../controllers/segmentController.js';
+const router=Router();router.use(requireAuth);
+router.get('/categories',asyncHandler(c.categoryCounts));
+router.post('/preview',asyncHandler(c.previewSegment));
+router.get('/',asyncHandler(c.listSegments));
+router.post('/',asyncHandler(c.createSegment));
+router.get('/:id',asyncHandler(c.getSegment));
+router.post('/:id/duplicate',asyncHandler(c.duplicateSegment));
+router.patch('/:id',asyncHandler(c.updateSegment));
+router.delete('/:id',asyncHandler(c.deleteSegment));
+export default router;

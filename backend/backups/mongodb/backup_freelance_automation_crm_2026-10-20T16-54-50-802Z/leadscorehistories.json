@@ -1,0 +1,7 @@
+[
+{"_id":"6ad5e65101eb7789c0b75038","ownerId":"6ad4c2d1a69ee45745a461a6","contactId":"6ad5e65101eb7789c0b7502e","previousScore":null,"newScore":22,"reason":"contact_updated","ruleSetVersion":1,"createdAt":"2026-10-19T09:43:45.274Z","__v":0},
+{"_id":"6ad5e6ac01eb7789c0b75468","ownerId":"6ad4c2d1a69ee45745a461a6","contactId":"6ad5e6ac01eb7789c0b75458","previousScore":null,"newScore":22,"reason":"contact_updated","ruleSetVersion":1,"createdAt":"2026-10-19T09:45:16.727Z","__v":0},
+{"_id":"6ad709effd0bf3713bd9dc10","ownerId":"6ad4c2d1a69ee45745a461a6","contactId":"6ad709effd0bf3713bd9dc06","previousScore":null,"newScore":22,"reason":"contact_updated","ruleSetVersion":1,"createdAt":"2026-10-20T06:27:59.826Z","__v":0},
+{"_id":"6ad739f0224c25c0e10ba587","ownerId":"6ad4c2d1a69ee45745a461a6","contactId":"6ad739637d1fda464247aa5b","previousScore":null,"newScore":25,"reason":"contact_updated","ruleSetVersion":1,"createdAt":"2026-10-20T09:52:48.697Z","__v":0},
+{"_id":"6ad749b342a9aa33716f49e5","ownerId":"6ad4721f6b71d66171962808","contactId":"6ad5e92c59b59e7ae68e481a","previousScore":null,"newScore":61,"reason":"contact_updated","ruleSetVersion":1,"createdAt":"2026-10-20T11:00:03.086Z","__v":0}
+]

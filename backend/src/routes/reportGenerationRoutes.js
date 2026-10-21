@@ -1,0 +1,1 @@
+import {Router} from 'express';import {requireAuth} from '../middleware/auth.js';import {asyncHandler} from '../utils/asyncHandler.js';import * as c from '../controllers/reportGenerationController.js';const r=Router();r.use(requireAuth);r.get('/:id',asyncHandler(c.getGeneration));r.get('/:id/download',asyncHandler(c.downloadGeneration));export default r;

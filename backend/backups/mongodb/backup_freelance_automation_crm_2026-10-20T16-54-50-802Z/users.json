@@ -1,0 +1,4 @@
+[
+{"_id":"6ad4721f6b71d66171962808","name":"sumit","email":"admin@bksikha.com","passwordHash":"$2a$12$Fho85bO5nGPl.c2Kz9j5TeEW0q4YVkLNpJeuzIppECD24.IZX.23K","role":"owner","createdAt":"2026-10-18T07:15:43.096Z","updatedAt":"2026-10-20T10:54:59.134Z","__v":0,"authVersion":1,"businessName":"M2W Realty","lastLoginAt":"2026-10-20T10:54:59.128Z"},
+{"_id":"6ad4c2d1a69ee45745a461a6","name":"Sumit R. Thakur","businessName":"M2W Luxury Realty","email":"admin@relaycrm.io","passwordHash":"$2a$12$pW/PvgYupeDNpfvuwjsBlOSXFkRaVMNlrC/zEhrS2H4u81zUlOsqS","role":"owner","createdAt":"2026-10-18T13:00:01.071Z","updatedAt":"2026-10-20T09:54:46.257Z","__v":0,"authVersion":1,"lastLoginAt":"2026-10-20T09:15:18.859Z"}
+]

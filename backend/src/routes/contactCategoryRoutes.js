@@ -1,0 +1,2 @@
+import { Router } from 'express';import { requireAuth } from '../middleware/auth.js';import { asyncHandler } from '../utils/asyncHandler.js';import { createCategory,deleteCategory,listCategories,renameCategory } from '../controllers/contactCategoryController.js';
+const router=Router();router.use(requireAuth);router.get('/',asyncHandler(listCategories));router.post('/',asyncHandler(createCategory));router.patch('/:id',asyncHandler(renameCategory));router.delete('/:id',asyncHandler(deleteCategory));export default router;

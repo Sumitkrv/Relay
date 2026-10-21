@@ -1,0 +1,2 @@
+import {Router} from 'express';import {requireAuth} from '../middleware/auth.js';import {asyncHandler} from '../utils/asyncHandler.js';import {schedules,createSchedule,updateSchedule,deleteSchedule} from '../controllers/workflowController.js';
+const r=Router();r.use(requireAuth);r.get('/',asyncHandler(schedules));r.post('/',asyncHandler(createSchedule));r.patch('/:id',asyncHandler(updateSchedule));r.delete('/:id',asyncHandler(deleteSchedule));export default r;

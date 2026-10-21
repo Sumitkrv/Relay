@@ -1,0 +1,13 @@
+FullName,PhoneNumber,Email,City,PropertyType,Project,Budget,LeadStatus,Priority,Notes
+John Doe,12345,john@example.com,Delhi,Apartments,Project A,1 Cr,New,Low,Invalid short phone number
+,9810112002,noname@example.com,Gurugram,Villas,Project B,2 Cr,New,Medium,Missing full name
+Vikram Malhotra,+919810112003,vikram@example.com,Gurugram,Apartments,DLF Phase 5,₹3 Cr,Interested,High,Valid record with E.164 phone
+Vikram Malhotra,+919810112003,vikram@example.com,Gurugram,Apartments,DLF Phase 5,₹3 Cr,Interested,High,Duplicate phone within same file
+Michael Scott,+14155552671,michael.scott@dundermifflin.us,California,Commercial Property,Corporate Suite,$500k,New,Medium,Valid US international phone
+Tariq Mansoor,+971501234567,tariq@dubaiholdings.ae,Dubai,Villas,Palm Estate,AED 4M,Contacted,High,Valid UAE international phone
+Rajiv Sharma,98101 12007,rajiv.sharma@example.com,Faridabad,Residential Plots,Sector 82,90 Lakhs,New,Low,Spaces in national phone number
+Deepak Verma,09810112008,deepak@verma.com,Ghaziabad,Apartments,Windsor Park,₹75 L,New,Low,Leading trunk zero prefix
+=cmd|' /C calc'!A0,+919810112009,formula@hack.com,Delhi,Commercial Property,Hacker Hub,99 Cr,New,Urgent,Spreadsheet formula injection payload
+Anjali Kapoor,+919810112010,anjali.kapoor@example.com,Noida,Apartments,Sector 150,₹1.5 Cr,Site Visit Scheduled,High,Overlong property requirement notes here to test buffer truncation
+Sunil Narang,9810112011,invalid-email-format,Gurugram,Farmhouses,Aravalli Retreat,₹5 Cr,New,Medium,Invalid RFC email syntax
+Amitabh Bachchan,+919810112012,amitabh@bachchan.com,Mumbai,Villas,Jalsa Prateeksha,₹50 Cr,Converted,Urgent,High net worth VIP customer enquiry

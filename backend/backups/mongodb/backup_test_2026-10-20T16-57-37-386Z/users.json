@@ -1,0 +1,4 @@
+[
+{"_id":"6ad79d7c6d328c9407b6da52","name":"Sumit R. Thakur","businessName":"M2W Luxury Realty","email":"m2w_owner@example.com","passwordHash":"$2a$12$fakePasswordHashForTestingOnly1234567890","role":"owner","authVersion":1,"lastLoginAt":null,"passwordChangedAt":null,"defaultWorkspaceId":null,"isEmailVerified":true,"isPlatformAdmin":false,"createdAt":"2026-10-20T16:57:32.362Z","updatedAt":"2026-10-20T16:57:32.362Z","__v":0},
+{"_id":"6ad79d806d328c9407b6da8e","name":"Gym Operator","businessName":"Iron Fitness Club","email":"gym_owner@example.com","passwordHash":"$2a$12$fakePasswordHashForTestingOnly1234567890","role":"owner","authVersion":1,"lastLoginAt":null,"passwordChangedAt":null,"defaultWorkspaceId":null,"isEmailVerified":true,"isPlatformAdmin":false,"createdAt":"2026-10-20T16:57:36.916Z","updatedAt":"2026-10-20T16:57:36.916Z","__v":0}
+]
