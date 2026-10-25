@@ -23,6 +23,27 @@ npm --prefix backend ci --omit=dev
 npm --prefix backend start
 ```
 
+### Render settings
+
+For the existing Render web service, open **Settings → Build & Deploy** and set:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | `backend` |
+| Build Command | `npm ci --omit=dev` |
+| Start Command | `npm start` |
+| Health Check Path | `/api/health` |
+
+Save these settings and redeploy the latest commit. Render's explicit build and start commands are documented in its [Express deployment guide](https://render.com/docs/deploy-node-express-app).
+
+The start script runs `node src/server.js` from `backend`. `backend/index.js` is also a compatibility launcher for an existing service still configured with `node index.js`. Keep `package-lock.json`: the npm build command uses it and respects the existing npm dependency overrides. The Yarn deprecation warnings in the supplied log did not cause the crash; the missing entry point did.
+
+Nodemailer is a required production dependency because `src/services/emailService.js` imports it when the API starts, even with `EMAIL_PROVIDER=inmemory`. It is declared in `backend/package.json` and synchronized with `backend/package-lock.json`. Commit both files together. An undeclared package left in a local installation or as an orphan lockfile entry is not a valid dependency declaration. The source import audit covers all 262 backend source files; no other external imports need an additional production dependency.
+
+The server reads Render's `PORT` and explicitly binds to `0.0.0.0`. Set `FRONTEND_URL` to the Vercel origin below; its optional trailing slash is normalized before CORS comparison. CORS retains its explicit origin allowlist and credential support.
+
+For Blueprint deployments, the repository-root `render.yaml` supplies these settings and prompts for the private MongoDB URI and JWT secret. An existing manually configured Render service does not automatically adopt this file; update its settings as shown above. The Blueprint selects free compute for initial setup. Scheduled background processing needs an always-on service because [free Render web services spin down when idle](https://render.com/docs/free#spinning-down-on-idle).
+
 Configure these variables in the backend host's environment:
 
 | Variable | Value |
@@ -47,5 +68,15 @@ npm --prefix frontend test
 npm --prefix frontend run build
 node --import ./backend/qa/noLiveDatabase.js --test backend/test/deploymentStartup.test.js
 ```
+
+For a complete production-install smoke check, first install the backend's development dependencies locally with `npm --prefix backend ci`, then run:
+
+```sh
+npm --prefix backend run verify:production
+```
+
+This check copies source and dependency manifests to a temporary directory without `.env` files or existing `node_modules`. It runs `npm ci --omit=dev`, checks the production dependency tree and offline email behavior, and runs the real `npm start` against a newly created disposable MongoDB instance. It verifies HTTP 200 from `/api/health`, credentialed requests and preflights from `https://relay-lilac-one.vercel.app`, and authentication enforcement. The harness uses local development test tools; those tools are absent from the production install being tested. It neither connects to existing MongoDB instances nor sends real email.
+
+The production check passed on Node.js `24.22.1` with npm `11.21.1`, matching the reported Render Node runtime. The deployment/authentication regression suites passed 54 tests. These local checks do not change Render or Vercel settings and do not replace verification of the deployed backend's own `/api/health` URL after redeployment.
 
 Check the deployed API's `/api/health`, then the frontend's direct `/login` URL, sign-in, and the M2W workspace screens. Confirm the API uses the intended MongoDB database and reports Mock Mode. A frontend-only deployment can show the login screen but cannot authenticate or load CRM data until the backend is deployed.

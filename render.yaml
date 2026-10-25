@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: relay-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://relay-lilac-one.vercel.app
+      - key: PUBLIC_APP_URL
+        value: https://relay-lilac-one.vercel.app
+      - key: EMAIL_PROVIDER
+        value: inmemory
+      - key: WHATSAPP_PROVIDER
+        value: mock
