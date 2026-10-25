@@ -54,6 +54,7 @@ describe('SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisionin
   before(async () => {
     process.env.NODE_ENV = 'test';
     process.env.JWT_SECRET = JWT_SECRET;
+    process.env.AUTH_REQUIRE_EMAIL_VERIFICATION = 'true';
 
     mongod = await MongoMemoryServer.create();
     await mongoose.connect(mongod.getUri());
@@ -143,6 +144,7 @@ describe('SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisionin
   });
 
   after(async () => {
+    delete process.env.AUTH_REQUIRE_EMAIL_VERIFICATION;
     await mongoose.disconnect();
     if (mongod) {
       await mongod.stop();

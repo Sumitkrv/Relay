@@ -41,18 +41,19 @@ export const getOnboardingStatus = asyncHandler(async (req, res) => {
     });
   }
 
-  // Check eligibility for unverified accounts
-  const isVerified = Boolean(
-    req.user.emailVerifiedAt &&
-    req.user.accountStatus !== 'PENDING_EMAIL_VERIFICATION' &&
-    req.user.isEmailVerified !== false
-  );
-
-  if (!isVerified) {
-    return res.status(403).json({
-      code: 'EMAIL_VERIFICATION_REQUIRED',
-      message: 'Email verification is required before starting business onboarding.',
-    });
+  // Auto-activate user if email verification is not strictly enforced
+  if (req.user.accountStatus === 'PENDING_EMAIL_VERIFICATION' || !req.user.isEmailVerified) {
+    if (process.env.AUTH_REQUIRE_EMAIL_VERIFICATION !== 'true') {
+      req.user.isEmailVerified = true;
+      if (!req.user.emailVerifiedAt) req.user.emailVerifiedAt = new Date();
+      req.user.accountStatus = 'ACTIVE';
+      await req.user.save();
+    } else {
+      return res.status(403).json({
+        code: 'EMAIL_VERIFICATION_REQUIRED',
+        message: 'Email verification is required before starting business onboarding.',
+      });
+    }
   }
 
   const draft = await OnboardingDraft.findOne({ userId });

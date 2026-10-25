@@ -53,9 +53,17 @@ export default function AuthPage({ mode = 'login' }) {
     setUnverifiedEmail('');
     try {
       if (isRegister) {
-        await register({ ...form, name: form.name.trim(), confirmPassword: form.password });
-        toast.success('Registration successful! Please check your email to verify.');
-        navigate(`/verify-email?email=${encodeURIComponent(form.email.trim())}`);
+        const result = await register({ ...form, name: form.name.trim(), confirmPassword: form.password });
+        toast.success('Registration successful! Welcome to Relay.');
+        if (result?.user?.isPlatformAdmin) {
+          navigate('/admin');
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
+          navigate('/agency');
+        } else if (result && result.hasWorkspace) {
+          navigate('/app');
+        } else {
+          navigate('/onboarding');
+        }
       } else {
         const result = await login({ email: form.email, password: form.password });
         toast.success('Welcome back to Relay.');

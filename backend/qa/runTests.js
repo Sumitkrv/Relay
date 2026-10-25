@@ -13,6 +13,6 @@ for (const file of fs.readdirSync(`${backend}/test`).filter(f => f.endsWith('.te
 }
 console.log('Legacy local-database suites excluded:', excluded.join(', '));
 const run = spawnSync(process.execPath, ['--import', './qa/noLiveDatabase.js', '--test', '--test-concurrency=4', ...selected], {
-  cwd: backend, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'test', EMAIL_PROVIDER: 'inmemory' },
+  cwd: backend, stdio: 'inherit', env: { ...process.env, NODE_ENV: 'test', EMAIL_PROVIDER: 'inmemory', AUTH_REQUIRE_EMAIL_VERIFICATION: 'true' },
 });
 process.exit(run.status ?? 1);

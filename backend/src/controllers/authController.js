@@ -91,9 +91,10 @@ export async function register(req, res) {
     });
   }
 
-  // 3. Create user record (with strict demo auto-verification policy)
+  // 3. Create user record (email verification disabled by default unless explicitly enforced)
   const passwordHash = await bcrypt.hash(password, 12);
-  const autoVerify = isDemoAutoVerifyAllowed();
+  const requireEmailVerification = process.env.AUTH_REQUIRE_EMAIL_VERIFICATION === 'true';
+  const autoVerify = !requireEmailVerification || isDemoAutoVerifyAllowed();
   let user;
   try {
     user = await User.create({
@@ -151,10 +152,10 @@ export async function register(req, res) {
   }).catch(() => {});
 
   if (autoVerify) {
-    // In demo environment, issue authenticated session directly
+    // Issue authenticated session directly
     return issue(user, res, 201, {
       success: true,
-      message: 'Account registered and auto-verified for local demo.',
+      message: 'Account registered successfully.',
       autoVerified: true,
       hasWorkspace: false,
     });
@@ -338,20 +339,22 @@ export async function login(req, res) {
     });
   }
 
-  // Email verification check with trusted legacy transition policy and demo auto-verification
-  const isVerifiedOrLegacy = await authSecurity.isLegacyOrAuthorizedUser(user);
-  if (!isVerifiedOrLegacy && user.accountStatus === 'PENDING_EMAIL_VERIFICATION') {
-    if (isDemoAutoVerifyAllowed()) {
+  // Email verification check: auto-activate unless email verification is explicitly enforced
+  if (user.accountStatus === 'PENDING_EMAIL_VERIFICATION' || !user.isEmailVerified) {
+    if (process.env.AUTH_REQUIRE_EMAIL_VERIFICATION !== 'true' || isDemoAutoVerifyAllowed()) {
       user.isEmailVerified = true;
-      user.emailVerifiedAt = new Date();
+      if (!user.emailVerifiedAt) user.emailVerifiedAt = new Date();
       user.accountStatus = 'ACTIVE';
       await user.save();
     } else {
-      return res.status(403).json({
-        code: 'EMAIL_NOT_VERIFIED',
-        message: 'Please verify your email address before signing in. Check your inbox for the verification link.',
-        email: user.email,
-      });
+      const isVerifiedOrLegacy = await authSecurity.isLegacyOrAuthorizedUser(user);
+      if (!isVerifiedOrLegacy) {
+        return res.status(403).json({
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Please verify your email address before signing in. Check your inbox for the verification link.',
+          email: user.email,
+        });
+      }
     }
   }
 
@@ -426,12 +429,7 @@ export async function logout(req, res) {
     }).catch(() => {});
   }
 
-  res.clearCookie(cookieName, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  });
+  res.clearCookie(cookieName, cookieOptions());
 
   res.json({ success: true, message: 'Signed out successfully.' });
 }

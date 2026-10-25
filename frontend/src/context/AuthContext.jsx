@@ -1,6 +1,13 @@
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
-import { clearWorkspaceSelection, getTabSessionId, startTabLogin } from '../services/tabSession';
+import {
+  clearWorkspaceSelection,
+  getTabSessionId,
+  startTabLogin,
+  getTabToken,
+  setTabToken,
+  clearTabToken,
+} from '../services/tabSession';
 
 const AuthContext = createContext(null);
 
@@ -13,6 +20,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
     const initialSessionId = getTabSessionId();
+
     api
       .get('/auth/me')
       .then(({ data }) => {
@@ -23,6 +31,7 @@ export function AuthProvider({ children }) {
         }
       })
       .catch(() => {
+        // Expected guest state on unauthenticated visitor or public pages
         if (mounted && initialSessionId === getTabSessionId()) {
           setUser(null);
           setWorkspaces([]);
@@ -39,9 +48,15 @@ export function AuthProvider({ children }) {
       (error) => {
         if (error.response?.status === 401 && error.config?.headers?.['x-relay-session-id'] === getTabSessionId()) {
           const url = error.config?.url || '';
-          // Don't trigger auto-logout on failed login attempt or initial me check
-          if (!url.includes('/auth/login') && !url.includes('/auth/register') && !url.includes('/auth/verify-email')) {
+          // Don't trigger auto-logout on failed login attempt or initial/guest me check
+          if (
+            !url.includes('/auth/login') &&
+            !url.includes('/auth/register') &&
+            !url.includes('/auth/verify-email') &&
+            !url.includes('/auth/me')
+          ) {
             clearWorkspaceSelection();
+            clearTabToken();
             setUser(null);
             setWorkspaces([]);
             setHasWorkspace(false);
@@ -58,13 +73,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   const register = async (payload) => {
+    startTabLogin();
     const { data } = await api.post('/auth/register', payload);
+    if (data.token) {
+      setTabToken(data.token);
+    }
+    if (data.user) {
+      setUser(data.user);
+      const userWorkspaces = data.workspaces || [];
+      setWorkspaces(userWorkspaces);
+      const hasWs = Boolean(data.hasWorkspace || userWorkspaces.length > 0);
+      setHasWorkspace(hasWs);
+    }
     return data;
   };
 
   const login = async (payload) => {
     startTabLogin();
     const { data } = await api.post('/auth/login', payload);
+    if (data.token) {
+      setTabToken(data.token);
+    }
     setUser(data.user);
     const userWorkspaces = data.workspaces || [];
     setWorkspaces(userWorkspaces);
@@ -79,9 +108,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await api.post('/auth/logout');
-    {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Best-effort server notification
+    } finally {
       clearWorkspaceSelection();
+      clearTabToken();
       setUser(null);
       setWorkspaces([]);
       setHasWorkspace(false);
@@ -90,6 +123,9 @@ export function AuthProvider({ children }) {
 
   const verifyEmail = async (token) => {
     const { data } = await api.post('/auth/verify-email', { token });
+    if (data.token) {
+      setTabToken(data.token);
+    }
     if (data.user) {
       setUser(data.user);
     }
@@ -130,9 +166,7 @@ export function AuthProvider({ children }) {
     if (user.accountStatus === 'SUSPENDED' || user.accountStatus === 'DISABLED') {
       return 'ACCOUNT_RESTRICTED';
     }
-    if (!user.isEmailVerified || user.accountStatus === 'PENDING_EMAIL_VERIFICATION') {
-      return 'EMAIL_VERIFICATION_REQUIRED';
-    }
+    // Email verification requirement removed as requested
     if (!hasWorkspace && workspaces.length === 0) {
       return 'AUTHENTICATED_NO_WORKSPACE';
     }

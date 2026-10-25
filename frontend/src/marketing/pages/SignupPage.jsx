@@ -104,7 +104,11 @@ export default function SignupPage() {
         confirmPassword: formData.confirmPassword,
       });
 
-      if (response.success) {
+      if (response.success || response.token || response.user) {
+        if (response.token || response.autoVerified || response.user) {
+          navigate('/onboarding');
+          return;
+        }
         setRegisteredEmail(formData.email.trim().toLowerCase());
         setResendCooldown(60);
         // Start countdown
@@ -459,7 +463,7 @@ export default function SignupPage() {
                   </div>
 
                   <p className="text-[11px] text-slate-500 text-center pt-1">
-                    An email verification link will be sent to activate your account.
+                    Instant account activation with your email and password.
                   </p>
                 </form>
               </div>

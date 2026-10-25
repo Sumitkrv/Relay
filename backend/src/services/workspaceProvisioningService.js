@@ -70,20 +70,21 @@ export async function validateProvisioningEligibility(userId) {
     };
   }
 
-  // Must be verified
-  const isVerified = Boolean(
-    user.emailVerifiedAt &&
-    user.accountStatus !== 'PENDING_EMAIL_VERIFICATION' &&
-    user.isEmailVerified !== false
-  );
-
-  if (!isVerified) {
-    return {
-      eligible: false,
-      status: 403,
-      code: 'EMAIL_VERIFICATION_REQUIRED',
-      message: 'Email verification is required before starting business onboarding.',
-    };
+  // Auto-activate user if email verification is not strictly enforced
+  if (user.accountStatus === 'PENDING_EMAIL_VERIFICATION' || !user.isEmailVerified) {
+    if (process.env.AUTH_REQUIRE_EMAIL_VERIFICATION !== 'true') {
+      user.isEmailVerified = true;
+      if (!user.emailVerifiedAt) user.emailVerifiedAt = new Date();
+      user.accountStatus = 'ACTIVE';
+      await user.save();
+    } else {
+      return {
+        eligible: false,
+        status: 403,
+        code: 'EMAIL_VERIFICATION_REQUIRED',
+        message: 'Email verification is required before starting business onboarding.',
+      };
+    }
   }
 
   // Check if user already owns an active workspace

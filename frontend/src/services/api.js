@@ -1,8 +1,15 @@
 import axios from 'axios';
-import { getTabSessionId } from './tabSession';
+import { getTabSessionId, getTabToken } from './tabSession';
 
 const getBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  let url = import.meta.env.VITE_API_URL;
+  if (url) {
+    url = String(url).trim().replace(/\/+$/, '');
+    if (!url.endsWith('/api')) {
+      url = `${url}/api`;
+    }
+    return url;
+  }
   const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
   return `http://${host}:5000/api`;
 };
@@ -10,12 +17,18 @@ const getBaseUrl = () => {
 const api = axios.create({
   baseURL: getBaseUrl(),
   withCredentials: true,
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
   try {
     config.headers['x-relay-session-id'] = getTabSessionId();
+
+    const token = getTabToken();
+    if (token && !config.headers['Authorization']) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const workspaceId = sessionStorage.getItem('relay_active_workspace_id');
     if (workspaceId && !config.headers['x-workspace-id']) {
       config.headers['x-workspace-id'] = workspaceId;

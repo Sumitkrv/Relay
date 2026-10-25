@@ -24,6 +24,7 @@ describe('SaaS Prompt 4 — Production-Grade Customer Authentication Test Suite'
     process.env.JWT_SECRET = 'test-jwt-secret-saas-prompt-4-relay-32chars!!';
     process.env.PUBLIC_APP_URL = 'http://localhost:5173';
     process.env.EMAIL_PROVIDER = 'inmemory';
+    process.env.AUTH_REQUIRE_EMAIL_VERIFICATION = 'true';
 
     mongod = await MongoMemoryServer.create();
     await mongoose.connect(mongod.getUri());
@@ -60,6 +61,7 @@ describe('SaaS Prompt 4 — Production-Grade Customer Authentication Test Suite'
   });
 
   after(async () => {
+    delete process.env.AUTH_REQUIRE_EMAIL_VERIFICATION;
     await mongoose.disconnect();
     await mongod.stop();
   });
