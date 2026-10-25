@@ -1,3 +1,5 @@
+import { resolveApiBaseUrl } from './apiBaseUrl';
+
 /**
  * Helper to resolve media and asset URLs (e.g. uploaded logos, brochures)
  * Ensures relative backend paths like /api/onboarding/logo/... resolve correctly
@@ -24,7 +26,10 @@ export function resolveMediaUrl(url) {
   }
 
   // If it's an API route like /api/onboarding/logo/...
-  const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+  const apiBase = resolveApiBaseUrl(import.meta.env.VITE_API_URL, {
+    production: import.meta.env.PROD,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
+  });
   const backendOrigin = apiBase.replace(/\/api\/?$/, '');
   const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${backendOrigin}${cleanPath}`;

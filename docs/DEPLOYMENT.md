@@ -10,6 +10,16 @@ The SPA fallback follows [Vercel's Vite deployment instructions](https://vercel.
 
 Set `VITE_API_URL` in Vercel to the deployed API's full HTTPS base URL, including `/api`. Rebuild after changing this setting: Vite embeds it at build time. Only public configuration belongs in `VITE_*` variables.
 
+For the current deployment, set this in Vercel's Production environment and redeploy:
+
+```dotenv
+VITE_API_URL=https://relay-kvfx.onrender.com/api
+```
+
+The shared frontend client normalizes either `https://relay-kvfx.onrender.com` or `https://relay-kvfx.onrender.com/api` to the same API base and removes trailing slashes. Media URL resolution uses the same normalization.
+
+Authentication routes are mounted once, at `/api/auth` in `backend/src/app.js`; `server.js` starts that app. The session endpoint is `GET /api/auth/me`, login is `POST /api/auth/login`, and signup is `POST /api/auth/register`. Frontend service calls remain `/auth/me`, `/auth/login`, and `/auth/register` relative to the normalized API base. No `/auth/*` backend aliases are required. An anonymous `/api/auth/me` request correctly returns HTTP 401; `/auth/me` returns HTTP 404.
+
 When no API URL is configured, production requests use `/api` on the frontend origin. That requires a real same-origin API proxy; the SPA fallback alone cannot provide one. Development retains the local API on port 5000.
 
 ## Persistent backend service
@@ -52,6 +62,7 @@ Configure these variables in the backend host's environment:
 | `MONGODB_URI` | The private MongoDB connection string for the intended database |
 | `JWT_SECRET` | A private random secret of at least 32 characters |
 | `FRONTEND_URL` | `https://relay-lilac-one.vercel.app` (or the final custom frontend origin) |
+| `CORS_ALLOWED_ORIGINS` | Optional comma-separated additional exact origins; for the supplied preview, `https://relay-7vfkwvd85-sumitkrvs-projects.vercel.app` |
 | `PUBLIC_APP_URL` | The same public frontend origin |
 | `EMAIL_PROVIDER` | `inmemory`, retaining offline email behavior |
 | `WHATSAPP_PROVIDER` | `mock`, retaining offline messaging |
@@ -60,6 +71,18 @@ Configure these variables in the backend host's environment:
 Keep real provider credentials unset. Do not run seeds, resets, or migrations as deployment commands. Existing local MongoDB records are not automatically transferred to a hosted MongoDB instance; any data transfer needs a separate explicit instruction.
 
 The current authentication cookies use `SameSite=Lax` and `Secure` in production. Use a same-site frontend/API domain arrangement or a same-origin API proxy for cookie authentication. Unrelated frontend/backend domains require a separately configured and verified cross-site cookie policy.
+
+### Preview-origin CORS preflights
+
+The production frontend origin and a Vercel preview origin are different origins. Keep `FRONTEND_URL=https://relay-lilac-one.vercel.app` on Render and add the approved preview separately:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=https://relay-7vfkwvd85-sumitkrvs-projects.vercel.app
+```
+
+Save this variable in Render and redeploy the backend with the CORS allowlist changes. Local `.env` edits do not update Render's environment. This is an exact allowlist; other previews must be explicitly added, separated by commas. All `*.vercel.app` origins are not automatically trusted.
+
+Allowed origins receive HTTP 204 for the authentication preflight and the appropriate response from the actual endpoint (HTTP 401 for an anonymous `/api/auth/me`). Denied origins return HTTP 403 with code `CORS_ORIGIN_DENIED` instead of being reported as an internal server error. Session validation and API route prefixes are unchanged. The existing application-level CORS middleware handles preflights; no duplicate auth or OPTIONS routes are needed. See the [Express CORS documentation](https://expressjs.com/en/resources/middleware/cors.html).
 
 ## Verification before enabling traffic
 

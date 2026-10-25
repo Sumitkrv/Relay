@@ -2,13 +2,21 @@ import billingRoutes from './routes/billingRoutes.js';
 import industryRoutes from './routes/industryRoutes.js';
 import express from 'express'; import cors from 'cors'; import cookieParser from 'cookie-parser'; import helmet from 'helmet'; import authRoutes from './routes/authRoutes.js'; import settingsRoutes from './routes/settingsRoutes.js'; import dashboardRoutes from './routes/dashboardRoutes.js'; import contactRoutes from './routes/contactRoutes.js'; import contactGroupRoutes from './routes/contactGroupRoutes.js'; import contactCategoryRoutes from './routes/contactCategoryRoutes.js'; import importRoutes from './routes/importRoutes.js'; import templateRoutes from './routes/templateRoutes.js'; import campaignRoutes from './routes/campaignRoutes.js'; import segmentRoutes from './routes/segmentRoutes.js'; import workflowRoutes from './routes/workflowRoutes.js'; import workflowExecutionRoutes from './routes/workflowExecutionRoutes.js'; import workflowScheduleRoutes from './routes/workflowScheduleRoutes.js'; import chatbotRoutes from './routes/chatbotRoutes.js'; import chatbotTestRoutes from './routes/chatbotTestRoutes.js'; import healthRoutes from './routes/healthRoutes.js'; import activityLogRoutes from './routes/activityLogRoutes.js'; import inboxRoutes from './routes/inboxRoutes.js'; import followUpRoutes from './routes/followUpRoutes.js'; import notificationRoutes from './routes/notificationRoutes.js'; import analyticsRoutes from './routes/analyticsRoutes.js'; import leadScoringRoutes from './routes/leadScoringRoutes.js'; import reportRoutes from './routes/reportRoutes.js';import reportGenerationRoutes from './routes/reportGenerationRoutes.js'; import salesRoutes from './routes/salesRoutes.js'; import proposalRoutes from './routes/proposalRoutes.js'; import templateMediaRoutes from './routes/templateMediaRoutes.js'; import messageRoutes from './routes/messageRoutes.js'; import systemMessagingRoutes from './routes/systemMessagingRoutes.js'; import devMessagingRoutes from './routes/devMessagingRoutes.js'; import workspaceRoutes from './routes/workspaceRoutes.js'; import onboardingRoutes from './routes/onboardingRoutes.js'; import publicRoutes from './routes/publicRoutes.js'; import { errorHandler,notFound } from './middleware/errors.js';
 const app=express();app.disable('x-powered-by');app.use(helmet());
-const allowedOrigins = [process.env.FRONTEND_URL?.replace(/\/+$/, ''), 'http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'].filter(Boolean);
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ALLOWED_ORIGINS || '').split(','),
+  'http://localhost:5173', 'http://localhost:5174',
+  'http://127.0.0.1:5173', 'http://127.0.0.1:5174',
+].map(origin => origin?.trim().replace(/\/+$/, '')).filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(Object.assign(new Error('Origin is not allowed by CORS.'), {
+        status: 403,
+        code: 'CORS_ORIGIN_DENIED',
+      }));
     }
   },
   credentials: true

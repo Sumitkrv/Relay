@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { getTabSessionId } from './tabSession';
+import { resolveApiBaseUrl } from '../utils/apiBaseUrl';
 
 const getBaseUrl = () => {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (import.meta.env.PROD) return '/api';
   const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
-  return `http://${host}:5000/api`;
+  return resolveApiBaseUrl(import.meta.env.VITE_API_URL, {
+    production: import.meta.env.PROD,
+    hostname: host,
+  });
 };
 
 const api = axios.create({

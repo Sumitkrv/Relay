@@ -16,6 +16,8 @@ services:
         sync: false
       - key: FRONTEND_URL
         value: https://relay-lilac-one.vercel.app
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://relay-7vfkwvd85-sumitkrvs-projects.vercel.app
       - key: PUBLIC_APP_URL
         value: https://relay-lilac-one.vercel.app
       - key: EMAIL_PROVIDER
