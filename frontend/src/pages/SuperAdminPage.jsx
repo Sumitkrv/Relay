@@ -936,7 +936,7 @@ export default function SuperAdminPage() {
                   <div>
                     <div style={{ fontSize: '12px', color: '#64748B' }}>Node.js Version</div>
                     <div style={{ fontSize: '15px', fontWeight: '600', color: '#0F172A', marginTop: '2px' }}>
-                      {systemHealth?.systemMetrics?.nodeVersion || process.version || 'v20.x'}
+                      {systemHealth?.systemMetrics?.nodeVersion || 'Unavailable'}
                     </div>
                   </div>
                   <div>

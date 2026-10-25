@@ -24,7 +24,7 @@ export function resolveMediaUrl(url) {
   }
 
   // If it's an API route like /api/onboarding/logo/...
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
   const backendOrigin = apiBase.replace(/\/api\/?$/, '');
   const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return `${backendOrigin}${cleanPath}`;

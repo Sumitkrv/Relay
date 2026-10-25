@@ -42,6 +42,24 @@ import PrivacyPage from './marketing/pages/PrivacyPage';
 import TermsPage from './marketing/pages/TermsPage';
 import SignupPage from './marketing/pages/SignupPage';
 
+import DevMailboxPage from './pages/DevMailboxPage';
+import DevTestingHubPage from './pages/DevTestingHubPage';
+import IndustryPreviewPage from './pages/IndustryPreviewPage';
+import SuperAdminPage from './pages/SuperAdminPage';
+import AgencyDashboardPage from './pages/AgencyDashboardPage';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import AdminLayout from './layout/AdminLayout';
+import AdminOverviewPage from './pages/platform-admin/AdminOverviewPage';
+import AdminBusinessesPage from './pages/platform-admin/AdminBusinessesPage';
+import AdminBusinessDetailPage from './pages/platform-admin/AdminBusinessDetailPage';
+import AdminSubscriptionsPage from './pages/platform-admin/AdminSubscriptionsPage';
+import AdminRevenuePage from './pages/platform-admin/AdminRevenuePage';
+import AdminWhatsAppPage from './pages/platform-admin/AdminWhatsAppPage';
+import AdminSystemHealthPage from './pages/platform-admin/AdminSystemHealthPage';
+import AdminSecurityAuditPage from './pages/platform-admin/AdminSecurityAuditPage';
+import AdminSupportPage from './pages/platform-admin/AdminSupportPage';
+import AdminSettingsPage from './pages/platform-admin/AdminSettingsPage';
+
 export default function App() {
   return (
     <Routes>

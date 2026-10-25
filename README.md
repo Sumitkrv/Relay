@@ -4,6 +4,8 @@ A JavaScript monorepo for a consent based freelance outreach CRM. It includes re
 
 ## Requirements
 
+For production hosting, see [Deploying Relay](docs/DEPLOYMENT.md).
+
 - Node.js 20 or newer and npm
 - MongoDB Community Server running locally, or a MongoDB connection string
 

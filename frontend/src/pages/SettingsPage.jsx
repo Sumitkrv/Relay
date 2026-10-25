@@ -21,6 +21,18 @@ import {
   Terminal,
   Play,
   CheckCircle,
+  CreditCard,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
+  MapPin,
+  Mail,
+  Phone,
+  Globe,
+  Clock,
+  Bell,
+  Shield,
+  Layers,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useWorkspace } from '../context/WorkspaceContext';
@@ -29,8 +41,13 @@ import settingsService from '../services/settings';
 import { getSystemMessagingStatus, runMockDiagnostic } from '../services/messages';
 import PageHeader from '../components/PageHeader';
 import DeveloperTestingCenter from '../components/DeveloperTestingCenter';
+import IndustryConfigHub from '../components/industry/IndustryConfigHub';
+import BillingSettingsPanel from '../components/BillingSettingsPanel';
+import InboundSimulatorModal from '../components/mock/InboundSimulatorModal';
+import AutomationTestConsole from '../components/mock/AutomationTestConsole';
+import '../settings.css';
 
-const VALID_TABS = ['profile', 'business', 'security', 'integrations', 'preferences', 'about', 'developer'];
+const VALID_TABS = ['profile', 'business', 'security', 'integrations', 'whatsapp', 'preferences', 'billing', 'about', 'developer'];
 
 const IANA_TIMEZONES = [
   'Asia/Kolkata',
@@ -553,14 +570,6 @@ export default function SettingsPage() {
             aria-selected={activeTab === 'business'}
           >
             <Building2 size={16} /> Business Profile
-          </button>
-          <button
-            type="button"
-            className={`settings-nav-item ${activeTab === 'billing' ? 'active selected' : ''}`}
-            onClick={() => switchTab('billing')}
-            aria-selected={activeTab === 'billing'}
-          >
-            <CreditCard size={16} /> Subscription &amp; Billing
           </button>
           <button
             type="button"
@@ -1389,6 +1398,7 @@ export default function SettingsPage() {
                       Disconnected (Pending Provider Setup)
                     </span>
                   </div>
+                </div>
 
                 {/* Sending Engine Mode */}
                 <div
@@ -2051,10 +2061,6 @@ export default function SettingsPage() {
             <DeveloperTestingCenter />
           )}
 
-          {/* TAB: SUBSCRIPTION & BILLING */}
-          {activeTab === 'billing' && (
-            <BillingDashboard />
-          )}
         </div>
       </div>
 

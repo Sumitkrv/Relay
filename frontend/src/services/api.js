@@ -3,6 +3,7 @@ import { getTabSessionId } from './tabSession';
 
 const getBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (import.meta.env.PROD) return '/api';
   const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
   return `http://${host}:5000/api`;
 };
