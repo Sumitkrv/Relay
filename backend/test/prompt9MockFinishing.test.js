@@ -19,11 +19,18 @@ import jwt from 'jsonwebtoken';
 
 let authToken = null;
 let testOwner = null;
+let mongodInstance = null;
 
 test.before(async () => {
   if (mongoose.connection.readyState === 0) {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/freelance_automation_crm';
-    await mongoose.connect(mongoUri);
+    try {
+      const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/freelance_automation_crm';
+      await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 1500 });
+    } catch {
+      const { MongoMemoryServer } = await import('mongodb-memory-server');
+      mongodInstance = await MongoMemoryServer.create();
+      await mongoose.connect(mongodInstance.getUri());
+    }
   }
 
   testOwner = await User.findOne({ email: 'admin@relaycrm.io' });
@@ -418,5 +425,6 @@ test('Prompt 9 — 8. System Matrix (GET /api/dev/mock-messaging/system-matrix)'
 
 test.after(async () => {
   await mongoose.disconnect();
+  if (mongodInstance) await mongodInstance.stop();
 });
 

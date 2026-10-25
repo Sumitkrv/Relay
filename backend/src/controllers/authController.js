@@ -3,8 +3,6 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import WorkspaceMembership from '../models/WorkspaceMembership.js';
 import SecurityAuditLog from '../models/SecurityAuditLog.js';
-import Agency from '../models/Agency.js';
-import AgencyMembership from '../models/AgencyMembership.js';
 import { cookieOptions } from '../utils/cookies.js';
 import * as authSecurity from '../services/authSecurityService.js';
 import * as emailService from '../services/emailService.js';
@@ -441,10 +439,16 @@ export async function logout(req, res) {
  * Returns current authenticated user and authorized workspace summary.
  */
 export async function me(req, res) {
-  const memberships = await WorkspaceMembership.find({
-    userId: req.user._id,
-    status: 'ACTIVE',
-  }).populate('workspaceId');
+  const [memberships, adminGrant] = await Promise.all([
+    WorkspaceMembership.find({
+      userId: req.user._id,
+      status: 'ACTIVE',
+    }).populate('workspaceId'),
+    PlatformAdminGrant.findOne({
+      userId: req.user._id,
+      status: 'ACTIVE',
+    }),
+  ]);
 
   const workspaces = memberships
     .filter((m) => m.workspaceId && m.workspaceId.status === 'ACTIVE')
@@ -462,13 +466,9 @@ export async function me(req, res) {
   const isAgencyOperator = Boolean(agencyMembership || ownedAgency);
 
   res.json({
-    user: {
-      ...publicUser(req.user),
-      isAgencyOperator,
-    },
+    user: publicUser(req.user),
     workspaces,
     hasWorkspace: workspaces.length > 0,
-    isAgencyOperator,
   });
 }
 

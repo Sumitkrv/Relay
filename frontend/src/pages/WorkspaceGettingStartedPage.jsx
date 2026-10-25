@@ -20,13 +20,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWorkspace } from '../context/WorkspaceContext';
-import { resolveMediaUrl } from '../utils/media';
 
 export default function WorkspaceGettingStartedPage() {
   const { user, logout } = useAuth();
   const { currentWorkspace, membership } = useWorkspace();
   const [logoFailed, setLogoFailed] = useState(false);
   const navigate = useNavigate();
+  const [showInboundModal, setShowInboundModal] = useState(false);
+  const [showTestConsole, setShowTestConsole] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -250,6 +251,33 @@ export default function WorkspaceGettingStartedPage() {
           </div>
         </div>
 
+        {/* Industry Configuration & Presets Hub (SaaS Prompt 6) */}
+        <IndustryConfigHub />
+
+        {/* Multi-Tenant WhatsApp Mock Engine (SaaS Prompt 8) */}
+        <div className="space-y-6">
+          <MockConnectionCard
+            onOpenInboundModal={() => setShowInboundModal(true)}
+            onOpenTestConsole={() => setShowTestConsole(true)}
+          />
+          <DemoJourneyProgress
+            onOpenInboundModal={() => setShowInboundModal(true)}
+            onOpenTestConsole={() => setShowTestConsole(true)}
+          />
+        </div>
+
+        {/* Inbound Simulator Modal */}
+        <InboundSimulatorModal
+          isOpen={showInboundModal}
+          onClose={() => setShowInboundModal(false)}
+        />
+
+        {/* Automation Test Console Modal */}
+        <AutomationTestConsole
+          isOpen={showTestConsole}
+          onClose={() => setShowTestConsole(false)}
+        />
+
         {/* Actionable Business Modules Grid */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
           <div>
@@ -259,31 +287,40 @@ export default function WorkspaceGettingStartedPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickActions.map((qa) => {
-              const Icon = qa.icon;
-              return (
-                <div
-                  key={qa.title}
-                  className="p-5 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-900">{qa.title}</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed">{qa.description}</p>
-                  </div>
-                  <div className="pt-4 mt-3 border-t border-slate-200/60">
-                    <button
-                      type="button"
-                      onClick={() => navigate(qa.to)}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-                    >
-                      <span>{qa.actionText}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+          <div className="space-y-4">
+            {/* Step 1: Industry Config (Prompt 6) */}
+            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+                1
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Industry Presets & Dynamic CRM Fields
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 border border-amber-200 text-amber-800">
+                    SaaS Prompt 6
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Relay will initialize tailored fields, broadcast templates, and keyword auto-reply rules specifically for your selected industry (<strong>{ws.industryKey}</strong>).
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2: Multi-Tenant Module Enablement (Prompt 7) */}
+            <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0">
+                2
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Shared Seven-Module Dashboard Access
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
+                    SaaS Prompt 7
+                  </span>
                 </div>
               );
             })}

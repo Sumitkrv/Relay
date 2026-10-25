@@ -2,6 +2,9 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { requireWorkspace } from '../middleware/requireWorkspace.js';
 import * as workspaceController from '../controllers/workspaceController.js';
+import * as industryController from '../controllers/industryConfigurationController.js';
+import * as mockController from '../controllers/workspaceMockController.js';
+import * as whatsAppConnectionController from '../controllers/whatsAppConnectionController.js';
 
 const router = Router();
 
@@ -16,9 +19,5 @@ router.post('/internal-provision', workspaceController.provisionWorkspace);
 
 // Current authorized workspace details (requires active workspace membership verification)
 router.get('/current', requireWorkspace, workspaceController.getCurrentWorkspace);
-
-// Starter provisioning status (read-only) and owner-only safe retry
-router.get('/current/starter-provisioning', requireWorkspace, workspaceController.getStarterProvisioningStatus);
-router.post('/current/starter-provisioning/retry', requireWorkspace, workspaceController.retryStarterProvisioning);
 
 export default router;

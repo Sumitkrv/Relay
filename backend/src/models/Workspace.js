@@ -187,6 +187,36 @@ const workspaceSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    suspendedAt: {
+      type: Date,
+      default: null,
+    },
+    suspendedReason: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: [500, 'Suspension reason cannot exceed 500 characters.'],
+    },
+    suspendedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reactivatedAt: {
+      type: Date,
+      default: null,
+    },
+    reactivatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reactivationReason: {
+      type: String,
+      default: null,
+      trim: true,
+      maxlength: [500, 'Reactivation reason cannot exceed 500 characters.'],
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',

@@ -7,7 +7,7 @@ export const CONTACT_FIELDS=[
   'fullName','phoneNumber','countryCode','email','companyName','designation','website',
   'location','interestedService','interestedPropertyType','industry','businessCategory','businessSubcategory',
   'leadSource','leadStatus','priority','estimatedDealValue','currency','notes','tags',
-  'industryData','customFields','city','state','country','preferredLocation','interestedProject','budgetRange',
+  'customFields','city','state','country','preferredLocation','interestedProject','budgetRange',
   'alternatePhone','groups','preferredContactTime','enquiryDate','isSuppressed','suppressionReason'
 ];
 export function normalizePhone(input,region='IN'){
@@ -49,5 +49,6 @@ export function cleanContactInput(input,{partial=false}={}){
   if(Object.hasOwn(out,'currency')){out.currency=out.currency.trim().toUpperCase();if(!/^[A-Z]{3}$/.test(out.currency))throw Object.assign(new Error('Currency must be a 3-letter ISO code.'),{status:400});}
   if(Object.hasOwn(out,'tags')){if(!Array.isArray(out.tags)||out.tags.length>30||out.tags.some(t=>typeof t!=='string'||t.trim().length>40))throw Object.assign(new Error('Use up to 30 tags, each no longer than 40 characters.'),{status:400});out.tags=[...new Set(out.tags.map(t=>t.trim().toLowerCase()).filter(Boolean))];}
   if(Object.hasOwn(out,'customFields')){if(!out.customFields||typeof out.customFields!=='object'||Array.isArray(out.customFields)||Object.keys(out.customFields).length>30)throw Object.assign(new Error('Custom fields must be an object with up to 30 fields.'),{status:400});const clean={};for(const [k,v] of Object.entries(out.customFields)){if(!/^[\w -]{1,50}$/.test(k)||['__proto__','constructor','prototype'].includes(k)||typeof v!=='string'||v.length>500)throw Object.assign(new Error('Custom field names or values are invalid.'),{status:400});clean[k]=v;}out.customFields=clean;}
+  if(Object.hasOwn(out,'industryData')){if(!out.industryData||typeof out.industryData!=='object'||Array.isArray(out.industryData)||Object.keys(out.industryData).length>30)throw Object.assign(new Error('industryData must be an object with up to 30 fields.'),{status:400});const cleanInd={};for(const [k,v] of Object.entries(out.industryData)){if(['__proto__','constructor','prototype'].includes(k)||k.startsWith('$')||k.includes('.'))continue;cleanInd[k]=v;}out.industryData=cleanInd;}
   return out;
 }
