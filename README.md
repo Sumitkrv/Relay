@@ -50,6 +50,12 @@ The contact module includes server-side search and multi-filter support, E.164 p
 
 Run `npm --prefix backend test` for API integration checks using an ephemeral MongoDB instance, and `npm --prefix frontend run build` for the production frontend build. Starting the app normally still requires the MongoDB service configured in `backend/.env`.
 
+## Vercel frontend deployment
+
+Set the Vercel project's **Root Directory** to `frontend`. The configuration in `frontend/vercel.json` sets the install command to `npm ci`, the build command to `npm run build`, and the output directory to `dist`, and preserves SPA route rewrites.
+
+Commands run from the selected Root Directory. Do not add `--prefix frontend` when Root Directory is already `frontend`: that targets a nonexistent `frontend/frontend` directory and prevents npm from finding the lockfile. Commit the configuration and redeploy the latest commit. The repository-level `vercel.json` is for projects whose Root Directory is the repository root.
+
 ## Message templates
 
 The authenticated `/templates` workspace stores owner-scoped message drafts and revision snapshots in MongoDB. It supports internal variable previews against existing contact records, explicit fallback values, bounded bulk planning previews, and a non-AI example library. Preview and bulk-preview endpoints never send messages. Draft deletion is restricted to unused templates; other templates can be archived.
