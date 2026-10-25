@@ -2,7 +2,7 @@
  * Salon, Spa & Beauty Industry Definition
  * Key: salon (alias: salon_beauty)
  * Version: 1.1.0
- *
+ * 
  * Complete starter pack providing:
  * - 11 CRM Contact field definitions (Task 6.A)
  * - Exactly 15 pre-fed starter message templates (Task 6.B)

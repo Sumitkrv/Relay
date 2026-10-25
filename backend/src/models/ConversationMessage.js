@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 const schema = new mongoose.Schema({
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', index: true },
   ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', index: true },
   conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', required: true, index: true },
   contactId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', required: true, index: true },
   direction: { type: String, enum: ['inbound', 'outbound', 'internal', 'system'], required: true },
@@ -23,7 +22,6 @@ const schema = new mongoose.Schema({
   providerTimestamp: { type: Date, default: null }
 }, { timestamps: true });
 schema.index({ ownerId: 1, conversationId: 1, occurredAt: -1, _id: -1 });
-schema.index({ workspaceId: 1, conversationId: 1, occurredAt: -1, _id: -1 });
 schema.index({ ownerId: 1, messageBody: 'text' });
 schema.index({ ownerId: 1, providerMessageId: 1 }, { partialFilterExpression: { providerMessageId: { $type: 'string', $ne: '' } } });
 export default mongoose.model('ConversationMessage', schema);

@@ -283,18 +283,6 @@ class MockWhatsAppProvider {
       };
     }
 
-    if (forceOutcome === 'temporary_failure' || forceOutcome === 'TEMPORARY_FAILURE') {
-      return {
-        success: false,
-        status: 'TEMPORARY_FAILURE',
-        providerMessageId: null,
-        error: 'Simulated transient carrier timeout.',
-        failureCode: 'MOCK_TEMPORARY_FAILURE',
-        retryable: true,
-        occurredAt: new Date()
-      };
-    }
-
     if (forceOutcome === 'timeout') {
       return {
         success: false,

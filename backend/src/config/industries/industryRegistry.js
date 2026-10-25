@@ -1,7 +1,7 @@
 /**
  * Central Authoritative Industry Registry for Relay Multi-Industry SaaS
  * Key Architecture: Phase 1 Universal Industry Starter Pack System
- *
+ * 
  * Supports:
  * - 13 Target Industry Identifiers
  * - Complete Real Estate Starter Pack (15 templates, 8 quick replies, 5 rules, 2 campaigns, 14 fields)
@@ -358,24 +358,6 @@ export function getPublicIndustrySummaries() {
     };
   });
 }
-
-// Preserve the registry interface used by the workspace configuration services.
-export const industryRegistry = {
-  isValidIndustry: (key) => Boolean(getStrictIndustryConfig(key)),
-  getRegisteredKeys: () => getPublicIndustrySummaries().map(({ key }) => key),
-  getPublicIndustryMetadata: getPublicIndustrySummaries,
-  getIndustryDefinition(key) {
-    const definition = getStrictIndustryConfig(key);
-    if (!definition) throw new Error(`Unknown industry key "${key}".`);
-    return structuredClone(definition);
-  },
-  getIndustryContactFields(key) { return this.getIndustryDefinition(key).contactFields || []; },
-  getIndustryDisplayPreferences(key) { return this.getIndustryDefinition(key).contactDisplayPreferences || { defaultColumns: [] }; },
-  getIndustryFilters(key) { return this.getIndustryDefinition(key).contactFilters || []; },
-  getIndustryTemplateSuggestions(key) { return this.getIndustryDefinition(key).templateSuggestions || []; },
-  getIndustryAutomationPresets(key) { return this.getIndustryDefinition(key).automationPresets || []; },
-  getIndustryTerminology(key) { return this.getIndustryDefinition(key).terminology || {}; },
-};
 
 export default {
   VALID_INDUSTRY_KEYS,

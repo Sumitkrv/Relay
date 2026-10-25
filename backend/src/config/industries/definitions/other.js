@@ -1,7 +1,7 @@
 /**
  * General Business & Professional Services Industry Definition
  * Key: other
- *
+ * 
  * Master pack providing CRM field definitions, 10 starter templates,
  * 5 quick replies, keyword automations, campaign definitions, and CRM variables
  * for generic/unsupported industries.

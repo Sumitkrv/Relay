@@ -2,7 +2,7 @@
  * Education & Coaching Industry Definition
  * Key: education (alias: education_coaching)
  * Version: 1.1.0
- *
+ * 
  * Complete starter pack providing:
  * - 12 CRM Contact field definitions (Task 3)
  * - Exactly 15 pre-fed starter message templates (Task 3.B)

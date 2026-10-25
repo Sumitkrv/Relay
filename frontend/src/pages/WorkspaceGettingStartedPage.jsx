@@ -21,19 +21,12 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { resolveMediaUrl } from '../utils/media';
-import IndustryConfigHub from '../components/industry/IndustryConfigHub';
-import MockConnectionCard from '../components/mock/MockConnectionCard';
-import DemoJourneyProgress from '../components/mock/DemoJourneyProgress';
-import InboundSimulatorModal from '../components/mock/InboundSimulatorModal';
-import AutomationTestConsole from '../components/mock/AutomationTestConsole';
 
 export default function WorkspaceGettingStartedPage() {
   const { user, logout } = useAuth();
   const { currentWorkspace, membership } = useWorkspace();
   const [logoFailed, setLogoFailed] = useState(false);
   const navigate = useNavigate();
-  const [showInboundModal, setShowInboundModal] = useState(false);
-  const [showTestConsole, setShowTestConsole] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -256,34 +249,6 @@ export default function WorkspaceGettingStartedPage() {
             </div>
           </div>
         </div>
-
-        {/* Industry Configuration & Presets Hub */}
-        <h2 className="text-lg font-bold text-slate-900">Workspace Configuration — Active & Ready</h2>
-        <IndustryConfigHub />
-
-        {/* Offline WhatsApp Mock Engine */}
-        <div className="space-y-6">
-          <MockConnectionCard
-            onOpenInboundModal={() => setShowInboundModal(true)}
-            onOpenTestConsole={() => setShowTestConsole(true)}
-          />
-          <DemoJourneyProgress
-            onOpenInboundModal={() => setShowInboundModal(true)}
-            onOpenTestConsole={() => setShowTestConsole(true)}
-          />
-        </div>
-
-        {/* Inbound Simulator Modal */}
-        <InboundSimulatorModal
-          isOpen={showInboundModal}
-          onClose={() => setShowInboundModal(false)}
-        />
-
-        {/* Automation Test Console Modal */}
-        <AutomationTestConsole
-          isOpen={showTestConsole}
-          onClose={() => setShowTestConsole(false)}
-        />
 
         {/* Actionable Business Modules Grid */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">

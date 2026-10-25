@@ -2,7 +2,7 @@
  * Automobile & Dealerships Industry Definition
  * Key: automobile
  * Version: 1.1.0
- *
+ * 
  * Complete starter pack providing:
  * - 13 CRM Contact field definitions (Task 7.A)
  * - Exactly 15 pre-fed starter message templates (Task 7.B)

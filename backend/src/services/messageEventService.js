@@ -2,7 +2,6 @@ import MessageEvent from '../models/MessageEvent.js';
 
 export async function recordMessageEvent({
   ownerId,
-  workspaceId,
   messageId,
   eventType,
   previousStatus = '',
@@ -19,7 +18,6 @@ export async function recordMessageEvent({
   try {
     return await MessageEvent.create({
       ownerId,
-      workspaceId: workspaceId || null,
       messageId,
       eventType,
       previousStatus,
@@ -36,14 +34,8 @@ export async function recordMessageEvent({
   }
 }
 
-export async function getMessageEvents(messageId, ownerId, workspaceId = null) {
-  const query = { messageId };
-  if (workspaceId) {
-    query.workspaceId = workspaceId;
-  } else if (ownerId) {
-    query.ownerId = ownerId;
-  }
-  return MessageEvent.find(query)
+export async function getMessageEvents(messageId, ownerId) {
+  return MessageEvent.find({ messageId, ownerId })
     .sort({ timestamp: 1, _id: 1 })
     .lean();
 }

@@ -202,9 +202,6 @@ messageSchema.index({ ownerId: 1, campaignId: 1, createdAt: -1 });
 messageSchema.index({ ownerId: 1, campaignRunId: 1, status: 1 });
 messageSchema.index({ ownerId: 1, contactId: 1, createdAt: -1 });
 messageSchema.index({ ownerId: 1, idempotencyKey: 1 }, { unique: true, sparse: true });
-messageSchema.index({ workspaceId: 1, status: 1, createdAt: -1 });
-messageSchema.index({ workspaceId: 1, campaignId: 1, createdAt: -1 });
-messageSchema.index({ workspaceId: 1, contactId: 1, createdAt: -1 });
 messageSchema.index({ status: 1, leaseUntil: 1, scheduledAt: 1, nextRetryAt: 1 });
 
 export default mongoose.model('Message', messageSchema);

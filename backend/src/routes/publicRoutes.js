@@ -2,8 +2,6 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { submitContactEnquiry } from '../controllers/publicContactController.js';
 
-import * as industryController from '../controllers/industryConfigurationController.js';
-
 const router = express.Router();
 
 const contactLimiter = rateLimit({
@@ -18,9 +16,5 @@ const contactLimiter = rateLimit({
 });
 
 router.post('/contact', contactLimiter, submitContactEnquiry);
-
-// Public industry metadata endpoints
-router.get('/industries', industryController.getPublicIndustries);
-router.get('/industries/:industryKey', industryController.getPublicIndustryByKey);
 
 export default router;

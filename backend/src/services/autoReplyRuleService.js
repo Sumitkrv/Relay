@@ -49,122 +49,158 @@ export function matchKeyword(text, keyword, synonyms = [], matchType = 'WHOLE_WO
 
 export function interpolateVariables(templateText, contact = {}, user = {}) {
   if (!templateText) return '';
-  const fullName = contact.fullName || 'Valued Client';
-  const firstName = fullName.trim().split(/\s+/)[0] || 'Client';
-  const city = contact.city || contact.location || 'Gurugram';
-  const project = contact.interestedProject || contact.interestedService || contact.businessCategory || contact.location || 'our premium developments';
-  const propertyType = contact.interestedPropertyType || contact.industry || 'Property';
-  const businessName = user.businessName || 'M2W Luxury Realty';
-
-  const vars = {
-    name: fullName,
-    first_name: firstName,
-    city,
-    project,
-    property_type: propertyType,
-    business_name: businessName
-  };
-
-  return templateText.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_match, token) => vars[token] || `{{${token}}}`);
+  const vars = valuesFor(contact, user);
+  return templateText.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, token) => {
+    const value = vars[token];
+    return value == null || value === '' || typeof value === 'object' ? match : String(value);
+  });
 }
 
-export async function seedDefaultQuickReplies(ownerId) {
-  const existingCount = await QuickReply.countDocuments({ ownerId, archivedAt: null });
-  if (existingCount > 0) return;
+// In-flight seed lock map to eliminate concurrency race conditions
+const activeSeedLocks = new Map();
 
-  const defaults = [
-    {
-      ownerId,
-      name: 'Brochure & Master Plan Link',
-      category: 'Brochure',
-      description: 'Quick link to project brochure and floor plans',
-      messageText: 'Hi {{first_name}}, here is the digital brochure and floor layout plans for {{project}}: https://relaycrm.io/brochure/prestige-park. Let me know if you would like me to arrange a private walkthrough.'
-    },
-    {
-      ownerId,
-      name: 'Pricing & Flexible Payment Plan',
-      category: 'Pricing',
-      description: 'Overview of unit costs and installment options',
-      messageText: 'Hi {{first_name}}, unit pricing at {{project}} starts at ₹1.25 Cr with possession-linked 20:80 flexible builder subvention plans. Which floor or facing are you most interested in?'
-    },
-    {
-      ownerId,
-      name: 'Experience Center & Site Visit',
-      category: 'Site Visit',
-      description: 'Invitation to visit sample apartment with timings',
-      messageText: 'Hi {{first_name}}, our sample flat experience center is open 7 days a week from 10:00 AM to 7:00 PM in {{city}}. Would you prefer a weekday morning or weekend afternoon visit?'
-    },
-    {
-      ownerId,
-      name: 'Location & Key Connectivity',
-      category: 'Location',
-      description: 'Proximity to highways, metro, and airport',
-      messageText: '{{project}} is strategically positioned on Golf Course Extension Road, just 5 minutes from Cyber City metro and 25 minutes from IGI Airport.'
-    },
-    {
-      ownerId,
-      name: 'Thank You & Callback Request',
-      category: 'General',
-      description: 'Polite acknowledgment and confirmation of interest',
-      messageText: 'Thank you for reaching out to {{business_name}}, {{first_name}}. I am reviewing your enquiry details and will call you shortly.'
+/**
+ * Seeds default quick replies for a workspace or owner according to active industry.
+ * Guarantees zero duplicate insertions through promise de-duplication and atomic upserts.
+ */
+export async function seedDefaultQuickReplies(ownerId, workspaceId = null, industryKey = 'other') {
+  const lockKey = `qr_${workspaceId || ownerId}`;
+  if (activeSeedLocks.has(lockKey)) {
+    return activeSeedLocks.get(lockKey);
+  }
+
+  const promise = (async () => {
+    try {
+      const query = workspaceId ? { workspaceId, archivedAt: null } : { ownerId, archivedAt: null };
+      const existing = await QuickReply.find(query).select('presetKey name').lean();
+
+      const config = getStrictIndustryConfig(industryKey || 'other');
+      if (!config) return;
+      const presets = (config.quickReplyPresets || []).filter(p => !existing.some(e => e.presetKey === p.key || e.name === p.title));
+      if (!presets.length) return;
+
+      const ops = presets.map((qr) => {
+        const doc = {
+          ownerId,
+          workspaceId: workspaceId || null,
+          presetKey: qr.key,
+          name: qr.title,
+          description: qr.title,
+          messageText: qr.text,
+          category: qr.category || 'General',
+          supportedVariables: qr.supportedVariables || [],
+          isActive: true,
+          usageCount: 0,
+          archivedAt: null,
+        };
+
+        const filter = workspaceId
+          ? { _id: presetRecordId('reply', workspaceId, qr.key), workspaceId }
+          : { ownerId, name: qr.title };
+
+        return {
+          updateOne: {
+            filter,
+            update: { $setOnInsert: doc },
+            upsert: true,
+          },
+        };
+      });
+
+      if (ops.length > 0) {
+        await QuickReply.bulkWrite(ops);
+      }
+    } finally {
+      activeSeedLocks.delete(lockKey);
     }
-  ];
+  })();
 
-  await QuickReply.insertMany(defaults);
+  activeSeedLocks.set(lockKey, promise);
+  return promise;
 }
 
-export async function seedDefaultRules(ownerId) {
-  const existingCount = await AutoReplyRule.countDocuments({ ownerId, archivedAt: null });
-  if (existingCount > 0) return;
+/**
+ * Seeds default auto-reply rules for a workspace or owner according to active industry.
+ * Starter marketing rules are disabled by default. Protected STOP rule starts enabled with neutral wording.
+ * Guarantees zero duplicate insertions through promise de-duplication and atomic upserts.
+ */
+export async function seedDefaultRules(ownerId, workspaceId = null, industryKey = 'other') {
+  const lockKey = `rules_${workspaceId || ownerId}`;
+  if (activeSeedLocks.has(lockKey)) {
+    return activeSeedLocks.get(lockKey);
+  }
 
-  const defaults = [
-    {
-      ownerId,
-      name: 'STOP & Opt-out Compliance',
-      triggerKeyword: 'STOP',
-      synonyms: ['UNSUBSCRIBE', 'OPT OUT', 'STOP PROMOTIONS', 'CANCEL'],
-      matchType: 'WHOLE_WORD',
-      priority: 1, // Highest priority
-      actionType: 'RECORD_OPT_OUT',
-      responseMessage: 'You have been unsubscribed from WhatsApp property updates. Reply START anytime to re-enable notifications.',
-      enabled: true
-    },
-    {
-      ownerId,
-      name: 'Brochure Request Auto-reply',
-      triggerKeyword: 'BROCHURE',
-      synonyms: ['FLOOR PLAN', 'LAYOUT', 'CATALOGUE', 'PDF'],
-      matchType: 'WHOLE_WORD',
-      priority: 10,
-      actionType: 'RUN_MOCK_REPLY',
-      responseMessage: 'Hi! Here is the latest project brochure and master layout plan: https://relaycrm.io/brochure/prestige-park. Let us know if you would like to schedule a site visit.',
-      enabled: true
-    },
-    {
-      ownerId,
-      name: 'Price & Quotation Inquiry',
-      triggerKeyword: 'PRICE',
-      synonyms: ['PRICING', 'COST', 'RATE', 'BUDGET', 'QUOTATION'],
-      matchType: 'WHOLE_WORD',
-      priority: 15,
-      actionType: 'RUN_MOCK_REPLY',
-      responseMessage: 'Thank you for your interest in {{project}}! Pricing depends on unit configuration, layout, and current availability. Which unit type (e.g. 2BHK, 3BHK, Villa) are you exploring so we can share verified inventory pricing?',
-      enabled: true
-    },
-    {
-      ownerId,
-      name: 'Site Visit Interest & Alert',
-      triggerKeyword: 'VISIT',
-      synonyms: ['SITE VISIT', 'APPOINTMENT', 'VISITING', 'TOUR', 'SAMPLE FLAT'],
-      matchType: 'WHOLE_WORD',
-      priority: 20,
-      actionType: 'MARK_NEEDS_ATTENTION',
-      responseMessage: 'We would love to show you the sample apartment! Our experience center is open 10 AM – 7 PM daily. Which day works best for you?',
-      enabled: true
+  const promise = (async () => {
+    try {
+      const query = workspaceId ? { workspaceId, archivedAt: null } : { ownerId, archivedAt: null };
+      const existing = await AutoReplyRule.find(query).select('presetKey triggerKeyword').lean();
+
+      const config = getStrictIndustryConfig(industryKey || 'other');
+      if (!config) return;
+      const presets = (config.automationPresets || []).filter(p => p.intendedAction !== 'RECORD_OPT_OUT' && !existing.some(e => e.presetKey === p.presetId || e.triggerKeyword === p.triggerKeywords?.[0]?.toUpperCase()));
+      if (!presets.length) return;
+
+      const ops = presets.map((r) => {
+        const isStopRule = r.presetId && r.presetId.includes('stop');
+        let actionType = 'RUN_MOCK_REPLY';
+        if (isStopRule) {
+          actionType = 'RECORD_OPT_OUT';
+        } else if (
+          r.presetId.includes('visit') ||
+          r.presetId.includes('appointment') ||
+          r.presetId.includes('call')
+        ) {
+          actionType = 'MARK_NEEDS_ATTENTION';
+        }
+
+        let matchType = 'WHOLE_WORD';
+        if (r.matchType === 'exact') matchType = 'EXACT_MATCH';
+        else if (r.matchType === 'contains') matchType = 'CONTAINS';
+
+        const triggerKeyword = (r.triggerKeywords && r.triggerKeywords[0]) || 'HELP';
+        const synonyms = (r.triggerKeywords && r.triggerKeywords.slice(1)) || [];
+
+        const doc = {
+          ownerId,
+          workspaceId: workspaceId || null,
+          presetKey: r.presetId,
+          name: r.displayName || r.name,
+          triggerKeyword: triggerKeyword.toUpperCase(),
+          synonyms: synonyms.map((s) => s.toUpperCase()),
+          matchType,
+          actionType,
+          responseMessage: r.responseMessage || r.suggestedResponse || '',
+          priority: r.priority || 10,
+          enabled: false,
+          cooldownSeconds: 15,
+          executionCount: 0,
+          lastExecutedAt: null,
+          archivedAt: null,
+        };
+
+        const filter = workspaceId
+          ? { _id: presetRecordId('rule', workspaceId, r.presetId), workspaceId }
+          : { ownerId, name: doc.name };
+
+        return {
+          updateOne: {
+            filter,
+            update: { $setOnInsert: doc },
+            upsert: true,
+          },
+        };
+      });
+
+      if (ops.length > 0) {
+        await AutoReplyRule.bulkWrite(ops);
+      }
+    } finally {
+      activeSeedLocks.delete(lockKey);
     }
-  ];
+  })();
 
-  await AutoReplyRule.insertMany(defaults);
+  activeSeedLocks.set(lockKey, promise);
+  return promise;
 }
 
 async function evaluateOnce({

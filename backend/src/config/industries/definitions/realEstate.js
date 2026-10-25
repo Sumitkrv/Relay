@@ -2,7 +2,7 @@
  * Real Estate & Housing Industry Definition
  * Key: real_estate
  * Version: 1.1.0
- *
+ * 
  * Master pack providing:
  * - Exactly 14 CRM Contact field definitions (Task 3)
  * - Exactly 15 pre-fed starter message templates (Task 4)

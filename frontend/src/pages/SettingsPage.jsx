@@ -22,6 +22,7 @@ import {
   Play,
   CheckCircle,
   CreditCard,
+  PhoneCall,
   Upload,
   Trash2,
   Image as ImageIcon,
@@ -41,13 +42,10 @@ import settingsService from '../services/settings';
 import { getSystemMessagingStatus, runMockDiagnostic } from '../services/messages';
 import PageHeader from '../components/PageHeader';
 import DeveloperTestingCenter from '../components/DeveloperTestingCenter';
-import IndustryConfigHub from '../components/industry/IndustryConfigHub';
 import BillingSettingsPanel from '../components/BillingSettingsPanel';
-import InboundSimulatorModal from '../components/mock/InboundSimulatorModal';
-import AutomationTestConsole from '../components/mock/AutomationTestConsole';
 import '../settings.css';
 
-const VALID_TABS = ['profile', 'business', 'security', 'integrations', 'whatsapp', 'preferences', 'billing', 'about', 'developer'];
+const VALID_TABS = ['profile', 'business', 'security', 'integrations', 'preferences', 'billing', 'about', 'developer'];
 
 const IANA_TIMEZONES = [
   'Asia/Kolkata',
@@ -102,16 +100,11 @@ export default function SettingsPage() {
   // Logo upload state
   const [logoUploading, setLogoUploading] = useState(false);
 
-  const resolveTab = () => {
-    const path = window.location.pathname.toLowerCase();
-    if (path.endsWith('/billing')) return 'billing';
-    if (path.endsWith('/whatsapp')) return 'whatsapp';
+  // Active tab synchronized with URL hash
+  const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '').toLowerCase();
     return VALID_TABS.includes(hash) ? hash : 'profile';
-  };
-
-  // Active tab synchronized with URL hash
-  const [activeTab, setActiveTab] = useState(resolveTab);
+  });
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -122,10 +115,6 @@ export default function SettingsPage() {
 
   // System Readiness Overview
   const [systemStatus, setSystemStatus] = useState(null);
-
-  // Simulation Modals (SaaS Prompt 8)
-  const [showInboundModal, setShowInboundModal] = useState(false);
-  const [showTestConsole, setShowTestConsole] = useState(false);
 
   // Tab 1: Profile State
   const [profileName, setProfileName] = useState(user?.name || '');
@@ -254,15 +243,6 @@ export default function SettingsPage() {
   // Sync hash deep-linking with browser history
   useEffect(() => {
     const handleHash = () => {
-      const path = window.location.pathname.toLowerCase();
-      if (path.endsWith('/billing')) {
-        setActiveTab('billing');
-        return;
-      }
-      if (path.endsWith('/whatsapp')) {
-        setActiveTab('whatsapp');
-        return;
-      }
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (VALID_TABS.includes(hash)) {
         setActiveTab(hash);
@@ -1080,10 +1060,6 @@ export default function SettingsPage() {
                   </button>
                 </div>
               </form>
-
-              <div style={{ marginTop: '28px', borderTop: '1px solid var(--color-border-subtle)', paddingTop: '24px' }}>
-                <IndustryConfigHub />
-              </div>
             </section>
           )}
 
@@ -1342,62 +1318,25 @@ export default function SettingsPage() {
           )}
 
           {/* TAB 4: WHATSAPP INTEGRATION PANEL */}
-          {(activeTab === 'integrations' || activeTab === 'whatsapp') && (
+          {activeTab === 'integrations' && (
             <section className="panel settings-panel" id="integrations" aria-labelledby="tab-integrations">
-              <div
-                style={{
-                  borderBottom: '1px solid var(--color-border-subtle)',
-                  paddingBottom: '14px',
-                  marginBottom: '20px',
-                }}
-              >
-                <h2 style={{ fontSize: '18px', fontWeight: 700 }} id="tab-integrations">
-                  WhatsApp Cloud API Integration
-                </h2>
-                <p
-                  style={{
-                    fontSize: '13px',
-                    color: 'var(--color-text-secondary)',
-                    margin: '4px 0 0',
-                  }}
-                >
-                  Inspect Meta WhatsApp Business connection state, sending engine mode, and webhook readiness.
-                </p>
+              <div className="settings-panel-header">
+                <div>
+                  <h2 id="tab-integrations">WhatsApp Cloud API Integration</h2>
+                  <p>
+                    Inspect Meta WhatsApp Business connection state, sending engine mode, and webhook readiness.
+                  </p>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '880px' }}>
-                {/* Official API and Mode Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '16px',
-                      background: 'var(--color-surface-muted)',
-                      borderRadius: '10px',
-                      border: '1px solid var(--color-border)',
-                    }}
-                  >
-                    <div>
-                      <strong style={{ fontSize: '14.5px', color: 'var(--color-text-primary)' }}>
-                        Official WhatsApp Cloud API
-                      </strong>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                        Provider: Meta BSP
-                      </div>
-                    </div>
-                    <span
-                      className="status-badge"
-                      style={{
-                        backgroundColor: 'var(--color-surface-subtle)',
-                        color: 'var(--color-text-muted)',
-                        fontSize: '11.5px',
-                      }}
-                    >
-                      Disconnected (Pending Provider Setup)
-                    </span>
-                  </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '920px' }}>
+                <div className="settings-group-card">
+                  <h3>WhatsApp connection</h3>
+                  <p>{integration?.connectionStatus || 'Status unavailable'} · {integration?.executionMode || 'Mode unavailable'}</p>
+                  <p>{integration?.notice || 'Refresh to inspect the backend integration status.'}</p>
+                  <button type="button" className="outline-btn small" disabled={waConnecting} onClick={handleRefreshIntegration}>
+                    {waConnecting ? 'Checking…' : 'Refresh connection status'}
+                  </button>
                 </div>
 
                 {/* Sending Engine Mode */}
@@ -2060,20 +1999,8 @@ export default function SettingsPage() {
           {activeTab === 'developer' && (
             <DeveloperTestingCenter />
           )}
-
         </div>
       </div>
-
-      {/* Simulation Modals (SaaS Prompt 8) */}
-      <InboundSimulatorModal
-        isOpen={showInboundModal}
-        onClose={() => setShowInboundModal(false)}
-        onComplete={() => fetchMessagingHealth && fetchMessagingHealth()}
-      />
-      <AutomationTestConsole
-        isOpen={showTestConsole}
-        onClose={() => setShowTestConsole(false)}
-      />
     </div>
   );
 }

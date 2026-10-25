@@ -11,8 +11,6 @@ export const SUPPORTED_FIELD_TYPES = [
   'multiselect',
   'date',
   'boolean',
-  'phone',
-  'url',
 ];
 
 export const SUPPORTED_MATCH_TYPES = [

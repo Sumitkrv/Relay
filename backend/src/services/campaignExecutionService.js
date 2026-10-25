@@ -17,20 +17,19 @@ import { recordMessageEvent } from './messageEventService.js';
 
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const active=['queued','running','paused'];
-export async function createCampaignExecution(campaignId,ownerId,actorId,{trigger='manual',scheduledFor=null,workspaceId=null}={}){
+export async function createCampaignExecution(campaignId,ownerId,actorId,{trigger='manual',scheduledFor=null}={}){
  const campaign=await Campaign.findOne({_id:campaignId,ownerId});if(!campaign)throw fail('Campaign not found.',404);if(campaign.status==='Archived')throw fail('Archived campaigns cannot run a simulation.',409);
  if(!campaign.audienceSnapshotVersion||!campaign.selectedTemplateId||!campaign.selectedTemplateVersionId)throw fail('Select an audience and a saved template version before starting a simulation.');
  const counts=await CampaignAudience.countDocuments({ownerId,campaignId,snapshotVersion:campaign.audienceSnapshotVersion});if(!counts)throw fail('The campaign audience is empty.',409);
  if(campaign.activeExecutionId){if(await CampaignExecution.exists({_id:campaign.activeExecutionId,status:{$in:active}}))throw fail('This campaign already has an active simulation.',409);await Campaign.updateOne({_id:campaign._id,ownerId,activeExecutionId:campaign.activeExecutionId},{$set:{activeExecutionId:null}});}
- const resolvedWorkspaceId = workspaceId || campaign.workspaceId || null;
  const user=await User.findById(ownerId).select('businessName').lean();const validation=await validateCampaignAudience(campaign,{_id:ownerId,businessName:user?.businessName||''});
  const version=await TemplateVersion.findOne({_id:campaign.selectedTemplateVersionId,templateId:campaign.selectedTemplateId,ownerId}).lean();
- const execution=await CampaignExecution.create({ownerId,campaignId,mode:'mock',trigger,audienceSnapshotVersion:campaign.audienceSnapshotVersion,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,totalJobs:counts,status:'queued',scheduledFor,summary:{validated:validation.counts.total,locallyEligible:validation.counts.eligible}});
+ const execution=await CampaignExecution.create({ownerId,workspaceId:campaign.workspaceId,campaignId,mode:'mock',trigger,audienceSnapshotVersion:campaign.audienceSnapshotVersion,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,totalJobs:counts,status:'queued',scheduledFor,summary:{validated:validation.counts.total,locallyEligible:validation.counts.eligible}});
  try{
    const cursor=CampaignAudience.find({ownerId,campaignId,snapshotVersion:campaign.audienceSnapshotVersion}).select('contactId').cursor();
    let ops=[];
    for await(const member of cursor){
-     ops.push({updateOne:{filter:{ownerId,executionId:execution._id,contactId:member.contactId},update:{$setOnInsert:{ownerId,campaignId,executionId:execution._id,contactId:member.contactId,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,status:'queued'}},upsert:true}});
+     ops.push({updateOne:{filter:{ownerId,executionId:execution._id,contactId:member.contactId},update:{$setOnInsert:{ownerId,workspaceId:campaign.workspaceId,campaignId,executionId:execution._id,contactId:member.contactId,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,status:'queued'}},upsert:true}});
      if(ops.length>=500){await CampaignMessageJob.bulkWrite(ops,{ordered:false});ops=[];}
    }
    if(ops.length)await CampaignMessageJob.bulkWrite(ops,{ordered:false});
@@ -83,12 +82,12 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
         variables: p.variables || []
       };
     }
-    const resolvedWsId = execution?.workspaceId || job.workspaceId || null;
     const messageDoc = await Message.findOneAndUpdate(
       { ownerId: job.ownerId, idempotencyKey: idempKey },
       {
         $setOnInsert: {
           messageId: `msg_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`,
+          workspaceId: campaignDoc?.workspaceId || job.workspaceId,
           contactId: job.contactId,
           recipientPhone: contact?.phoneNumber || '',
           recipientName: contact?.fullName || '',
@@ -117,7 +116,6 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
     if (messageDoc) {
       await recordMessageEvent({
         ownerId: job.ownerId,
-        workspaceId: resolvedWsId,
         messageId: messageDoc._id,
         eventType: status === 'simulated_success' ? 'MOCK_SEND_SUCCEEDED' : 'MESSAGE_BLOCKED',
         previousStatus: 'PROCESSING',

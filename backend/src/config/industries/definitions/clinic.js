@@ -2,12 +2,12 @@
  * Clinics & Dental Industry Definition
  * Key: clinic (alias: clinic_dental)
  * Version: 1.1.0
- *
+ * 
  * IMPORTANT HEALTHCARE COMPLIANCE RULES:
  * - General administrative communication only.
  * - Zero patient clinical histories, diagnoses, prescription details, or clinical records.
  * - Appointment confirmations are conditional drafts intended only for genuinely scheduled bookings.
- *
+ * 
  * Complete starter pack providing:
  * - 10 CRM Contact field definitions (Task 5.A)
  * - Exactly 15 pre-fed starter message templates (Task 5.B)

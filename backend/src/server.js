@@ -37,7 +37,7 @@ try {
   await startWorkflowWorker();
   startCampaignWorker();
   startMessageWorker();
-  app.listen(port, '0.0.0.0', () => console.log(`API listening on 0.0.0.0:${port}`));
+  app.listen(port, () => console.log(`API listening on port ${port}`));
 } catch (err) {
   console.error(`Startup failed: ${err.message}`);
   process.exit(1);
