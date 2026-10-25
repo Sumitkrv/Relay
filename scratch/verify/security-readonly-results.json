@@ -1,0 +1,107 @@
+[
+  {
+    "id": "cross-workspace GET /contacts (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /templates (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /campaigns (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /inbox/conversations (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /dashboard/overview (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /reports/overview (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /settings/business (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "cross-workspace GET /inbox/quick-replies (gym token, clinic ws header) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry GET /contacts (M2W clone token -> M2W ws) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry GET /templates (M2W clone token -> M2W ws) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry GET /campaigns (M2W clone token -> M2W ws) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry GET /inbox/conversations (M2W clone token -> M2W ws) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry GET /dashboard/overview (M2W clone token -> M2W ws) denied",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "same-industry direct contact id from other ws -> 404",
+    "ok": true,
+    "note": "status 404"
+  },
+  {
+    "id": "same-industry direct template id from other ws -> 404",
+    "ok": true,
+    "note": "status 404"
+  },
+  {
+    "id": "same-industry cross-ws template PATCH blocked (no mutation)",
+    "ok": true,
+    "note": "status 404"
+  },
+  {
+    "id": "no protected endpoint answers unauthenticated",
+    "ok": true,
+    "note": ""
+  },
+  {
+    "id": "garbage bearer -> 401",
+    "ok": true,
+    "note": "status 401"
+  },
+  {
+    "id": "non-platform-admin blocked from /admin",
+    "ok": true,
+    "note": "status 403"
+  },
+  {
+    "id": "logout revokes the session token",
+    "ok": true,
+    "note": "before 200, after 401"
+  },
+  {
+    "id": "independent sessions: logging out session 1 keeps session 2",
+    "ok": true,
+    "note": "s1 401, s2 200"
+  }
+]

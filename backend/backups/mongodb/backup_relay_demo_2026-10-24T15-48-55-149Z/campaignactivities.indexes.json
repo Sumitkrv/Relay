@@ -1,0 +1,1 @@
+[{"v":2,"key":{"_id":1},"name":"_id_"},{"v":2,"key":{"ownerId":1},"name":"ownerId_1","background":true},{"v":2,"key":{"campaignId":1},"name":"campaignId_1","background":true},{"v":2,"key":{"ownerId":1,"campaignId":1,"createdAt":-1},"name":"ownerId_1_campaignId_1_createdAt_-1","background":true}]

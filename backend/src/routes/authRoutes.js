@@ -44,7 +44,7 @@ router.post('/resend-verification', recoveryLimiter, asyncHandler(resendVerifica
 
 // Login & Session
 router.post('/login', authLimiter, asyncHandler(login));
-router.post('/logout', logout);
+router.post('/logout', asyncHandler(logout));
 router.get('/me', requireAuth, asyncHandler(me));
 
 // Password Recovery & Reset

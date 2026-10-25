@@ -17,12 +17,19 @@ export const getSystemStatus = () => api.get('/settings/system-status');
 export const getDemoStatus = () => api.get('/settings/demo-status');
 export const triggerDemoSeed = () => api.post('/settings/demo-seed');
 export const triggerDemoReset = () => api.post('/settings/demo-reset');
+export const uploadLogo = (formData) =>
+  api.post('/settings/logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+export const deleteLogo = () => api.delete('/settings/logo');
 
 export default {
   getProfile,
   updateProfile,
   getBusinessProfile,
   updateBusinessProfile,
+  uploadLogo,
+  deleteLogo,
   getPreferences,
   updatePreferences,
   getSecurityOverview,

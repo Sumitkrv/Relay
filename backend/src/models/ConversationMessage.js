@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 const schema = new mongoose.Schema({
+  workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', index: true },
   ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   conversationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Conversation', required: true, index: true },
   contactId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contact', required: true, index: true },

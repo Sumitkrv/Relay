@@ -180,7 +180,7 @@ describe('SaaS Prompt 4 — Production-Grade Customer Authentication Test Suite'
 
       const statuses = results.map((r) => r.status);
       assert.ok(statuses.includes(201), 'At least one request succeeds');
-      assert.ok(statuses.includes(409), 'Second concurrent request receives 409');
+      assert.ok(statuses.includes(409), `Second concurrent request receives 409; actual statuses: ${statuses.join(', ')}`);
     });
 
     test('10. Untrusted role injection is ignored by server', async () => {

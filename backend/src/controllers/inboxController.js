@@ -32,6 +32,9 @@ import { scoreContact } from '../services/leadScoringService.js';
 import { recordConvertedContact } from '../services/leadConversionService.js';
 import Campaign from '../models/Campaign.js';
 import CampaignAudience from '../models/CampaignAudience.js';
+import { tenantScope } from '../utils/tenantScope.js';
+import { getStrictIndustryConfig } from '../config/industries/industryRegistry.js';
+import { protectedOptOutRule } from '../services/autoReplyRuleService.js';
 import CampaignExecution from '../models/CampaignExecution.js';
 import CampaignMessageJob from '../models/CampaignMessageJob.js';
 import Deal from '../models/Deal.js';
@@ -42,25 +45,49 @@ const fail = (message, status = 400) => Object.assign(new Error(message), { stat
 const statuses = ['Open', 'Pending', 'Follow-up Required', 'Needs Attention', 'Resolved', 'Closed', 'Archived'];
 
 async function scopedConversation(req) {
-  const c = await requireConversation(req.user._id, req.params.id);
+  const c = await requireConversation(req.user._id, req.params.id, req.workspaceId);
   if (!c) throw fail('Conversation not found.', 404);
-  return c;
+  return { ...c, workspaceId: c.workspaceId || req.workspaceId };
+}
+
+// Missing workspace metadata is accepted only after checking the linked contact's tenant.
+async function inboxConversationScope(req) {
+  const scope = { ownerId: req.user._id };
+  if (!req.workspaceId) return scope;
+  const contactIds = await Contact.distinct('_id', { ...tenantScope(req), isDeleted: false });
+  return {
+    ...scope,
+    contactId: { $in: contactIds },
+    $and: [{ $or: [{ workspaceId: req.workspaceId }, { workspaceId: null }] }],
+  };
+}
+
+function conversationFilter(req, conversation) {
+  return {
+    ownerId: req.user._id,
+    _id: conversation._id,
+    contactId: conversation.contactId,
+    ...(req.workspaceId ? { $or: [{ workspaceId: req.workspaceId }, { workspaceId: null }] } : {}),
+  };
+}
+
+function conversationRecordsScope(req, conversation) {
+  const { _id, ...scope } = conversationFilter(req, conversation);
+  return { ...scope, conversationId: _id };
 }
 
 export async function stats(req, res) {
   const ownerId = req.user._id;
-  await Promise.all([
-    seedDefaultRules(ownerId).catch(() => {}),
-    seedDefaultQuickReplies(ownerId).catch(() => {})
-  ]);
+  const scope = tenantScope(req);
+  const conversations = await inboxConversationScope(req);
 
   const [byStatus, unread, followups, provider, rulesCount, quickRepliesCount] = await Promise.all([
-    Conversation.aggregate([{ $match: { ownerId } }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
-    Conversation.aggregate([{ $match: { ownerId } }, { $group: { _id: null, count: { $sum: '$internalUnreadCount' } } }]),
-    FollowUpTask.countDocuments({ ownerId, status: { $in: ['Pending', 'In Progress'] }, dueAt: { $lte: new Date() } }),
+    Conversation.aggregate([{ $match: conversations }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
+    Conversation.aggregate([{ $match: conversations }, { $group: { _id: null, count: { $sum: '$internalUnreadCount' } } }]),
+    FollowUpTask.countDocuments({ ...scope, status: { $in: ['Pending', 'In Progress'] }, dueAt: { $lte: new Date() } }),
     getProviderStatus(),
-    AutoReplyRule.countDocuments({ ownerId, enabled: true, archivedAt: null }),
-    QuickReply.countDocuments({ ownerId, archivedAt: null })
+    AutoReplyRule.countDocuments({ ...scope, enabled: true, archivedAt: null }),
+    QuickReply.countDocuments({ ...scope, archivedAt: null })
   ]);
 
   const s = Object.fromEntries(byStatus.map(x => [x._id, x.count]));
@@ -88,14 +115,10 @@ export async function stats(req, res) {
 
 export async function list(req, res) {
   const ownerId = req.user._id;
-  await Promise.all([
-    seedDefaultRules(ownerId).catch(() => {}),
-    seedDefaultQuickReplies(ownerId).catch(() => {})
-  ]);
 
   const page = Math.max(1, Number.parseInt(req.query.page) || 1);
   const limit = Math.min(50, Math.max(1, Number.parseInt(req.query.limit) || 20));
-  const filter = { ownerId };
+  const filter = await inboxConversationScope(req);
 
   if (req.query.status && req.query.status !== 'all') {
     if (!statuses.map(s => s.toLowerCase()).includes(req.query.status.toLowerCase())) {
@@ -143,7 +166,7 @@ export async function list(req, res) {
     if (!Number.isNaN(until.getTime())) filter.lastActivityAt = { ...(filter.lastActivityAt || {}), $lte: until };
   }
 
-  let contactQuery = { ownerId, isDeleted: false };
+  let contactQuery = { ...tenantScope(req), isDeleted: false };
   const q = String(req.query.q || '').trim().slice(0, 120);
 
   if (q) {
@@ -163,7 +186,12 @@ export async function list(req, res) {
     }).limit(500).select('_id').lean();
 
     const ids = contacts.map(c => c._id);
-    const messages = await ConversationMessage.find({ ownerId, messageBody: rx }).limit(300).select('conversationId').lean();
+    const messages = await ConversationMessage.find({
+      ownerId,
+      ...(filter.contactId ? { contactId: filter.contactId } : {}),
+      ...(req.workspaceId ? { $or: [{ workspaceId: req.workspaceId }, { workspaceId: null }] } : {}),
+      messageBody: rx,
+    }).limit(300).select('conversationId').lean();
 
     filter.$or = [
       { contactId: { $in: ids } },
@@ -178,7 +206,7 @@ export async function list(req, res) {
   if (req.query.tag) contactQuery.tags = String(req.query.tag).slice(0, 40).toLowerCase();
   if (req.query.priority) contactQuery.priority = String(req.query.priority);
 
-  if (Object.keys(contactQuery).length > 2) {
+  if (req.query.category || req.query.leadStatus || req.query.tag || req.query.priority) {
     const contacts = await Contact.find(contactQuery).limit(1000).select('_id').lean();
     filter.contactId = { $in: contacts.map(c => c._id) };
   }
@@ -191,8 +219,8 @@ export async function list(req, res) {
       .limit(limit)
       .populate({
         path: 'contactId',
-        match: { ownerId, isDeleted: false },
-        select: 'fullName companyName phoneNumber email website businessCategory industry location interestedService leadStatus priority tags notes leadSource lastContactedAt lastRepliedAt whatsappConsentStatus isSuppressed suppressionReason'
+        match: { ...tenantScope(req), isDeleted: false },
+        select: 'interestedPropertyType interestedProject preferredLocation budgetRange city industryData fullName companyName phoneNumber email website businessCategory industry location interestedService leadStatus priority tags notes leadSource lastContactedAt lastRepliedAt whatsappConsentStatus isSuppressed suppressionReason'
       })
       .populate({
         path: 'lastMessageId',
@@ -214,7 +242,7 @@ export async function list(req, res) {
 export async function createConversation(req, res) {
   const source = req.body?.source === 'test' ? 'test' : 'manual';
   const conversation = await makeConversation({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     contactId: req.body?.contactId,
     performedBy: req.user._id,
     source
@@ -224,14 +252,15 @@ export async function createConversation(req, res) {
 
 export async function getConversation(req, res) {
   const c = await scopedConversation(req);
+  const related = conversationRecordsScope(req, c);
   const [conversation, contact, draft, notes, tasks, consentHistory, audience] = await Promise.all([
-    Conversation.findOne({ _id: c._id, ownerId: req.user._id }).populate('lastMessageId').lean(),
-    Contact.findOne({ _id: c.contactId, ownerId: req.user._id, isDeleted: false }).lean(),
-    MessageDraft.findOne({ ownerId: req.user._id, conversationId: c._id }).lean(),
-    InternalNote.find({ ownerId: req.user._id, conversationId: c._id, deletedAt: null }).sort({ isPinned: -1, createdAt: -1 }).limit(100).lean(),
-    FollowUpTask.find({ ownerId: req.user._id, conversationId: c._id }).sort({ dueAt: 1 }).limit(50).lean(),
-    ConsentRecord.find({ ownerId: req.user._id, contactId: c.contactId }).sort({ recordedAt: -1 }).limit(10).select('status consentSource consentPurpose consentCapturedAt evidenceReference recordedAt').lean(),
-    CampaignAudience.find({ ownerId: req.user._id, contactId: c.contactId }).sort({ createdAt: -1 }).limit(50).lean()
+    Conversation.populate(c, { path: 'lastMessageId', match: related }),
+    Contact.findOne({ _id: c.contactId, ...tenantScope(req), isDeleted: false }).lean(),
+    MessageDraft.findOne(related).lean(),
+    InternalNote.find({ ...related, deletedAt: null }).sort({ isPinned: -1, createdAt: -1 }).limit(100).lean(),
+    FollowUpTask.find(related).sort({ dueAt: 1 }).limit(50).lean(),
+    ConsentRecord.find({ ...tenantScope(req), contactId: c.contactId }).sort({ recordedAt: -1 }).limit(10).select('status consentSource consentPurpose consentCapturedAt evidenceReference recordedAt').lean(),
+    CampaignAudience.find({ ...tenantScope(req), contactId: c.contactId }).sort({ createdAt: -1 }).limit(50).lean()
   ]);
 
   if (!contact) throw fail('Contact not found.', 404);
@@ -239,12 +268,12 @@ export async function getConversation(req, res) {
   // Link campaign history if available
   const campaignIds = [...new Set(audience.map(x => String(x.campaignId)))];
   const campaigns = campaignIds.length
-    ? await Campaign.find({ ownerId: req.user._id, _id: { $in: campaignIds } }).select('name description purpose status campaignType schedule templateSnapshot').lean()
+    ? await Campaign.find({ ...tenantScope(req), _id: { $in: campaignIds } }).select('name description purpose status campaignType schedule templateSnapshot').lean()
     : [];
   const campaignMap = new Map(campaigns.map(x => [String(x._id), x]));
 
   const jobs = campaignIds.length
-    ? await CampaignMessageJob.find({ ownerId: req.user._id, contactId: c.contactId, campaignId: { $in: campaignIds } }).sort({ createdAt: -1 }).limit(50).lean()
+    ? await CampaignMessageJob.find({ ...tenantScope(req), contactId: c.contactId, campaignId: { $in: campaignIds } }).sort({ createdAt: -1 }).limit(50).lean()
     : [];
 
   const campaignHistory = audience.map(member => {
@@ -271,7 +300,8 @@ export async function getConversation(req, res) {
 
 export async function updateConversation(req, res) {
   if (!objectId(req.params.id)) throw fail('Conversation ID is invalid.');
-  const c = await Conversation.findOne({ _id: req.params.id, ownerId: req.user._id });
+  const authorized = await scopedConversation(req);
+  const c = await Conversation.findOne(conversationFilter(req, authorized));
   if (!c) throw fail('Conversation not found.', 404);
   const b = req.body || {};
 
@@ -289,7 +319,7 @@ export async function updateConversation(req, res) {
       c.activeWorkspaceKey = undefined;
     } else if (before === 'Archived') {
       const key = String(c.ownerId) + ':' + String(c.contactId) + ':' + c.source;
-      const collision = await Conversation.findOne({ ownerId: req.user._id, activeWorkspaceKey: key, _id: { $ne: c._id } }).lean();
+      const collision = await Conversation.findOne({ ...tenantScope(req), activeWorkspaceKey: key, _id: { $ne: c._id } }).lean();
       if (collision) throw fail('An active conversation workspace already exists for this contact and source.', 409);
       c.activeWorkspaceKey = key;
     } else if (!c.activeWorkspaceKey) {
@@ -363,7 +393,7 @@ export async function toggleAutomation(req, res) {
   const next = req.body?.automationStatus || (c.automationStatus === 'PAUSED' ? 'ACTIVE' : 'PAUSED');
   if (!['ACTIVE', 'PAUSED'].includes(next)) throw fail('Invalid automation status.');
   
-  await Conversation.updateOne({ _id: c._id, ownerId: req.user._id }, { $set: { automationStatus: next } });
+  await Conversation.updateOne(conversationFilter(req, c), { $set: { automationStatus: next } });
   
   await writeActivity({
     conversation: c,
@@ -382,7 +412,7 @@ export async function messages(req, res) {
   const c = await scopedConversation(req);
   const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit) || 40));
   const before = Number.isFinite(Date.parse(req.query.before || '')) ? new Date(req.query.before) : null;
-  const filter = { ownerId: req.user._id, conversationId: c._id, ...(before ? { occurredAt: { $lt: before } } : {}) };
+  const filter = { ...conversationRecordsScope(req, c), ...(before ? { occurredAt: { $lt: before } } : {}) };
   const rows = await ConversationMessage.find(filter).sort({ occurredAt: -1, _id: -1 }).limit(limit + 1).lean();
   const hasMore = rows.length > limit;
   const records = rows.slice(0, limit).reverse();
@@ -392,7 +422,7 @@ export async function messages(req, res) {
 export async function addManualMessage(req, res) {
   const c = await scopedConversation(req);
   const message = await logManualCommunication({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     conversation: c,
     performedBy: req.user._id,
     body: req.body?.body,
@@ -409,7 +439,7 @@ export async function sendMockReply(req, res) {
   if (!body || body.length > 5000) throw fail('Message text must contain 1–5000 characters.');
 
   const message = await ConversationMessage.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     conversationId: c._id,
     contactId: c.contactId,
     direction: 'outbound',
@@ -422,7 +452,7 @@ export async function sendMockReply(req, res) {
     occurredAt: new Date()
   });
 
-  const stored = await Conversation.findOne({ _id: c._id, ownerId: req.user._id });
+  const stored = await Conversation.findOne(conversationFilter(req, c));
   stored.lastMessageId = message._id;
   stored.lastActivityAt = message.occurredAt;
   await stored.save();
@@ -442,8 +472,9 @@ export async function sendMockReply(req, res) {
 }
 
 export async function markReviewed(req, res) {
+  const authorized = await scopedConversation(req);
   const c = await Conversation.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id },
+    conversationFilter(req, authorized),
     { $set: { internalUnreadCount: 0 } },
     { new: true }
   );
@@ -457,8 +488,9 @@ export async function markRead(req, res) {
 }
 
 export async function markUnread(req, res) {
+  const authorized = await scopedConversation(req);
   const c = await Conversation.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id },
+    conversationFilter(req, authorized),
     { $set: { internalUnreadCount: Math.max(1, Number(req.body?.count) || 1) } },
     { new: true }
   );
@@ -469,12 +501,13 @@ export async function markUnread(req, res) {
 
 export async function activity(req, res) {
   const c = await scopedConversation(req);
+  const related = conversationRecordsScope(req, c);
   const [events, messages, notes, tasks, contactEvents] = await Promise.all([
-    ConversationActivity.find({ ownerId: req.user._id, conversationId: c._id }).sort({ createdAt: -1 }).limit(100).lean(),
-    ConversationMessage.find({ ownerId: req.user._id, conversationId: c._id }).sort({ occurredAt: -1 }).limit(50).lean(),
-    InternalNote.find({ ownerId: req.user._id, conversationId: c._id, deletedAt: null }).sort({ createdAt: -1 }).limit(50).lean(),
-    FollowUpTask.find({ ownerId: req.user._id, conversationId: c._id }).sort({ updatedAt: -1 }).limit(50).lean(),
-    ContactActivity.find({ ownerId: req.user._id, contactId: c.contactId }).sort({ createdAt: -1 }).limit(100).lean()
+    ConversationActivity.find(related).sort({ createdAt: -1 }).limit(100).lean(),
+    ConversationMessage.find(related).sort({ occurredAt: -1 }).limit(50).lean(),
+    InternalNote.find({ ...related, deletedAt: null }).sort({ createdAt: -1 }).limit(50).lean(),
+    FollowUpTask.find(related).sort({ updatedAt: -1 }).limit(50).lean(),
+    ContactActivity.find({ ...tenantScope(req), contactId: c.contactId }).sort({ createdAt: -1 }).limit(100).lean()
   ]);
 
   const linkedMessages = new Set(events.map(e => String(e.metadata?.messageId || '')));
@@ -494,7 +527,7 @@ export async function activity(req, res) {
 
 export async function getDraft(req, res) {
   const c = await scopedConversation(req);
-  res.json({ draft: await MessageDraft.findOne({ ownerId: req.user._id, conversationId: c._id }).lean() });
+  res.json({ draft: await MessageDraft.findOne(conversationRecordsScope(req, c)).lean() });
 }
 
 export async function saveDraft(req, res) {
@@ -505,14 +538,14 @@ export async function saveDraft(req, res) {
   let selectedTemplateId = null, selectedTemplateVersionId = null;
   if (req.body?.selectedTemplateVersionId) {
     if (!objectId(req.body.selectedTemplateVersionId)) throw fail('Template version ID is invalid.');
-    const version = await TemplateVersion.findOne({ _id: req.body.selectedTemplateVersionId, ownerId: req.user._id }).lean();
+    const version = await TemplateVersion.findOne({ _id: req.body.selectedTemplateVersionId, ...tenantScope(req) }).lean();
     if (!version) throw fail('Template version not found.', 404);
     selectedTemplateVersionId = version._id;
     selectedTemplateId = version.templateId;
   }
 
   const draft = await MessageDraft.findOneAndUpdate(
-    { ownerId: req.user._id, conversationId: c._id },
+    { ...tenantScope(req), conversationId: c._id },
     {
       $set: {
         contactId: c.contactId,
@@ -521,7 +554,7 @@ export async function saveDraft(req, res) {
         selectedTemplateVersionId,
         updatedBy: req.user._id
       },
-      $setOnInsert: { ownerId: req.user._id, conversationId: c._id }
+      $setOnInsert: { ...tenantScope(req), conversationId: c._id }
     },
     { new: true, upsert: true, runValidators: true }
   );
@@ -532,14 +565,14 @@ export async function saveDraft(req, res) {
 
 export async function deleteDraft(req, res) {
   const c = await scopedConversation(req);
-  await MessageDraft.deleteOne({ ownerId: req.user._id, conversationId: c._id });
+  await MessageDraft.deleteOne({ ...tenantScope(req), conversationId: c._id });
   await writeActivity({ conversation: c, eventType: 'draft_deleted', metadata: {}, performedBy: req.user._id });
   res.json({ deleted: true });
 }
 
 export async function notes(req, res) {
   const c = await scopedConversation(req);
-  res.json({ records: await InternalNote.find({ ownerId: req.user._id, conversationId: c._id, deletedAt: null }).sort({ isPinned: -1, createdAt: -1 }).limit(100).lean() });
+  res.json({ records: await InternalNote.find({ ...conversationRecordsScope(req, c), deletedAt: null }).sort({ isPinned: -1, createdAt: -1 }).limit(100).lean() });
 }
 
 export async function createNote(req, res) {
@@ -548,7 +581,7 @@ export async function createNote(req, res) {
   if (!content || content.length > 5000) throw fail('Note must contain 1–5000 characters.');
 
   const note = await InternalNote.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     contactId: c.contactId,
     conversationId: c._id,
     content,
@@ -564,7 +597,7 @@ export async function createNote(req, res) {
 
 export async function updateNote(req, res) {
   if (!objectId(req.params.id)) throw fail('Note ID is invalid.');
-  const note = await InternalNote.findOne({ _id: req.params.id, ownerId: req.user._id, deletedAt: null });
+  const note = await InternalNote.findOne({ _id: req.params.id, ...tenantScope(req), deletedAt: null });
   if (!note) throw fail('Note not found.', 404);
 
   if (req.body?.content !== undefined) {
@@ -581,7 +614,7 @@ export async function updateNote(req, res) {
   await note.save();
 
   if (note.conversationId) {
-    const c = await Conversation.findOne({ _id: note.conversationId, ownerId: req.user._id });
+    const c = await Conversation.findOne({ _id: note.conversationId, ...tenantScope(req) });
     if (c) await writeActivity({ conversation: c, eventType: 'note_updated', metadata: { noteId: note._id, isPinned: note.isPinned }, performedBy: req.user._id });
   }
   res.json({ note });
@@ -590,13 +623,13 @@ export async function updateNote(req, res) {
 export async function deleteNote(req, res) {
   if (!objectId(req.params.id)) throw fail('Note ID is invalid.');
   const note = await InternalNote.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, deletedAt: null },
+    { _id: req.params.id, ...tenantScope(req), deletedAt: null },
     { $set: { deletedAt: new Date(), updatedBy: req.user._id } },
     { new: true }
   );
   if (!note) throw fail('Note not found.', 404);
   if (note.conversationId) {
-    const c = await Conversation.findOne({ _id: note.conversationId, ownerId: req.user._id });
+    const c = await Conversation.findOne({ _id: note.conversationId, ...tenantScope(req) });
     if (c) await writeActivity({ conversation: c, eventType: 'note_deleted', metadata: { noteId: note._id }, performedBy: req.user._id });
   }
   res.json({ deleted: true });
@@ -607,7 +640,7 @@ export async function contactUpdate(req, res) {
   const allowed = ['fullName', 'phoneNumber', 'email', 'companyName', 'website', 'location', 'businessCategory', 'industry', 'leadSource', 'whatsappNumber', 'estimatedDealValue', 'leadStatus', 'priority', 'tags', 'notes', 'interestedService'];
   if (Object.keys(req.body || {}).some(k => !allowed.includes(k))) throw fail('Unsupported contact field. Use the consent management page for consent changes.');
 
-  const contact = await Contact.findOne({ _id: c.contactId, ownerId: req.user._id, isDeleted: false });
+  const contact = await Contact.findOne({ _id: c.contactId, ...tenantScope(req), isDeleted: false });
   if (!contact) throw fail('Contact not found.', 404);
 
   const changes = {};
@@ -627,7 +660,7 @@ export async function contactUpdate(req, res) {
 
   await contact.save();
   await ContactActivity.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     contactId: contact._id,
     performedBy: req.user._id,
     activityType: changes.leadStatus ? 'status_changed' : changes.priority ? 'priority_changed' : 'edited',
@@ -642,15 +675,15 @@ export async function contactUpdate(req, res) {
 
 export async function createFollowUp(req, res) {
   const b = req.body || {};
-  const contactId = b.contactId || (b.conversationId && (await requireConversation(req.user._id, b.conversationId))?.contactId);
+  const contactId = b.contactId || (b.conversationId && (await requireConversation(req.user._id, b.conversationId, req.workspaceId))?.contactId);
   if (!objectId(contactId)) throw fail('Contact ID is invalid.');
 
-  const contact = await Contact.findOne({ _id: contactId, ownerId: req.user._id, isDeleted: false }).lean();
+  const contact = await Contact.findOne({ _id: contactId, ...tenantScope(req), isDeleted: false }).lean();
   if (!contact) throw fail('Contact not found.', 404);
 
   let conversation = null;
   if (b.conversationId) {
-    conversation = await requireConversation(req.user._id, b.conversationId);
+    conversation = await requireConversation(req.user._id, b.conversationId, req.workspaceId);
     if (!conversation || String(conversation.contactId) !== String(contactId)) throw fail('Conversation not found for this contact.', 404);
   }
 
@@ -661,16 +694,16 @@ export async function createFollowUp(req, res) {
 
   let deal = null, proposal = null;
   if (b.dealId) {
-    deal = await Deal.findOne({ _id: b.dealId, ownerId: req.user._id, contactId, archivedAt: null });
+    deal = await Deal.findOne({ _id: b.dealId, ...tenantScope(req), contactId, archivedAt: null });
     if (!deal) throw fail('Deal not found for this contact.', 404);
   }
   if (b.proposalId) {
-    proposal = await Proposal.findOne({ _id: b.proposalId, ownerId: req.user._id, contactId });
+    proposal = await Proposal.findOne({ _id: b.proposalId, ...tenantScope(req), contactId });
     if (!proposal || (deal && String(proposal.dealId) !== String(deal._id))) throw fail('Proposal not found for this contact/deal.', 404);
   }
 
   const task = await FollowUpTask.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     contactId,
     conversationId: conversation?._id || null,
     dealId: deal?._id || null,
@@ -694,7 +727,7 @@ export async function createFollowUp(req, res) {
   }
 
   await InboxNotification.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     recipientUserId: req.user._id,
     conversationId: conversation?._id || null,
     contactId,
@@ -708,7 +741,7 @@ export async function createFollowUp(req, res) {
 }
 
 export async function listFollowUps(req, res) {
-  const filter = { ownerId: req.user._id };
+  const filter = { ...tenantScope(req) };
   if (req.query.status && ['Pending', 'In Progress', 'Completed', 'Cancelled'].includes(req.query.status)) filter.status = req.query.status;
   if (req.query.dealId) {
     if (!objectId(req.query.dealId)) throw fail('Deal ID is invalid.');
@@ -735,14 +768,14 @@ export async function listFollowUps(req, res) {
 
 export async function getFollowUp(req, res) {
   if (!objectId(req.params.id)) throw fail('Task ID is invalid.');
-  const task = await FollowUpTask.findOne({ _id: req.params.id, ownerId: req.user._id }).populate('contactId', 'fullName companyName phoneNumber leadStatus').lean();
+  const task = await FollowUpTask.findOne({ _id: req.params.id, ...tenantScope(req) }).populate('contactId', 'fullName companyName phoneNumber leadStatus').lean();
   if (!task) throw fail('Task not found.', 404);
   res.json({ task });
 }
 
 export async function updateFollowUp(req, res) {
   if (!objectId(req.params.id)) throw fail('Task ID is invalid.');
-  const task = await FollowUpTask.findOne({ _id: req.params.id, ownerId: req.user._id });
+  const task = await FollowUpTask.findOne({ _id: req.params.id, ...tenantScope(req) });
   if (!task) throw fail('Task not found.', 404);
 
   const allowed = ['title', 'description', 'dueAt', 'timezone', 'priority', 'status', 'dealId', 'proposalId'];
@@ -751,12 +784,12 @@ export async function updateFollowUp(req, res) {
   for (const k of allowed) {
     if (req.body[k] !== undefined) {
       if (k === 'dealId') {
-        if (!objectId(req.body[k]) || !await Deal.exists({ _id: req.body[k], ownerId: req.user._id, contactId: task.contactId, archivedAt: null })) throw fail('Deal not found for this contact.', 404);
+        if (!objectId(req.body[k]) || !await Deal.exists({ _id: req.body[k], ...tenantScope(req), contactId: task.contactId, archivedAt: null })) throw fail('Deal not found for this contact.', 404);
         task.dealId = req.body[k];
         continue;
       }
       if (k === 'proposalId') {
-        if (!objectId(req.body[k]) || !await Proposal.exists({ _id: req.body[k], ownerId: req.user._id, contactId: task.contactId })) throw fail('Proposal not found for this contact.', 404);
+        if (!objectId(req.body[k]) || !await Proposal.exists({ _id: req.body[k], ...tenantScope(req), contactId: task.contactId })) throw fail('Proposal not found for this contact.', 404);
         task.proposalId = req.body[k];
         continue;
       }
@@ -777,7 +810,7 @@ export async function updateFollowUp(req, res) {
 
   if (task.status === 'Completed') await scoreContact(req.user._id, task.contactId);
   if (task.conversationId) {
-    const c = await Conversation.findOne({ _id: task.conversationId, ownerId: req.user._id });
+    const c = await Conversation.findOne({ _id: task.conversationId, ...tenantScope(req) });
     if (c) await writeActivity({ conversation: c, eventType: task.status === 'Completed' ? 'followup_completed' : 'followup_created', metadata: { taskId: task._id, status: task.status }, performedBy: req.user._id });
   }
   res.json({ task });
@@ -795,18 +828,18 @@ export async function cancelFollowUp(req, res) {
 
 export async function notifications(req, res) {
   const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit) || 30));
-  const records = await InboxNotification.find({ ownerId: req.user._id, recipientUserId: req.user._id }).sort({ createdAt: -1 }).limit(limit).lean();
-  res.json({ records, unreadCount: await InboxNotification.countDocuments({ ownerId: req.user._id, recipientUserId: req.user._id, isRead: false }) });
+  const records = await InboxNotification.find({ ...tenantScope(req), recipientUserId: req.user._id }).sort({ createdAt: -1 }).limit(limit).lean();
+  res.json({ records, unreadCount: await InboxNotification.countDocuments({ ...tenantScope(req), recipientUserId: req.user._id, isRead: false }) });
 }
 
 export async function unreadNotificationCount(req, res) {
-  res.json({ count: await InboxNotification.countDocuments({ ownerId: req.user._id, recipientUserId: req.user._id, isRead: false }) });
+  res.json({ count: await InboxNotification.countDocuments({ ...tenantScope(req), recipientUserId: req.user._id, isRead: false }) });
 }
 
 export async function markNotificationRead(req, res) {
   if (!objectId(req.params.id)) throw fail('Notification ID is invalid.');
   const notification = await InboxNotification.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, recipientUserId: req.user._id },
+    { _id: req.params.id, ...tenantScope(req), recipientUserId: req.user._id },
     { $set: { isRead: true } },
     { new: true }
   );
@@ -815,7 +848,7 @@ export async function markNotificationRead(req, res) {
 }
 
 export async function markAllNotificationsRead(req, res) {
-  await InboxNotification.updateMany({ ownerId: req.user._id, recipientUserId: req.user._id, isRead: false }, { $set: { isRead: true } });
+  await InboxNotification.updateMany({ ...tenantScope(req), recipientUserId: req.user._id, isRead: false }, { $set: { isRead: true } });
   res.json({ updated: true });
 }
 
@@ -846,7 +879,7 @@ export async function providerStatus(req, res) {
 
 export async function createContactConversation(req, res) {
   const conversation = await makeConversation({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     contactId: req.params.contactId,
     performedBy: req.user._id,
     source: req.body?.source === 'test' ? 'test' : 'manual'
@@ -874,14 +907,14 @@ export async function clearDemoData(req, res) {
 
 export async function createSyntheticTestEvent(req, res) {
   if (process.env.NODE_ENV === 'production') throw fail('Synthetic inbox events are disabled in production.', 404);
-  const c = await Conversation.findOne({ _id: req.params.id, ownerId: req.user._id });
+  const c = await Conversation.findOne({ _id: req.params.id, ...tenantScope(req) });
   if (!c) throw fail('Conversation not found.', 404);
 
   const body = String(req.body?.body || '').trim();
   if (!body || body.length > 5000) throw fail('Test event text must contain 1–5000 characters.');
 
   const message = await ConversationMessage.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     conversationId: c._id,
     contactId: c.contactId,
     direction: 'inbound',
@@ -910,7 +943,8 @@ export async function createSyntheticTestEvent(req, res) {
 
   // Evaluate Keyword Rules
   const ruleEvaluation = await evaluateInboundMessage({
-    ownerId: req.user._id,
+    ...tenantScope(req),
+    workspaceId: req.workspaceId,
     conversationId: c._id,
     contactId: c.contactId,
     messageBody: body,
@@ -935,9 +969,13 @@ export async function createSyntheticTestEvent(req, res) {
 
 export async function listQuickReplies(req, res) {
   const ownerId = req.user._id;
-  await seedDefaultQuickReplies(ownerId).catch(() => {});
+  const workspaceId = req.workspaceId;
+  const industryKey = req.workspace?.industryKey;
 
-  const filter = { ownerId, archivedAt: null };
+  const filter = workspaceId
+    ? { workspaceId, archivedAt: null }
+    : { ownerId, archivedAt: null };
+
   if (req.query.category && req.query.category !== 'all') {
     filter.category = req.query.category;
   }
@@ -947,7 +985,7 @@ export async function listQuickReplies(req, res) {
   }
 
   const records = await QuickReply.find(filter).sort({ category: 1, name: 1 }).lean();
-  res.json({ records, total: records.length });
+  res.json({ records, total: records.length, industryKey: industryKey || 'other', presets: getStrictIndustryConfig(industryKey)?.quickReplyPresets || [] });
 }
 
 export async function createQuickReply(req, res) {
@@ -956,11 +994,12 @@ export async function createQuickReply(req, res) {
   if (!messageText || !messageText.trim()) throw fail('Quick reply text is required.');
 
   const reply = await QuickReply.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
+    workspaceId: req.workspaceId || null,
     name: name.trim(),
     description: (description || '').trim(),
     messageText: messageText.trim(),
-    category: ['Brochure', 'Pricing', 'Location', 'Site Visit', 'General', 'Follow-up'].includes(category) ? category : 'General'
+    category: (category && String(category).trim()) || 'General'
   });
 
   res.status(201).json({ quickReply: reply });
@@ -968,14 +1007,14 @@ export async function createQuickReply(req, res) {
 
 export async function getQuickReply(req, res) {
   if (!objectId(req.params.id)) throw fail('Quick reply ID is invalid.');
-  const reply = await QuickReply.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null }).lean();
+  const reply = await QuickReply.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null }).lean();
   if (!reply) throw fail('Quick reply not found.', 404);
   res.json({ quickReply: reply });
 }
 
 export async function updateQuickReply(req, res) {
   if (!objectId(req.params.id)) throw fail('Quick reply ID is invalid.');
-  const reply = await QuickReply.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null });
+  const reply = await QuickReply.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null });
   if (!reply) throw fail('Quick reply not found.', 404);
 
   const { name, messageText, category, description, isActive } = req.body || {};
@@ -988,9 +1027,7 @@ export async function updateQuickReply(req, res) {
     reply.messageText = messageText.trim();
   }
   if (category !== undefined) {
-    if (['Brochure', 'Pricing', 'Location', 'Site Visit', 'General', 'Follow-up'].includes(category)) {
-      reply.category = category;
-    }
+    reply.category = String(category).trim().slice(0, 120) || 'General';
   }
   if (description !== undefined) reply.description = String(description).trim();
   if (isActive !== undefined) reply.isActive = Boolean(isActive);
@@ -1002,7 +1039,7 @@ export async function updateQuickReply(req, res) {
 export async function deleteQuickReply(req, res) {
   if (!objectId(req.params.id)) throw fail('Quick reply ID is invalid.');
   const reply = await QuickReply.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, archivedAt: null },
+    { _id: req.params.id, ...tenantScope(req), archivedAt: null },
     { $set: { archivedAt: new Date() } },
     { new: true }
   );
@@ -1012,11 +1049,12 @@ export async function deleteQuickReply(req, res) {
 
 export async function duplicateQuickReply(req, res) {
   if (!objectId(req.params.id)) throw fail('Quick reply ID is invalid.');
-  const original = await QuickReply.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null }).lean();
+  const original = await QuickReply.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null }).lean();
   if (!original) throw fail('Quick reply not found.', 404);
 
   const duplicate = await QuickReply.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
+    workspaceId: req.workspaceId || null,
     name: `${original.name} (Copy)`,
     description: original.description,
     messageText: original.messageText,
@@ -1033,11 +1071,15 @@ export async function duplicateQuickReply(req, res) {
 
 export async function listAutoReplyRules(req, res) {
   const ownerId = req.user._id;
-  await seedDefaultRules(ownerId).catch(() => {});
+  const workspaceId = req.workspaceId;
+  const industryKey = req.workspace?.industryKey;
 
-  const filter = { ownerId, archivedAt: null };
-  const records = await AutoReplyRule.find(filter).sort({ priority: 1, createdAt: 1 }).lean();
-  res.json({ records, total: records.length });
+  const filter = workspaceId
+    ? { workspaceId, archivedAt: null }
+    : { ownerId, archivedAt: null };
+  const saved = await AutoReplyRule.find(filter).sort({ priority: 1, createdAt: 1 }).lean();
+  const records = [protectedOptOutRule(), ...saved.filter(rule => rule.actionType !== 'RECORD_OPT_OUT')];
+  res.json({ records, presets: (getStrictIndustryConfig(industryKey)?.automationPresets || []).filter(p => p.intendedAction !== 'RECORD_OPT_OUT'), legacyComplianceRuleCount: saved.filter(rule => rule.actionType === 'RECORD_OPT_OUT').length, total: records.length, industryKey: industryKey || 'other' });
 }
 
 export async function createAutoReplyRule(req, res) {
@@ -1045,9 +1087,11 @@ export async function createAutoReplyRule(req, res) {
   if (!name || !name.trim()) throw fail('Rule name is required.');
   if (!triggerKeyword || !triggerKeyword.trim()) throw fail('Trigger keyword is required.');
   if (!actionType) throw fail('Action type is required.');
+  if (actionType === 'RECORD_OPT_OUT') throw fail('Opt-out handling is managed by the protected system path.', 409);
 
   const rule = await AutoReplyRule.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
+    workspaceId: req.workspaceId || null,
     name: name.trim(),
     triggerKeyword: triggerKeyword.trim().toUpperCase(),
     synonyms: Array.isArray(synonyms) ? synonyms.map(s => String(s).trim().toUpperCase()).filter(Boolean) : [],
@@ -1064,16 +1108,17 @@ export async function createAutoReplyRule(req, res) {
 
 export async function getAutoReplyRule(req, res) {
   if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
-  const rule = await AutoReplyRule.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null }).lean();
+  const rule = await AutoReplyRule.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null }).lean();
   if (!rule) throw fail('Rule not found.', 404);
   res.json({ rule });
 }
 
 export async function updateAutoReplyRule(req, res) {
   if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
-  const rule = await AutoReplyRule.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null });
+  const rule = await AutoReplyRule.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null });
   if (!rule) throw fail('Rule not found.', 404);
 
+  if (rule.actionType === 'RECORD_OPT_OUT' || req.body?.actionType === 'RECORD_OPT_OUT') throw fail('Opt-out handling is protected.', 409);
   const b = req.body || {};
   if (b.name !== undefined) rule.name = String(b.name).trim();
   if (b.triggerKeyword !== undefined) rule.triggerKeyword = String(b.triggerKeyword).trim().toUpperCase();
@@ -1095,8 +1140,10 @@ export async function updateAutoReplyRule(req, res) {
 
 export async function deleteAutoReplyRule(req, res) {
   if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
+  const protectedRule = await AutoReplyRule.exists({ _id: req.params.id, ...tenantScope(req), actionType: 'RECORD_OPT_OUT' });
+  if (protectedRule) throw fail('Opt-out handling is protected.', 409);
   const rule = await AutoReplyRule.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, archivedAt: null },
+    { _id: req.params.id, ...tenantScope(req), archivedAt: null },
     { $set: { archivedAt: new Date(), enabled: false } },
     { new: true }
   );
@@ -1107,7 +1154,7 @@ export async function deleteAutoReplyRule(req, res) {
 export async function activateRule(req, res) {
   if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
   const rule = await AutoReplyRule.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, archivedAt: null },
+    { _id: req.params.id, ...tenantScope(req), archivedAt: null },
     { $set: { enabled: true } },
     { new: true }
   );
@@ -1117,8 +1164,10 @@ export async function activateRule(req, res) {
 
 export async function deactivateRule(req, res) {
   if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
+  const protectedRule = await AutoReplyRule.exists({ _id: req.params.id, ...tenantScope(req), actionType: 'RECORD_OPT_OUT' });
+  if (protectedRule) throw fail('Opt-out handling is protected.', 409);
   const rule = await AutoReplyRule.findOneAndUpdate(
-    { _id: req.params.id, ownerId: req.user._id, archivedAt: null },
+    { _id: req.params.id, ...tenantScope(req), archivedAt: null },
     { $set: { enabled: false } },
     { new: true }
   );
@@ -1127,9 +1176,14 @@ export async function deactivateRule(req, res) {
 }
 
 export async function testSingleRule(req, res) {
-  if (!objectId(req.params.id)) throw fail('Rule ID is invalid.');
-  const rule = await AutoReplyRule.findOne({ _id: req.params.id, ownerId: req.user._id, archivedAt: null }).lean();
-  if (!rule) throw fail('Rule not found.', 404);
+  let rule;
+  if (req.params.id === 'system-opt-out') {
+    rule = protectedOptOutRule();
+  } else {
+    if (req.params.id !== 'system-opt-out' && !objectId(req.params.id)) throw fail('Rule ID is invalid.');
+    rule = await AutoReplyRule.findOne({ _id: req.params.id, ...tenantScope(req), archivedAt: null }).lean();
+    if (!rule) throw fail('Rule not found.', 404);
+  }
 
   const text = String(req.body?.text || '').trim();
   const matchResult = matchKeyword(text, rule.triggerKeyword, rule.synonyms, rule.matchType);
@@ -1149,12 +1203,13 @@ export async function testMatchAllRules(req, res) {
   const text = String(req.body?.text || '').trim();
   if (!text) throw fail('Text to test is required.');
 
-  const rules = await AutoReplyRule.find({
-    ownerId: req.user._id,
+  const saved = await AutoReplyRule.find({
+    ...tenantScope(req),
     enabled: true,
     archivedAt: null
   }).sort({ priority: 1, createdAt: 1 }).lean();
 
+  const rules = [protectedOptOutRule(), ...saved.filter(rule => rule.actionType !== 'RECORD_OPT_OUT')];
   let matchedRule = null;
   let matchedKeyword = '';
 
@@ -1184,7 +1239,7 @@ export async function testMatchAllRules(req, res) {
 
 export async function ruleExecutionHistory(req, res) {
   const ownerId = req.user._id;
-  const filter = { ownerId };
+  const filter = tenantScope(req);
   if (req.query.conversationId && objectId(req.query.conversationId)) {
     filter.conversationId = req.query.conversationId;
   }
@@ -1196,4 +1251,13 @@ export async function ruleExecutionHistory(req, res) {
     .lean();
 
   res.json({ records, total: records.length });
+}
+
+export async function installStarterQuickReplies(req, res) {
+  await seedDefaultQuickReplies(req.user._id, req.workspaceId, req.workspace?.industryKey);
+  return listQuickReplies(req, res);
+}
+export async function installStarterRules(req, res) {
+  await seedDefaultRules(req.user._id, req.workspaceId, req.workspace?.industryKey);
+  return listAutoReplyRules(req, res);
 }

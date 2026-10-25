@@ -167,7 +167,7 @@ export default function PrivacyPage() {
                 7. Cookies & Session Storage
               </h2>
               <p className="mt-3 text-slate-600">
-                Relay uses strictly necessary cookies and local storage tokens (<code className="bg-slate-100 px-1 py-0.5 rounded text-xs text-teal-700">relay_auth_token</code> and <code className="bg-slate-100 px-1 py-0.5 rounded text-xs text-teal-700">relay_active_workspace_id</code>) exclusively for authentication state and tenant session management. We do not use third-party behavioral advertising cookies.
+                Relay uses strictly necessary HttpOnly session cookies. A random session selector and the selected workspace are kept in each tab’s session storage so accounts in separate tabs stay independent. We do not use third-party behavioral advertising cookies.
               </p>
             </section>
 

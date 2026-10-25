@@ -32,7 +32,7 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  
+
   // Verification Pending Screen state
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -60,7 +60,7 @@ export default function SignupPage() {
 
     if (score <= 1) return { score: 1, label: 'Weak', color: 'bg-red-500' };
     if (score === 2) return { score: 2, label: 'Fair', color: 'bg-amber-500' };
-    if (score === 3) return { score: 3, label: 'Good', color: 'bg-teal-500' };
+    if (score === 3) return { score: 3, label: 'Good', color: 'bg-blue-500' };
     return { score: 4, label: 'Strong', color: 'bg-emerald-600' };
   }, [formData.password]);
 
@@ -153,48 +153,57 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-12 sm:py-20 flex items-center justify-center">
+    <div className="bg-[#F4F7FC] min-h-screen py-12 sm:py-20 flex items-center justify-center">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12">
           
-          {/* Left Brand Panel */}
-          <div className="lg:col-span-5 bg-slate-900 text-white p-8 sm:p-10 flex flex-col justify-between">
+          {/* Left Brand Panel — Midnight Navy */}
+          <div className="lg:col-span-5 bg-[#0B1220] text-white p-8 sm:p-10 flex flex-col justify-between border-r border-slate-800">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-900/60 border border-teal-500/30 text-teal-300 text-xs font-semibold uppercase tracking-wider mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/50 border border-blue-500/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Early Access Registration</span>
               </div>
 
-              <h1 className="text-3xl font-extrabold tracking-tight text-white mb-4">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg shadow-md shadow-blue-500/25">
+                  R
+                </div>
+                <span className="text-2xl font-black tracking-tight text-white">
+                  RELAY<span className="text-blue-500">.</span>
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-extrabold tracking-tight mb-4" style={{ color: '#FFFFFF' }}>
                 Start with Relay
               </h1>
 
-              <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                Join thousands of businesses automating enquiries, campaigns, and customer conversations on official WhatsApp channels.
+              <p className="text-sm leading-relaxed mb-6" style={{ color: '#CBD5E1' }}>
+                Join modern businesses automating customer engagement, campaigns, and enquiries across official WhatsApp channels.
               </p>
 
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-1 rounded bg-teal-900/80 text-teal-400 mt-0.5 shrink-0">
+                  <div className="p-1 rounded-lg bg-blue-900/80 text-blue-400 mt-0.5 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs text-slate-300 leading-snug">
+                  <span className="text-xs leading-snug" style={{ color: '#E2E8F0' }}>
                     Dedicated multi-tenant workspace with isolated MongoDB boundaries
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-1 rounded bg-teal-900/80 text-teal-400 mt-0.5 shrink-0">
+                  <div className="p-1 rounded-lg bg-blue-900/80 text-blue-400 mt-0.5 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs text-slate-300 leading-snug">
+                  <span className="text-xs leading-snug" style={{ color: '#E2E8F0' }}>
                     Zero-risk Mock Mode sandbox to simulate broadcasts before going live
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="p-1 rounded bg-teal-900/80 text-teal-400 mt-0.5 shrink-0">
+                  <div className="p-1 rounded-lg bg-blue-900/80 text-blue-400 mt-0.5 shrink-0">
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span className="text-xs text-slate-300 leading-snug">
+                  <span className="text-xs leading-snug" style={{ color: '#E2E8F0' }}>
                     Separated Meta billing: you pay zero markups on WhatsApp conversation fees
                   </span>
                 </div>
@@ -204,7 +213,7 @@ export default function SignupPage() {
             <div className="pt-8 mt-8 border-t border-slate-800 text-xs text-slate-400 space-y-2">
               <div>
                 Already have an account?{' '}
-                <Link to="/login" className="text-teal-400 font-bold hover:underline">
+                <Link to="/login" className="text-blue-400 font-bold hover:underline">
                   Sign in
                 </Link>
               </div>
@@ -223,7 +232,7 @@ export default function SignupPage() {
             {registeredEmail ? (
               /* Verification Pending State */
               <div className="py-6 space-y-5 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-200 text-teal-600 flex items-center justify-center mx-auto shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto shadow-sm">
                   <Mail className="w-8 h-8" />
                 </div>
 
@@ -236,8 +245,8 @@ export default function SignupPage() {
                 </div>
 
                 {resendSuccess && (
-                  <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs max-w-sm mx-auto flex items-center justify-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs max-w-sm mx-auto flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
                     <span>A new verification link has been dispatched.</span>
                   </div>
                 )}
@@ -254,7 +263,7 @@ export default function SignupPage() {
                     type="button"
                     disabled={resendCooldown > 0 || resendBusy}
                     onClick={handleResend}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-teal-600 hover:text-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RotateCw className={`w-3.5 h-3.5 ${resendBusy ? 'animate-spin' : ''}`} />
                     <span>
@@ -303,7 +312,7 @@ export default function SignupPage() {
                         placeholder="e.g. Rahul Sharma"
                         value={formData.name}
                         onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
@@ -323,7 +332,7 @@ export default function SignupPage() {
                         placeholder="rahul@company.com"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
@@ -344,7 +353,7 @@ export default function SignupPage() {
                           placeholder="Min. 8 characters"
                           value={formData.password}
                           onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                         <button
                           type="button"
@@ -371,7 +380,7 @@ export default function SignupPage() {
                           placeholder="Re-enter password"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                          className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                         <button
                           type="button"
@@ -413,15 +422,15 @@ export default function SignupPage() {
                         name="agreeToTerms"
                         checked={formData.agreeToTerms}
                         onChange={handleChange}
-                        className="mt-0.5 w-4 h-4 rounded text-teal-600 border-slate-300 focus:ring-teal-500"
+                        className="mt-0.5 w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500"
                       />
                       <span className="text-xs text-slate-600 leading-snug">
                         I agree to the{' '}
-                        <Link to="/terms" target="_blank" className="text-teal-600 underline hover:text-teal-700">
+                        <Link to="/terms" target="_blank" className="text-blue-600 underline hover:text-blue-700">
                           Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link to="/privacy" target="_blank" className="text-teal-600 underline hover:text-teal-700">
+                        <Link to="/privacy" target="_blank" className="text-blue-600 underline hover:text-blue-700">
                           Privacy Policy
                         </Link>.
                       </span>
@@ -433,7 +442,7 @@ export default function SignupPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                      className="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                     >
                       {isSubmitting ? (
                         <>

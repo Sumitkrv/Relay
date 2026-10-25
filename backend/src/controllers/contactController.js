@@ -1,3 +1,6 @@
+import { legacyWorkspaceScope } from '../utils/legacyWorkspaceScope.js';
+import { validateAndSanitizeIndustryData } from '../services/industryConfigurationService.js';
+import { tenantScope } from '../utils/tenantScope.js';
 import mongoose from 'mongoose';
 import ExcelJS from 'exceljs';
 import Contact,{LEAD_STATUSES,PRIORITIES,CONSENT_STATUSES} from '../models/Contact.js';
@@ -12,25 +15,33 @@ const escapeRegExp=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const parseIntParam=(value,fallback,min,max)=>{const n=Number(value);return Number.isInteger(n)?Math.min(max,Math.max(min,n)):fallback;};
 const validId=id=>mongoose.isObjectIdOrHexString(id);
 function parseId(id){if(!validId(id))throw fail('Contact ID is invalid.');return id;}
-function activityFor(contact,performedBy,activityType,description,changes={}){return {ownerId:contact.ownerId,contactId:contact._id,performedBy,activityType,description,changes};}
+function activityFor(contact,performedBy,activityType,description,changes={}){return {ownerId:contact.ownerId,workspaceId:contact.workspaceId,contactId:contact._id,performedBy,activityType,description,changes};}
 async function addActivity(contact,userId,type,description,changes={}){await ContactActivity.create(activityFor(contact,userId,type,description,changes));}
 function allowedInList(value,allowed,key){if(!value)return null;const values=String(value).split(',').map(v=>v.trim()).filter(Boolean);const invalid=values.find(v=>!allowed.includes(v));if(invalid)throw fail(`Invalid ${key} filter.`);return values.length?{$in:values}:null;}
 
-export function buildContactFilter(ownerId,query={}){
-  const filter={ownerId,isDeleted:false};
+export function buildContactFilter(ownerId,query={},workspaceId=null){
+  const filter={ownerId,isDeleted:false,...(workspaceId?{workspaceId}:{})};
   const archived=query.archived??'false';if(!['true','false','all'].includes(String(archived)))throw fail('Invalid archived filter.');if(String(archived)!=='all')filter.isArchived=String(archived)==='true';
   const statuses=allowedInList(query.leadStatus,LEAD_STATUSES,'lead status');if(statuses)filter.leadStatus=statuses;
   const priorities=allowedInList(query.priority,PRIORITIES,'priority');if(priorities)filter.priority=priorities;
   const consents=allowedInList(query.whatsappConsentStatus,CONSENT_STATUSES,'consent');if(consents)filter.whatsappConsentStatus=consents;
   for(const [key,field] of [['industry','industry'],['businessCategory','businessCategory'],['subcategory','businessSubcategory'],['service','interestedService'],['source','leadSource']])if(query[key]){if(typeof query[key]!=='string'||query[key].length>120)throw fail(`Invalid ${key} filter.`);const value=query[key].trim();filter[field]=key==='businessCategory'&&value.toLowerCase()==='uncategorized'?{$in:[new RegExp('^uncategorized$','i'),'',null]}:new RegExp(`^${escapeRegExp(value)}$`,'i');}
   
-  // Real Estate Property Interest Filter
-  const propertyInterest = query.propertyInterest || query.interestedPropertyType || query.interestedService;
-  if (propertyInterest) {
-    if (typeof propertyInterest !== 'string' || propertyInterest.length > 120) throw fail('Invalid property interest filter.');
-    const propRegex = new RegExp(escapeRegExp(propertyInterest.trim()), 'i');
+  // Industry Interest Filter (Property / Course / Service / Vehicle)
+  const interestParam = query.propertyInterest || query.interestedPropertyType || query.interestedService || query.courseInterest || query.serviceInterest || query.vehicleInterest;
+  if (interestParam) {
+    if (typeof interestParam !== 'string' || interestParam.length > 120) throw fail('Invalid interest filter.');
+    const intRegex = new RegExp(escapeRegExp(interestParam.trim()), 'i');
     if (!filter.$and) filter.$and = [];
-    filter.$and.push({ $or: [{ interestedPropertyType: propRegex }, { interestedService: propRegex }] });
+    filter.$and.push({
+      $or: [
+        { interestedPropertyType: intRegex },
+        { interestedService: intRegex },
+        { 'industryData.courseInterest': intRegex },
+        { 'industryData.preferredService': intRegex },
+        { 'industryData.vehicleInterest': intRegex },
+      ]
+    });
   }
 
   // Real Estate City & Location Filter
@@ -48,13 +59,20 @@ export function buildContactFilter(ownerId,query={}){
     filter.state=new RegExp(escapeRegExp(query.state.trim()),'i');
   }
 
-  // Real Estate Project Filter
-  const project=query.project||query.interestedProject;
+  // Project / Batch / Department Filter
+  const project = query.project || query.interestedProject || query.batch || query.preferredBatch || query.targetExam;
   if(project){
     if(typeof project!=='string'||project.length>160)throw fail('Invalid project filter.');
     const projRegex=new RegExp(escapeRegExp(project.trim()),'i');
     filter.$and=filter.$and?filter.$and:[];
-    filter.$and.push({$or:[{interestedProject:projRegex},{businessCategory:projRegex}]});
+    filter.$and.push({
+      $or: [
+        { interestedProject: projRegex },
+        { businessCategory: projRegex },
+        { 'industryData.preferredBatch': projRegex },
+        { 'industryData.targetExam': projRegex }
+      ]
+    });
   }
 
   // Budget Range (Numeric estimatedDealValue or string budgetRange)
@@ -113,10 +131,10 @@ export function buildContactFilter(ownerId,query={}){
 
 function pagination(req){const page=parseIntParam(req.query.page,1,1,1000000),limit=parseIntParam(req.query.limit,25,1,MAX_PAGE_SIZE);return {page,limit,skip:(page-1)*limit};}
 function sortSpec(query){const allowed=['createdAt','updatedAt','fullName','companyName','leadStatus','priority','lastContactedAt','estimatedDealValue'];const sort=allowed.includes(query.sort)?query.sort:'createdAt';const direction=query.direction==='asc'?1:-1;return {[sort]:direction,_id:direction};}
-async function contactsForExport(req){const filter=buildContactFilter(req.user._id,req.query);if(req.query.ids){const ids=String(req.query.ids).split(',').filter(Boolean);if(!ids.length||ids.length>MAX_BULK||ids.some(id=>!validId(id)))throw fail(`Select between 1 and ${MAX_BULK} valid contacts.`);filter._id={$in:ids};}return Contact.find(filter).sort(sortSpec(req.query)).lean();}
+async function contactsForExport(req){const filter=buildContactFilter(req.user._id,req.query,req.workspaceId);if(req.query.ids){const ids=String(req.query.ids).split(',').filter(Boolean);if(!ids.length||ids.length>MAX_BULK||ids.some(id=>!validId(id)))throw fail(`Select between 1 and ${MAX_BULK} valid contacts.`);filter._id={$in:ids};}return Contact.find(filter).sort(sortSpec(req.query)).lean();}
 
 export async function listContacts(req,res){
-  const filter=buildContactFilter(req.user._id,req.query);
+  const filter=buildContactFilter(req.user._id,req.query,req.workspaceId);
   const {page,limit,skip}=pagination(req);
   const sort=sortSpec(req.query);
   const [records,total]=await Promise.all([
@@ -126,11 +144,22 @@ export async function listContacts(req,res){
   res.json({records,total,page,pageSize:limit,totalPages:Math.ceil(total/limit)});
 }
 
-export async function getOwnerContactStats(userId){
-  const ownerId=new mongoose.Types.ObjectId(userId);
+export async function getOwnerContactStats(userId, workspaceId = null){
+  const ownerId = new mongoose.Types.ObjectId(userId);
+  const targetWsId = workspaceId && mongoose.isObjectIdOrHexString(workspaceId)
+    ? new mongoose.Types.ObjectId(workspaceId)
+    : null;
+  // Mirrors buildContactFilter/tenantScope: active workspace AND the signed-in author.
+  const matchFilter = targetWsId
+    ? { workspaceId: targetWsId, ownerId, isDeleted: false }
+    : { ownerId, isDeleted: false };
+  const consentMatch = targetWsId
+    ? { workspaceId: targetWsId, ownerId }
+    : { ownerId };
+
   const [counts,latest,growth]=await Promise.all([
     Contact.aggregate([
-      {$match:{ownerId,isDeleted:false}},
+      {$match: matchFilter},
       {$group:{
         _id:null,
         total:{$sum:1},
@@ -145,7 +174,7 @@ export async function getOwnerContactStats(userId){
       }}
     ]),
     ConsentRecord.aggregate([
-      {$match:{ownerId}},
+      {$match: consentMatch},
       {$sort:{recordedAt:-1,_id:-1}},
       {$group:{_id:'$contactId',record:{$first:'$$ROOT'}}},
       {$match:{
@@ -163,7 +192,7 @@ export async function getOwnerContactStats(userId){
             $expr:{
               $and:[
                 {$eq:['$_id','$$cid']},
-                {$eq:['$ownerId',ownerId]},
+                targetWsId ? {$and:[{$eq:['$workspaceId', targetWsId]},{$eq:['$ownerId', ownerId]}]} : {$eq:['$ownerId', ownerId]},
                 {$eq:['$isDeleted',false]},
                 {$eq:['$isArchived',false]},
                 {$eq:['$whatsappConsentStatus','Opted In']},
@@ -178,7 +207,7 @@ export async function getOwnerContactStats(userId){
       {$count:'total'}
     ]),
     Contact.aggregate([
-      {$match:{ownerId,isDeleted:false,createdAt:{$gte:new Date(Date.now()-30*24*60*60*1000)}}},
+      {$match:{ ...matchFilter, createdAt:{$gte:new Date(Date.now()-30*24*60*60*1000)}}},
       {$group:{_id:{$dateTrunc:{date:'$createdAt',unit:'day'}},contacts:{$sum:1}}},
       {$sort:{_id:1}},
       {$project:{_id:0,day:{$dateToString:{format:'%b %d',date:'$_id'}},contacts:1}}
@@ -199,17 +228,20 @@ export async function getOwnerContactStats(userId){
   };
 }
 
-export async function contactStats(req,res){res.json({stats:await getOwnerContactStats(req.user._id)});}
+export async function contactStats(req,res){
+  const wsId = req.workspace?._id || req.headers?.['x-workspace-id'] || null;
+  res.json({stats:await getOwnerContactStats(req.user._id, wsId)});
+}
 
 export async function getContact(req,res){
   const id=parseId(req.params.id);
-  const contact=await Contact.findOne({_id:id,ownerId:req.user._id,isDeleted:false})
+  const contact=await Contact.findOne({_id:id,...tenantScope(req),isDeleted:false})
     .populate('groups','name color description')
     .lean();
   if(!contact)return res.status(404).json({message:'Contact not found.'});
   const [consentHistory,activities]=await Promise.all([
-    ConsentRecord.find({ownerId:req.user._id,contactId:id}).sort({recordedAt:-1}).lean(),
-    ContactActivity.find({ownerId:req.user._id,contactId:id}).sort({createdAt:-1}).limit(100).lean()
+    ConsentRecord.find({...tenantScope(req),contactId:id}).sort({recordedAt:-1}).lean(),
+    ContactActivity.find({...tenantScope(req),contactId:id}).sort({createdAt:-1}).limit(100).lean()
   ]);
   res.json({contact,consentHistory,activities});
 }
@@ -217,14 +249,20 @@ export async function getContact(req,res){
 export async function createContact(req,res){
   const {consent,...contactPayload}=req.body||{};
   const data=cleanContactInput(contactPayload);
+  if (data.groups?.length && await ContactGroup.countDocuments({ ...await legacyWorkspaceScope(req), _id: { $in: data.groups } }) !== new Set(data.groups.map(String)).size) throw fail('One or more contact groups are unavailable in this workspace.');
+  if (data.industryData) {
+    const { sanitized, canonicalUpdates } = validateAndSanitizeIndustryData(data.industryData, req.workspace?.industryKey);
+    data.industryData = sanitized;
+    Object.assign(data, canonicalUpdates);
+  }
   if(consent!==undefined&&(!consent||typeof consent!=='object'||Array.isArray(consent)))throw fail('Consent details must be an object.');
   const status=consent?.status||'Unknown';
   if(!CONSENT_STATUSES.includes(status))throw fail('Choose a valid WhatsApp consent status.');
   if(status==='Opted In')validateOptIn(consent);
   const phoneNumber=data.phoneNumber;
-  const duplicate=await Contact.findOne({ownerId:req.user._id,phoneNumber});
+  const duplicate=await Contact.findOne({...tenantScope(req),phoneNumber});
   if(duplicate)throw fail('A contact with this phone number already exists in your account.',409);
-  data.ownerId=req.user._id;
+  Object.assign(data,tenantScope(req));
   data.whatsappNumber=phoneNumber;
   data.whatsappConsentStatus='Unknown';
   const contact=await Contact.create(data);
@@ -235,13 +273,13 @@ export async function createContact(req,res){
     await addActivity(contact,req.user._id,'created','Contact created');
     await scoreContact(req.user._id,contact._id);
     if(data.groups?.length){
-      await ContactGroup.updateMany({_id:{$in:data.groups},ownerId:req.user._id},{$inc:{contactCount:1}});
+      await ContactGroup.updateMany({_id:{$in:data.groups},...tenantScope(req)},{$inc:{contactCount:1}});
     }
   }catch(error){
     await Promise.all([
-      Contact.deleteOne({_id:contact._id,ownerId:req.user._id}),
-      ConsentRecord.deleteMany({ownerId:req.user._id,contactId:contact._id}),
-      ContactActivity.deleteMany({ownerId:req.user._id,contactId:contact._id})
+      Contact.deleteOne({_id:contact._id,...tenantScope(req)}),
+      ConsentRecord.deleteMany({...tenantScope(req),contactId:contact._id}),
+      ContactActivity.deleteMany({...tenantScope(req),contactId:contact._id})
     ]);
     throw error;
   }
@@ -264,6 +302,7 @@ async function recordConsent(contact,userId,details){
   const source=typeof details.consentSource==='string'&&details.consentSource.trim()?details.consentSource.trim():'User recorded';
   const record=await ConsentRecord.create({
     ownerId:contact.ownerId,
+    workspaceId:contact.workspaceId,
     contactId:contact._id,
     status,
     consentPurpose:purpose,
@@ -291,7 +330,7 @@ async function recordConsent(contact,userId,details){
 
 export async function updateConsent(req,res){
   const id=parseId(req.params.id);
-  const contact=await Contact.findOne({_id:id,ownerId:req.user._id,isDeleted:false});
+  const contact=await Contact.findOne({_id:id,...tenantScope(req),isDeleted:false});
   if(!contact)return res.status(404).json({message:'Contact not found.'});
   const {status}=req.body||{};
   if(!CONSENT_STATUSES.includes(status))throw fail('Choose a valid WhatsApp consent status.');
@@ -301,9 +340,9 @@ export async function updateConsent(req,res){
 
 export async function getConsent(req,res){
   const id=parseId(req.params.id);
-  const contact=await Contact.findOne({_id:id,ownerId:req.user._id,isDeleted:false}).select('whatsappConsentStatus isSuppressed suppressionReason suppressedAt fullName phoneNumber').lean();
+  const contact=await Contact.findOne({_id:id,...tenantScope(req),isDeleted:false}).select('whatsappConsentStatus isSuppressed suppressionReason suppressedAt fullName phoneNumber').lean();
   if(!contact)return res.status(404).json({message:'Contact not found.'});
-  const consentHistory=await ConsentRecord.find({ownerId:req.user._id,contactId:id}).sort({recordedAt:-1}).lean();
+  const consentHistory=await ConsentRecord.find({...tenantScope(req),contactId:id}).sort({recordedAt:-1}).lean();
   res.json({
     status:contact.whatsappConsentStatus,
     isSuppressed:Boolean(contact.isSuppressed),
@@ -315,7 +354,7 @@ export async function getConsent(req,res){
 
 export async function getEligibility(req,res){
   const id=parseId(req.params.id);
-  const contact=await Contact.findOne({_id:id,ownerId:req.user._id,isDeleted:false}).lean();
+  const contact=await Contact.findOne({_id:id,...tenantScope(req),isDeleted:false}).lean();
   if(!contact)return res.status(404).json({message:'Contact not found.'});
   const reasons=[];
   if(contact.isArchived)reasons.push('Contact is archived');
@@ -325,7 +364,7 @@ export async function getEligibility(req,res){
   if(contact.whatsappConsentStatus!=='Opted In')reasons.push(`Consent status is ${contact.whatsappConsentStatus} (affirmative Opted In required)`);
   
   const latestOptIn=await ConsentRecord.findOne({
-    ownerId:req.user._id,
+    ...tenantScope(req),
     contactId:id,
     status:'Opted In',
     consentPurpose:{$type:'string',$ne:''},
@@ -357,12 +396,19 @@ export async function getEligibility(req,res){
 export async function updateContact(req,res){
   const id=parseId(req.params.id);
   const data=cleanContactInput(req.body,{partial:true});
+  if (data.groups?.length && await ContactGroup.countDocuments({ ...await legacyWorkspaceScope(req), _id: { $in: data.groups } }) !== new Set(data.groups.map(String)).size) throw fail('One or more contact groups are unavailable in this workspace.');
   if(!Object.keys(data).length)return res.status(400).json({message:'Provide at least one field to update.'});
   if(data.countryCode&&!data.phoneNumber)throw fail('Update country and phone number together.');
-  const contact=await Contact.findOne({_id:id,ownerId:req.user._id,isDeleted:false});
+  const contact=await Contact.findOne({_id:id,...tenantScope(req),isDeleted:false});
   if(!contact)return res.status(404).json({message:'Contact not found.'});
+  if (data.industryData) {
+    const { sanitized, canonicalUpdates } = validateAndSanitizeIndustryData(data.industryData, req.workspace?.industryKey);
+    data.industryData = { ...contact.industryData, ...sanitized };
+    Object.assign(data, canonicalUpdates);
+  }
+
   if(data.phoneNumber){
-    const duplicate=await Contact.findOne({ownerId:req.user._id,phoneNumber:data.phoneNumber,_id:{$ne:id}}).select('_id').lean();
+    const duplicate=await Contact.findOne({...tenantScope(req),phoneNumber:data.phoneNumber,_id:{$ne:id}}).select('_id').lean();
     if(duplicate)throw fail('A contact with this phone number already exists in your account.',409);
     data.whatsappNumber=data.phoneNumber;
   }
@@ -373,8 +419,8 @@ export async function updateContact(req,res){
     const newGroupIds=(data.groups||[]).map(String);
     const added=newGroupIds.filter(g=>!oldGroupIds.includes(g));
     const removed=oldGroupIds.filter(g=>!newGroupIds.includes(g));
-    if(added.length)await ContactGroup.updateMany({_id:{$in:added},ownerId:req.user._id},{$inc:{contactCount:1}});
-    if(removed.length)await ContactGroup.updateMany({_id:{$in:removed},ownerId:req.user._id},{$inc:{contactCount:-1}});
+    if(added.length)await ContactGroup.updateMany({_id:{$in:added},...tenantScope(req)},{$inc:{contactCount:1}});
+    if(removed.length)await ContactGroup.updateMany({_id:{$in:removed},...tenantScope(req)},{$inc:{contactCount:-1}});
   }
 
   const changes={};
@@ -408,7 +454,7 @@ export async function restoreContact(req,res){return setArchived(req,res,false);
 async function setArchived(req,res,archived){
   const id=parseId(req.params.id);
   const contact=await Contact.findOneAndUpdate(
-    {_id:id,ownerId:req.user._id,isDeleted:false},
+    {_id:id,...tenantScope(req),isDeleted:false},
     {$set:{isArchived:archived,archivedAt:archived?new Date():null}},
     {new:true,runValidators:true}
   );
@@ -420,13 +466,13 @@ async function setArchived(req,res,archived){
 export async function softDeleteContact(req,res){
   const id=parseId(req.params.id);
   const contact=await Contact.findOneAndUpdate(
-    {_id:id,ownerId:req.user._id,isDeleted:false},
+    {_id:id,...tenantScope(req),isDeleted:false},
     {$set:{isDeleted:true,deletedAt:new Date()}},
     {new:true}
   );
   if(!contact)return res.status(404).json({message:'Contact not found.'});
   if(contact.groups?.length){
-    await ContactGroup.updateMany({_id:{$in:contact.groups},ownerId:req.user._id},{$inc:{contactCount:-1}});
+    await ContactGroup.updateMany({_id:{$in:contact.groups},...tenantScope(req)},{$inc:{contactCount:-1}});
   }
   await addActivity(contact,req.user._id,'deleted','Contact moved to deleted records');
   res.json({message:'Contact deleted.'});
@@ -436,7 +482,7 @@ export async function bulkContacts(req,res){
   const {ids,action,value}=req.body||{};
   if(!Array.isArray(ids)||ids.length<1||ids.length>MAX_BULK||ids.some(id=>!validId(id)))throw fail(`Select between 1 and ${MAX_BULK} valid contacts.`);
   const uniqueIds=[...new Set(ids)];
-  const filter={_id:{$in:uniqueIds},ownerId:req.user._id,isDeleted:false};
+  const filter={_id:{$in:uniqueIds},...tenantScope(req),isDeleted:false};
   const contacts=await Contact.find(filter);
   if(!contacts.length)return res.status(404).json({message:'No matching contacts were found.'});
   
@@ -470,19 +516,19 @@ export async function bulkContacts(req,res){
     description='Tags removed';
   }else if(action==='addToGroup'){
     if(!validId(value))throw fail('Valid group ID is required.');
-    const group=await ContactGroup.findOne({_id:value,ownerId:req.user._id});
+    const group=await ContactGroup.findOne({_id:value,...await legacyWorkspaceScope(req)});
     if(!group)throw fail('Contact group not found.',404);
     await Contact.updateMany(filter,{$addToSet:{groups:group._id}});
-    const newCount=await Contact.countDocuments({ownerId:req.user._id,groups:group._id,isDeleted:false});
+    const newCount=await Contact.countDocuments({...tenantScope(req),groups:group._id,isDeleted:false});
     group.contactCount=newCount;
     await group.save();
     description=`Added to group ${group.name}`;
   }else if(action==='removeFromGroup'){
     if(!validId(value))throw fail('Valid group ID is required.');
-    const group=await ContactGroup.findOne({_id:value,ownerId:req.user._id});
+    const group=await ContactGroup.findOne({_id:value,...await legacyWorkspaceScope(req)});
     if(!group)throw fail('Contact group not found.',404);
     await Contact.updateMany(filter,{$pull:{groups:group._id}});
-    const newCount=await Contact.countDocuments({ownerId:req.user._id,groups:group._id,isDeleted:false});
+    const newCount=await Contact.countDocuments({...tenantScope(req),groups:group._id,isDeleted:false});
     group.contactCount=newCount;
     await group.save();
     description=`Removed from group ${group.name}`;
@@ -517,7 +563,7 @@ export async function bulkContacts(req,res){
 
 export async function listTags(req,res){
   const tags=await Contact.aggregate([
-    {$match:{ownerId:req.user._id,isDeleted:false}},
+    {$match:{...tenantScope(req),isDeleted:false}},
     {$unwind:'$tags'},
     {$group:{_id:'$tags',count:{$sum:1}}},
     {$sort:{count:-1,_id:1}}
@@ -538,13 +584,13 @@ export async function renameTag(req,res){
   
   // Step 1: Add new tag to matching contacts
   await Contact.updateMany(
-    {ownerId:req.user._id,tags:oldTag},
+    {...tenantScope(req),tags:oldTag},
     {$addToSet:{tags:newTag}}
   );
   
   // Step 2: Remove old tag from contacts
   const result=await Contact.updateMany(
-    {ownerId:req.user._id,tags:oldTag},
+    {...tenantScope(req),tags:oldTag},
     {$pull:{tags:oldTag}}
   );
   
@@ -555,7 +601,7 @@ export async function deleteTag(req,res){
   const tag=String(req.params.tag||req.query.name||req.body?.name||'').trim().toLowerCase();
   if(!tag)throw fail('Tag name is required.');
   const result=await Contact.updateMany(
-    {ownerId:req.user._id,tags:tag},
+    {...tenantScope(req),tags:tag},
     {$pull:{tags:tag}}
   );
   res.json({message:`Tag ${tag} removed from contacts.`,modifiedCount:result.modifiedCount});
@@ -628,9 +674,9 @@ function csvCell(value){const text=String(value??'');return `"${text.replace(/"/
 
 export async function contactActivity(req,res){
   const id=parseId(req.params.id);
-  const exists=await Contact.exists({_id:id,ownerId:req.user._id,isDeleted:false});
+  const exists=await Contact.exists({_id:id,...tenantScope(req),isDeleted:false});
   if(!exists)return res.status(404).json({message:'Contact not found.'});
-  const activities=await ContactActivity.find({ownerId:req.user._id,contactId:id}).sort({createdAt:-1}).limit(200).lean();
+  const activities=await ContactActivity.find({...tenantScope(req),contactId:id}).sort({createdAt:-1}).limit(200).lean();
   res.json({activities});
 }
 

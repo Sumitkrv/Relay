@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getTabSessionId } from './tabSession';
 
 const getBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
@@ -14,15 +15,14 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   try {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('relay_auth_token') : null;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    const workspaceId = typeof localStorage !== 'undefined' ? localStorage.getItem('relay_active_workspace_id') : null;
-    if (workspaceId) {
+    config.headers['x-relay-session-id'] = getTabSessionId();
+    const workspaceId = sessionStorage.getItem('relay_active_workspace_id');
+    if (workspaceId && !config.headers['x-workspace-id']) {
       config.headers['x-workspace-id'] = workspaceId;
     }
-  } catch {}
+  } catch (error) {
+    return Promise.reject(new Error('Tab session storage is unavailable. Enable browser storage to sign in.', { cause: error }));
+  }
   return config;
 });
 

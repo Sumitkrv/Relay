@@ -1,0 +1,42 @@
+[
+ {
+  "id": "import job stamped with workspaceId",
+  "ok": true,
+  "note": "job.workspaceId=6add82ed203325bf4265224b"
+ },
+ {
+  "id": "import completes",
+  "ok": true,
+  "note": "status=Completed created=2 skipped=0"
+ },
+ {
+  "id": "imported contacts visible in Contacts list",
+  "ok": true,
+  "note": "visible=2"
+ },
+ {
+  "id": "contacts stats endpoint responds",
+  "ok": true,
+  "note": "{\"stats\":{\"totalContacts\":5,\"newLeads\":4,\"interestedLeads\":1,\"convertedLeads\":0,\"eligibleWhatsAppContacts\":1,\"optedOutContacts\":1,\"unknownConsentContacts\":3,\"suppressedContacts\":1,\"demoContacts\":0,\"mi"
+ },
+ {
+  "id": "import appears in workspace history",
+  "ok": true,
+  "note": "jobs=1"
+ },
+ {
+  "id": "re-import of same phones creates no duplicates",
+  "ok": true,
+  "note": "dupVisible=0 skipped=2 status=Completed"
+ },
+ {
+  "id": "phone uniqueness: exactly 2 contacts for the run",
+  "ok": true,
+  "note": "total=2"
+ },
+ {
+  "id": "other workspace cannot read import job",
+  "ok": true,
+  "note": "status 404"
+ }
+]

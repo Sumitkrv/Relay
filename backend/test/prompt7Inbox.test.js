@@ -15,7 +15,7 @@ import ConsentRecord from '../src/models/ConsentRecord.js';
 import QuickReply from '../src/models/QuickReply.js';
 import AutoReplyRule from '../src/models/AutoReplyRule.js';
 import RuleExecution from '../src/models/RuleExecution.js';
-import { matchKeyword } from '../src/services/autoReplyRuleService.js';
+import { matchKeyword, seedDefaultRules, seedDefaultQuickReplies } from '../src/services/autoReplyRuleService.js';
 
 process.env.JWT_SECRET = 'prompt7-secret-key-that-is-long-enough-for-testing';
 
@@ -54,6 +54,7 @@ before(async () => {
   testContact = await Contact.create({
     ownerId: owner._id,
     fullName: 'Synthetic Lead',
+    isDemo: true,
     phoneNumber: '+919876500000',
     location: 'Noida',
     interestedService: 'Prestige Park Plots',
@@ -94,7 +95,9 @@ test('Prompt 7 — 1. Keyword Matcher: Whole-word, Exact, Contains and Word-boun
 });
 
 test('Prompt 7 — 2. Quick Reply Library CRUD, Variable Tokens & Duplicate', async () => {
-  // 1. List (triggers default seeds)
+  // Reading a library does not create records. Install the reviewed pack explicitly.
+  assert.equal((await request(app).get('/api/inbox/quick-replies').set(auth(ownerToken))).body.records.length, 0);
+  await seedDefaultQuickReplies(owner._id, null, 'real_estate');
   const listRes = await request(app).get('/api/inbox/quick-replies').set(auth(ownerToken));
   assert.equal(listRes.status, 200);
   assert.ok(listRes.body.records.length >= 4, 'Should have seeded default quick replies');
@@ -144,7 +147,14 @@ test('Prompt 7 — 2. Quick Reply Library CRUD, Variable Tokens & Duplicate', as
 });
 
 test('Prompt 7 — 3. Auto-Reply Keyword Rules CRUD & Priority Enforcement', async () => {
-  // 1. List rules (seeds default real estate rules: STOP, BROCHURE, PRICE, VISIT)
+  // Explicit installation preserves disabled starter states; test operator enables reviewed rules.
+  await seedDefaultRules(owner._id, null, 'real_estate');
+  const starters = await AutoReplyRule.find({ ownerId: owner._id });
+  assert.equal(starters.length, 5);
+  for (const rule of starters) {
+    assert.equal(rule.enabled, false);
+    await request(app).post(`/api/inbox/auto-reply-rules/${rule._id}/activate`).set(auth(ownerToken)).expect(200);
+  }
   const listRes = await request(app).get('/api/inbox/auto-reply-rules').set(auth(ownerToken));
   assert.equal(listRes.status, 200);
   assert.ok(listRes.body.records.length >= 4);
@@ -152,7 +162,7 @@ test('Prompt 7 — 3. Auto-Reply Keyword Rules CRUD & Priority Enforcement', asy
   // Verify STOP rule has priority 1
   const stopRule = listRes.body.records.find((r) => r.triggerKeyword === 'STOP');
   assert.ok(stopRule, 'STOP rule must exist');
-  assert.equal(stopRule.priority, 1, 'STOP rule must have top priority (1)');
+  assert.equal(stopRule.priority, 0, 'Protected STOP handling takes precedence over marketing rules');
   assert.equal(stopRule.actionType, 'RECORD_OPT_OUT');
 
   // 2. Test single rule tester endpoint

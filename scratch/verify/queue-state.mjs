@@ -1,0 +1,13 @@
+import { createRequire } from 'module';
+const require = createRequire('/Users/sumitthakur/Desktop/Relay/backend/package.json');
+const mongoose = require('mongoose');
+await mongoose.connect('mongodb://127.0.0.1:27017', { serverSelectionTimeoutMS: 5000 });
+const db = mongoose.connection.client.db('relay_demo');
+const agg = async (c, f) => (await db.collection(c).aggregate([{ $group: { _id: '$'+f, n: { $sum: 1 } } }]).toArray()).map(x=>`${x._id}:${x.n}`).join(' ');
+console.log('campaignexecutions.status', await agg('campaignexecutions','status'));
+console.log('campaignmessagejobs.status', await agg('campaignmessagejobs','status'));
+console.log('campaigns.status', await agg('campaigns','status'));
+console.log('messages.status', await agg('messages','status'));
+console.log('importjobs.status', await agg('importjobs','status'));
+console.log('workflow collections:', await db.collection('workflowschedules').countDocuments(), await db.collection('workflowexecutions').countDocuments());
+await mongoose.disconnect();

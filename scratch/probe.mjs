@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const S=JSON.parse(fs.readFileSync(new URL('./audit-session.json',import.meta.url)));
+const c=async(k,m,p,b,hdr={})=>{const r=await fetch('http://localhost:5000/api'+p,{method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+S[k].token,...hdr},body:b?JSON.stringify(b):undefined});let j;try{j=await r.json()}catch{};return {s:r.status,j}};
+const short=(o,n=500)=>String(JSON.stringify(o)).slice(0,n);
+let r;
+r=await c('gym','GET','/workspaces/current',null,{'x-workspace-id':'6ada1628863c2065e365d589'});console.log('ws cur own',r.s);
+r=await c('gym','GET','/contacts?limit=50');console.log('contacts',r.s,Object.keys(r.j),short(r.j.records[0]));console.log(r.j.pagination||r.j.total);
+const cid=r.j.records[0]._id;
+r=await c('gym','GET','/templates?limit=50');console.log('templates',r.s,Object.keys(r.j),(r.j.templates||[]).length,short((r.j.templates||[])[0],700));
+r=await c('gym','GET','/campaigns');console.log('campaigns',r.s,Object.keys(r.j),short((r.j.campaigns||[])[0],900));
+r=await c('gym','GET','/inbox/auto-reply-rules');console.log('rules',r.s,Object.keys(r.j),short((r.j.rules||[])[0],700));
+r=await c('gym','GET','/inbox/conversations');console.log('convs',r.s,Object.keys(r.j),(r.j.conversations||[]).length);
+r=await c('gym','GET','/industries/current');console.log('ind',r.s,short(r.j,600));
+r=await c('gym','GET','/contacts/'+cid);console.log('contact',short(r.j,900));

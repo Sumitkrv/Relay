@@ -7,8 +7,40 @@ export const VALID_INDUSTRIES = [
   'education',
   'salon',
   'automobile',
+  'travel_tourism',
+  'travel',
+  'restaurant_food',
+  'restaurants_food',
+  'professional_services',
+  'professional',
+  'generic_business',
+  'generic',
+  'ecommerce_retail',
+  'home_services',
+  'hospitality',
   'other',
 ];
+
+export const STARTER_PROVISIONING_STATUSES = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED'];
+
+const starterProvisioningSchema = new mongoose.Schema(
+  {
+    status: { type: String, enum: STARTER_PROVISIONING_STATUSES, default: 'PENDING' },
+    industryKey: { type: String, default: '' },
+    packVersion: { type: String, default: '' },
+    attempts: { type: Number, default: 0 },
+    startedAt: { type: Date, default: null },
+    completedAt: { type: Date, default: null },
+    lastError: { type: String, default: '' },
+    counts: {
+      templates: { type: Number, default: 0 },
+      quickReplies: { type: Number, default: 0 },
+      rules: { type: Number, default: 0 },
+      campaigns: { type: Number, default: 0 },
+    },
+  },
+  { _id: false }
+);
 
 export const WORKSPACE_STATUSES = [
   'PROVISIONING',
@@ -49,9 +81,9 @@ const workspaceSchema = new mongoose.Schema(
       required: [true, 'Industry key is required.'],
       enum: {
         values: VALID_INDUSTRIES,
-        message: 'Invalid industry key: "{VALUE}". Supported industries: real_estate, gym, clinic, education, salon, automobile, other.',
+        message: 'Invalid industry key: "{VALUE}". Supported industries: real_estate, gym, clinic, education, salon, automobile, travel_tourism, restaurant_food, professional_services, generic_business, other.',
       },
-      default: 'other',
+      default: 'generic_business',
     },
     businessEmail: {
       type: String,
@@ -145,6 +177,11 @@ const workspaceSchema = new mongoose.Schema(
     settings: {
       type: mongoose.Schema.Types.Mixed,
       default: {},
+    },
+    // Present only on workspaces created after automatic starter provisioning was introduced.
+    starterProvisioning: {
+      type: starterProvisioningSchema,
+      default: undefined,
     },
     archivedAt: {
       type: Date,

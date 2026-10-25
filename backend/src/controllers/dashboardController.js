@@ -11,7 +11,11 @@ import BusinessProfile from '../models/BusinessProfile.js';
 import UserPreferences from '../models/UserPreferences.js';
 import SecurityAuditLog from '../models/SecurityAuditLog.js';
 import MessageTemplate from '../models/MessageTemplate.js';
+import Message from '../models/Message.js';
+import RuleExecution from '../models/RuleExecution.js';
 import ImportJob from '../models/ImportJob.js';
+import Workspace from '../models/Workspace.js';
+import { getWorkerStatus } from '../services/messageQueueService.js';
 
 function calculateBusinessCompleteness(bp) {
   if (!bp) return { score: 0, isComplete: false, missingFields: ['legalOrTradingName', 'email', 'phone', 'city'] };
@@ -28,13 +32,20 @@ function calculateBusinessCompleteness(bp) {
 
 // Backwards-compatible /api/dashboard/stats
 export async function stats(req, res) {
+  const headerWsId = req.headers?.['x-workspace-id'] || (typeof req.get === 'function' ? req.get('x-workspace-id') : null);
+  const explicitWsId = req.workspace?._id || (headerWsId && mongoose.isObjectIdOrHexString(headerWsId) ? headerWsId : req.user.defaultWorkspaceId) || null;
+  // Same boundary as the module lists (tenantScope): active workspace AND the signed-in author.
+  const wsFilter = explicitWsId && mongoose.isObjectIdOrHexString(explicitWsId)
+    ? { workspaceId: new mongoose.Types.ObjectId(explicitWsId), ownerId: req.user._id }
+    : { ownerId: req.user._id };
+
   const [contacts, groups, recentCampaigns] = await Promise.all([
-    getOwnerContactStats(req.user._id),
+    getOwnerContactStats(req.user._id, explicitWsId),
     Campaign.aggregate([
-      { $match: { ownerId: req.user._id } },
+      { $match: wsFilter },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
-    Campaign.find({ ownerId: req.user._id })
+    Campaign.find(wsFilter)
       .sort({ createdAt: -1 })
       .limit(5)
       .select('name status createdAt updatedAt category')
@@ -68,7 +79,13 @@ export async function stats(req, res) {
 // Backwards-compatible /api/dashboard/activity
 export async function activity(req, res) {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 8));
-  const activities = await ContactActivity.find({ ownerId: req.user._id })
+  const headerWsId = req.headers?.['x-workspace-id'] || (typeof req.get === 'function' ? req.get('x-workspace-id') : null);
+  const explicitWsId = req.workspace?._id || (headerWsId && mongoose.isObjectIdOrHexString(headerWsId) ? headerWsId : req.user.defaultWorkspaceId) || null;
+  const wsFilter = explicitWsId && mongoose.isObjectIdOrHexString(explicitWsId)
+    ? { workspaceId: new mongoose.Types.ObjectId(explicitWsId), ownerId: req.user._id }
+    : { ownerId: req.user._id };
+
+  const activities = await ContactActivity.find(wsFilter)
     .sort({ createdAt: -1 })
     .limit(limit)
     .populate('contactId', 'fullName companyName')
@@ -89,6 +106,13 @@ export async function activity(req, res) {
 // Full Operational Dashboard Aggregator: GET /api/dashboard/overview
 export async function overview(req, res) {
   const ownerId = req.user._id;
+  const headerWsId = req.headers?.['x-workspace-id'] || (typeof req.get === 'function' ? req.get('x-workspace-id') : null);
+  const explicitWsId = req.workspace?._id || (headerWsId && mongoose.isObjectIdOrHexString(headerWsId) ? headerWsId : req.user.defaultWorkspaceId) || null;
+  const wsFilter = explicitWsId && mongoose.isObjectIdOrHexString(explicitWsId)
+    ? { workspaceId: new mongoose.Types.ObjectId(explicitWsId), ownerId }
+    : { ownerId };
+  // Business profile is a workspace-level record shared by every member.
+  const profileFilter = wsFilter.workspaceId ? { workspaceId: wsFilter.workspaceId } : wsFilter;
 
   const [
     contactStatsData,
@@ -111,27 +135,31 @@ export async function overview(req, res) {
     totalCampaignCount,
     failedExecutionsCount,
     importErrorsCount,
+    messageStatusGroups,
+    autoReplyExecCount,
+    ruleExecutionsRecent,
+    workspaceDoc,
   ] = await Promise.all([
-    getOwnerContactStats(ownerId),
-    Contact.countDocuments({ ownerId, isDeleted: false, whatsappConsentStatus: 'Opted Out' }),
-    Contact.countDocuments({ ownerId, isDeleted: false, whatsappConsentStatus: { $in: ['Unknown', null] } }),
+    getOwnerContactStats(ownerId, explicitWsId),
+    Contact.countDocuments({ ...wsFilter, isDeleted: false, whatsappConsentStatus: 'Opted Out' }),
+    Contact.countDocuments({ ...wsFilter, isDeleted: false, whatsappConsentStatus: { $in: ['Unknown', null] } }),
     Campaign.aggregate([
-      { $match: { ownerId } },
+      { $match: wsFilter },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     CampaignExecution.aggregate([
-      { $match: { ownerId } },
+      { $match: { ...wsFilter } },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
-    Campaign.countDocuments({ ownerId, 'mockSchedule.status': 'scheduled' }),
-    Campaign.find({ ownerId })
+    Campaign.countDocuments({ ...wsFilter, 'mockSchedule.status': 'scheduled' }),
+    Campaign.find(wsFilter)
       .sort({ updatedAt: -1, createdAt: -1 })
       .limit(5)
       .select('name status goal category audienceSelectionMode validationSummary mockSchedule createdAt updatedAt selectedTemplateId')
       .populate('selectedTemplateId', 'name')
       .lean(),
     Campaign.find({
-      ownerId,
+      ...wsFilter,
       'mockSchedule.status': 'scheduled',
       'mockSchedule.startAt': { $gte: new Date() },
     })
@@ -141,11 +169,11 @@ export async function overview(req, res) {
       .populate('selectedTemplateId', 'name')
       .lean(),
     Conversation.aggregate([
-      { $match: { ownerId } },
+      { $match: wsFilter },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]),
     Conversation.aggregate([
-      { $match: { ownerId } },
+      { $match: wsFilter },
       { $group: { _id: null, total: { $sum: '$internalUnreadCount' } } },
     ]),
     ContactActivity.find({ ownerId })
@@ -158,7 +186,7 @@ export async function overview(req, res) {
       .limit(8)
       .populate('campaignId', 'name')
       .lean(),
-    ConversationActivity.find({ ownerId })
+    ConversationActivity.find({ ...wsFilter })
       .sort({ createdAt: -1 })
       .limit(8)
       .lean(),
@@ -166,17 +194,63 @@ export async function overview(req, res) {
       .sort({ createdAt: -1 })
       .limit(5)
       .lean(),
-    BusinessProfile.findOne({ ownerId }).lean(),
+    BusinessProfile.findOne({ ...profileFilter }).lean(),
     UserPreferences.findOne({ ownerId }).lean(),
-    MessageTemplate.countDocuments({ ownerId, localStatus: { $ne: 'Archived' } }),
-    Campaign.countDocuments({ ownerId, status: { $ne: 'Archived' } }),
-    CampaignExecution.countDocuments({ ownerId, status: 'failed' }),
-    ImportJob.countDocuments({ ownerId, failedCount: { $gt: 0 } }),
+    MessageTemplate.countDocuments(
+      explicitWsId && mongoose.isObjectIdOrHexString(explicitWsId)
+        ? { workspaceId: explicitWsId, ownerId, localStatus: { $ne: 'Archived' } }
+        : { ownerId, localStatus: { $ne: 'Archived' } }
+    ),
+    Campaign.countDocuments({ ...wsFilter, status: { $ne: 'Archived' } }),
+    CampaignExecution.countDocuments({ ...wsFilter, status: 'failed' }),
+    ImportJob.countDocuments({ ...wsFilter, failedCount: { $gt: 0 } }),
+    Message.aggregate([
+      { $match: { ...wsFilter } },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]),
+    RuleExecution.countDocuments({ ...wsFilter }),
+    RuleExecution.find({ ...wsFilter })
+      .sort({ createdAt: -1 })
+      .limit(8)
+      .lean(),
+    req.workspace
+      ? Promise.resolve(req.workspace)
+      : (explicitWsId && mongoose.isObjectIdOrHexString(explicitWsId)
+          ? Workspace.findOne({
+              _id: explicitWsId,
+            }).lean()
+          : (req.user.defaultWorkspaceId
+              ? Workspace.findOne({
+                  _id: req.user.defaultWorkspaceId,
+                  $or: [{ ownerId }, { createdBy: ownerId }],
+                }).lean()
+              : Workspace.findOne({
+                  $or: [{ ownerId }, { createdBy: ownerId }],
+                }).sort({ createdAt: -1 }).lean())),
   ]);
 
   const campaignStatusMap = Object.fromEntries(campaignStatusGroups.map((x) => [x._id, x.count]));
   const campaignExecMap = Object.fromEntries(campaignExecutionGroups.map((x) => [x._id, x.count]));
   const convStatusMap = Object.fromEntries(conversationStatusGroups.map((x) => [x._id, x.count]));
+  const msgStatusMap = Object.fromEntries(messageStatusGroups.map((x) => [x._id, x.count]));
+
+  // Cumulative lifecycle semantics (matches reportService): a read message was also delivered and sent.
+  const mockMessages = {
+    total: messageStatusGroups.reduce((acc, curr) => acc + curr.count, 0),
+    sent: (msgStatusMap.SIMULATED_SENT || 0) + (msgStatusMap.SIMULATED_DELIVERED || 0) + (msgStatusMap.SIMULATED_READ || 0),
+    delivered: (msgStatusMap.SIMULATED_DELIVERED || 0) + (msgStatusMap.SIMULATED_READ || 0),
+    read: msgStatusMap.SIMULATED_READ || 0,
+    failed: (msgStatusMap.TEMPORARY_FAILURE || 0) + (msgStatusMap.PERMANENT_FAILURE || 0),
+  };
+
+  const industryKeyResolved = workspaceDoc?.industryKey || 'real_estate';
+  const INDUSTRY_COPY = {
+    real_estate: { enquiry: 'property enquiry', leads: 'property enquiry leads', templates: 'property brochure or enquiry templates', preview: 'property messages' },
+    gym: { enquiry: 'membership and fitness enquiry', leads: 'membership and fitness enquiries', templates: 'membership or trial-class templates', preview: 'membership messages' },
+    clinic: { enquiry: 'general service and appointment enquiry', leads: 'service and appointment enquiries', templates: 'service enquiry or appointment-reminder templates', preview: 'service messages' },
+  };
+  const copy = INDUSTRY_COPY[industryKeyResolved] || INDUSTRY_COPY.real_estate;
+  const workerStatus = getWorkerStatus();
 
   const configuredTimezone = userPreferences?.timezone || 'Asia/Kolkata';
 
@@ -280,6 +354,15 @@ export async function overview(req, res) {
       timestamp: x.createdAt,
       source: 'Security Audit',
     })),
+    ...ruleExecutionsRecent.map((x) => ({
+      _id: x._id,
+      module: 'Inbox',
+      eventType: 'auto_reply_executed',
+      title: `Auto-reply: ${x.matchedKeyword || x.ruleName || 'Rule'}`,
+      description: `Rule "${x.ruleName || x.actionType}" (${x.status})`,
+      timestamp: x.createdAt,
+      source: 'Auto-Reply Engine',
+    })),
   ]
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     .slice(0, 10);
@@ -295,7 +378,7 @@ export async function overview(req, res) {
       severity: 'warning',
       module: 'Settings',
       title: 'Business Profile Incomplete',
-      message: `Complete missing fields (${missingFields.join(', ')}) to finalize property enquiry branding.`,
+      message: `Complete missing fields (${missingFields.join(', ')}) to finalize your ${copy.enquiry} branding.`,
       actionPath: '/settings?tab=business',
       actionLabel: 'Complete Profile',
     });
@@ -306,11 +389,24 @@ export async function overview(req, res) {
     id: 'alert_provider_disconnected',
     severity: 'info',
     module: 'Settings',
-    title: 'WhatsApp Provider Disconnected',
-    message: 'Official Meta WhatsApp Cloud API credentials are disconnected. Internal mock mode active.',
-    actionPath: '/settings?tab=integrations',
-    actionLabel: 'View Provider Status',
+    title: 'Live WhatsApp not connected',
+    message: 'Optional: Relay is running in Mock Mode, so no live WhatsApp messages are sent.',
+    actionPath: '/settings?tab=channels',
+    actionLabel: 'Integration settings',
+    optional: true,
   });
+
+  if (!workerStatus.running) {
+    alerts.push({
+      id: 'alert_worker_down',
+      severity: 'error',
+      module: 'Campaigns',
+      title: 'Message worker is not running',
+      message: 'Queued mock messages will not be processed until the backend worker restarts.',
+      actionPath: '/campaigns',
+      actionLabel: 'Review Campaigns',
+    });
+  }
 
   // Active actionable warnings: Scheduled campaigns missing templates
   const missingTemplateCampaigns = upcomingCampaignsDocs.filter((c) => !c.selectedTemplateId);
@@ -364,7 +460,7 @@ export async function overview(req, res) {
       label: 'Import Contacts',
       completed: contactStatsData.totalContacts > 0,
       path: '/import',
-      description: 'Upload property enquiry leads via Excel or CSV.',
+      description: `Upload ${copy.leads} via Excel or CSV.`,
     },
     {
       id: 'consent',
@@ -378,14 +474,14 @@ export async function overview(req, res) {
       label: 'Create WhatsApp Template',
       completed: templateCount > 0,
       path: '/templates',
-      description: 'Draft personalized property brochure or enquiry templates.',
+      description: `Draft personalized ${copy.templates}.`,
     },
     {
       id: 'campaign',
       label: 'Prepare Campaign',
       completed: totalCampaignCount > 0,
       path: '/campaigns/new',
-      description: 'Select audience and preview property messages.',
+      description: `Select audience and preview ${copy.preview}.`,
     },
     {
       id: 'provider',
@@ -400,8 +496,17 @@ export async function overview(req, res) {
 
   res.json({
     businessContext: {
-      businessName: businessProfile?.displayName || businessProfile?.legalOrTradingName || req.user.businessName || 'M2W Realty',
+      businessName:
+        workspaceDoc?.name ||
+        businessProfile?.displayName ||
+        businessProfile?.legalOrTradingName ||
+        req.user.businessName ||
+        'Relay Workspace',
       timezone: configuredTimezone,
+      industry: workspaceDoc?.industryKey || 'real_estate',
+      industryKey: workspaceDoc?.industryKey || 'real_estate',
+      workspaceId: workspaceDoc?._id || null,
+      slug: workspaceDoc?.slug || null,
     },
     contacts: {
       total: contactStatsData.totalContacts,
@@ -413,28 +518,39 @@ export async function overview(req, res) {
       convertedLeads: contactStatsData.convertedLeads,
       growth: contactStatsData.contactGrowth || [],
     },
+    templates: {
+      total: templateCount,
+    },
     campaigns: {
       total: campaignStatusGroups.reduce((acc, curr) => acc + curr.count, 0),
-      draft: campaignStatusMap.Draft || 0,
+      draft: campaignStatusMap.Draft || campaignStatusMap.draft || 0,
       readyForPreparation: campaignStatusMap['Validated for Preparation'] || 0,
+      awaitingApproval: campaignStatusMap['Awaiting Template Approval'] || 0,
       needsReview: campaignStatusMap['Needs Review'] || 0,
       scheduled: scheduledCampaignsCount,
       running: campaignExecMap.running || 0,
       paused: campaignExecMap.paused || 0,
       completed: campaignExecMap.completed || 0,
+      completedRuns: campaignExecMap.completed || 0, // execution (run) count, not campaign records
+      totalRuns: campaignExecutionGroups.reduce((acc, curr) => acc + curr.count, 0),
       failed: campaignExecMap.failed || 0,
       archived: campaignStatusMap.Archived || 0,
       recent: normalizedRecentCampaigns,
     },
     upcomingCampaigns,
     inbox: {
+      totalConversations: conversationStatusGroups.reduce((acc, curr) => acc + curr.count, 0),
       openConversations: convStatusMap.Open || 0,
       needsReview: (convStatusMap['Follow-up Required'] || 0) + (convStatusMap.Pending || 0),
       internalUnread: conversationUnreadAgg[0]?.total || 0,
+      autoReplyExecutions: autoReplyExecCount,
       verifiedReplies: null, // STRICTLY null when provider is disconnected; NOT a misleading numeric 0
       verifiedRepliesAvailable: false,
       readinessNotice: 'Connect WhatsApp to see verified customer replies.',
     },
+    mockMessages,
+    autoReplyExecutions: autoReplyExecCount,
+
     provider: {
       providerName: 'Official WhatsApp Cloud API',
       connectionStatus: 'Disconnected',
@@ -446,10 +562,12 @@ export async function overview(req, res) {
       notes: 'External WhatsApp Cloud API sending is disabled in safe sandbox mode.',
     },
     system: {
-      backendHealth: 'CRM Online',
+      backendHealth: 'CRM Online', // this response itself proves the API is serving
       databaseHealth: mongoose.connection.readyState === 1 ? 'MongoDB Connected' : 'Degraded',
-      workerHealth: 'Mock Engine Active',
-      mode: 'Single-Owner Real Estate Automation',
+      workerHealth: workerStatus.running ? 'Mock Engine Active' : 'Worker Not Running',
+      workerRunning: workerStatus.running,
+      workerLastHeartbeat: workerStatus.lastHeartbeat,
+      mode: `Single-Owner ${(workspaceDoc?.industryKey || 'real_estate').replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())} Automation`,
     },
     activity: unifiedActivities,
     alerts,

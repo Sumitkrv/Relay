@@ -1,0 +1,563 @@
+/* ==========================================================================
+   Relay Reports & Analytics — Midnight Navy × Electric Blue Design System
+   Scoped strictly to .reports-page.
+   ========================================================================== */
+
+.reports-page {
+  --rp-navy: #0F172A;
+  --rp-navy-deep: #0B1220;
+  --rp-blue: #2563EB;
+  --rp-blue-hover: #1D4ED8;
+  --rp-blue-soft: #EFF6FF;
+  --rp-blue-border: #BFDBFE;
+  --rp-blue-muted: #3B82F6;
+  --rp-card: #FFFFFF;
+  --rp-surface-subtle: #F8FAFC;
+  --rp-cloud: #F4F7FC;
+  --rp-border: #E2E8F0;
+  --rp-border-subtle: #F1F5F9;
+  --rp-muted: #64748B;
+  --rp-text: #0F172A;
+  --rp-text-secondary: #475569;
+  --rp-violet: #8B5CF6;
+  --rp-success: #16A34A;
+  --rp-success-soft: #DCFCE7;
+  --rp-warning: #D97706;
+  --rp-warning-soft: #FEF3C7;
+  --rp-danger: #DC2626;
+  --rp-danger-soft: #FEE2E2;
+  --rp-radius: 12px;
+  --rp-radius-lg: 14px;
+  --rp-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+  --rp-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  color: var(--rp-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding-bottom: 48px;
+}
+
+/* --------------------------------------------------------------------------
+   Page Header adjustments
+   -------------------------------------------------------------------------- */
+.reports-page .page-header {
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Filter Toolbar
+   -------------------------------------------------------------------------- */
+.reports-toolbar {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius);
+  box-shadow: var(--rp-shadow);
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reports-toolbar-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.reports-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.reports-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--rp-surface-subtle);
+  border: 1px solid var(--rp-border);
+  border-radius: 8px;
+  padding: 0 8px;
+  height: 38px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reports-filter-group:focus-within {
+  border-color: var(--rp-blue);
+  box-shadow: 0 0 0 2px var(--rp-blue-soft);
+  background: #ffffff;
+}
+
+.reports-filter-icon {
+  color: var(--rp-muted);
+  flex-shrink: 0;
+}
+
+.reports-select {
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rp-text);
+  height: 100%;
+  padding-right: 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.reports-date-input {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--rp-text);
+  height: 100%;
+  outline: none;
+}
+
+.reports-timestamp-badge {
+  font-size: 12px;
+  color: var(--rp-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Button Styles in Reports
+   -------------------------------------------------------------------------- */
+.reports-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid var(--rp-border);
+  background: var(--rp-card);
+  color: var(--rp-text);
+  white-space: nowrap;
+}
+
+.reports-btn:hover {
+  background: var(--rp-cloud);
+  border-color: #CBD5E1;
+}
+
+.reports-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reports-btn.primary {
+  background: var(--rp-blue);
+  border-color: var(--rp-blue);
+  color: #FFFFFF;
+  box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.2);
+}
+
+.reports-btn.primary:hover:not(:disabled) {
+  background: var(--rp-blue-hover);
+  border-color: var(--rp-blue-hover);
+}
+
+.reports-btn.sm {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+/* --------------------------------------------------------------------------
+   Navigation Tabs (Segmented Control)
+   -------------------------------------------------------------------------- */
+.reports-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #E2E8F0;
+  padding: 4px;
+  border-radius: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.reports-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.reports-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rp-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.reports-nav-tab:hover {
+  color: var(--rp-navy);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.reports-nav-tab.active {
+  color: var(--rp-blue);
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Primary KPI Cards Grid
+   -------------------------------------------------------------------------- */
+.reports-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.reports-kpi-card {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius);
+  box-shadow: var(--rp-shadow);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.reports-kpi-card:hover {
+  box-shadow: var(--rp-shadow-md);
+}
+
+.reports-kpi-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.reports-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rp-muted);
+  letter-spacing: -0.01em;
+}
+
+.reports-kpi-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reports-kpi-icon.blue {
+  background: var(--rp-blue-soft);
+  color: var(--rp-blue);
+}
+
+.reports-kpi-icon.violet {
+  background: #F3E8FF;
+  color: var(--rp-violet);
+}
+
+.reports-kpi-icon.success {
+  background: var(--rp-success-soft);
+  color: var(--rp-success);
+}
+
+.reports-kpi-icon.warning {
+  background: var(--rp-warning-soft);
+  color: var(--rp-warning);
+}
+
+.reports-kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--rp-navy);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.reports-kpi-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--rp-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Structured Secondary Operational Metrics
+   -------------------------------------------------------------------------- */
+.reports-secondary-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.reports-secondary-group {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius);
+  box-shadow: var(--rp-shadow);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reports-secondary-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rp-border-subtle);
+}
+
+.reports-secondary-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rp-muted);
+}
+
+.reports-secondary-group-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.reports-secondary-tile {
+  background: var(--rp-surface-subtle);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reports-secondary-tile-label {
+  font-size: 11.5px;
+  color: var(--rp-muted);
+  font-weight: 500;
+}
+
+.reports-secondary-tile-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rp-navy);
+  line-height: 1.1;
+}
+
+/* --------------------------------------------------------------------------
+   Panels & Charts
+   -------------------------------------------------------------------------- */
+.reports-panel {
+  background: var(--rp-card);
+  border: 1px solid var(--rp-border);
+  border-radius: var(--rp-radius);
+  box-shadow: var(--rp-shadow);
+  overflow: hidden;
+}
+
+.reports-panel-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--rp-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reports-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rp-navy);
+  letter-spacing: -0.01em;
+}
+
+.reports-panel-subtitle {
+  font-size: 12.5px;
+  color: var(--rp-muted);
+  margin-top: 2px;
+}
+
+.reports-panel-body {
+  padding: 18px 20px;
+}
+
+.reports-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+.reports-table-container {
+  overflow-x: auto;
+  border-radius: 0 0 var(--rp-radius) var(--rp-radius);
+}
+
+.reports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.reports-table th {
+  background: var(--rp-surface-subtle);
+  color: var(--rp-muted);
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rp-border);
+  white-space: nowrap;
+}
+
+.reports-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rp-border-subtle);
+  color: var(--rp-text);
+  vertical-align: middle;
+}
+
+.reports-table tr:hover td {
+  background: rgba(248, 250, 252, 0.8);
+}
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+.rp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.rp-badge.blue {
+  background: var(--rp-blue-soft);
+  color: var(--rp-blue);
+  border: 1px solid var(--rp-blue-border);
+}
+
+.rp-badge.success {
+  background: var(--rp-success-soft);
+  color: var(--rp-success);
+}
+
+.rp-badge.warning {
+  background: var(--rp-warning-soft);
+  color: var(--rp-warning);
+}
+
+.rp-badge.danger {
+  background: var(--rp-danger-soft);
+  color: var(--rp-danger);
+}
+
+.rp-badge.neutral {
+  background: var(--rp-surface-subtle);
+  color: var(--rp-muted);
+  border: 1px solid var(--rp-border);
+}
+
+/* --------------------------------------------------------------------------
+   Compliance Banner
+   -------------------------------------------------------------------------- */
+.reports-compliance-banner {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-left: 4px solid var(--rp-blue);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--rp-text-secondary);
+  line-height: 1.5;
+}
+
+.reports-compliance-banner strong {
+  color: var(--rp-navy);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 1200px) {
+  .reports-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .reports-secondary-section {
+    grid-template-columns: 1fr;
+  }
+  .reports-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reports-toolbar-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reports-filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .reports-toolbar-right {
+    justify-content: flex-end;
+  }
+  .reports-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .reports-secondary-group-grid {
+    grid-template-columns: 1fr;
+  }
+}

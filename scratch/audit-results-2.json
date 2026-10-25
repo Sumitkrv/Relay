@@ -1,0 +1,662 @@
+[
+ {
+  "id": "m2w:workspace-resolves-own",
+  "ok": true,
+  "note": "M2W Realty/real_estate/Asia/Kolkata"
+ },
+ {
+  "id": "m2w:5-seed-contacts",
+  "ok": true,
+  "note": "seed=5 total=5"
+ },
+ {
+  "id": "m2w:7-generic-templates",
+  "ok": true,
+  "note": "total=7"
+ },
+ {
+  "id": "m2w:templates-no-fake-meta-approval",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:campaign-draft-exists",
+  "ok": true,
+  "note": "Property Enquiry Follow-Up — Demo[Draft]"
+ },
+ {
+  "id": "m2w:3-demo-autoreply-rules",
+  "ok": true,
+  "note": "STOP,PRICE,BROCHURE,VISIT"
+ },
+ {
+  "id": "m2w:contact-create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "m2w:contact-edit",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "m2w:contact-search",
+  "ok": true,
+  "note": "found=1"
+ },
+ {
+  "id": "m2w:contact-persisted-notes",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:contact-validation:empty-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "m2w:contact-validation:invalid-email",
+  "ok": true,
+  "note": "status 400 Enter a valid email address."
+ },
+ {
+  "id": "m2w:contact-validation:malformed-phone",
+  "ok": true,
+  "note": "status 400 Enter a valid international phone number."
+ },
+ {
+  "id": "m2w:contact-validation:oversized-name",
+  "ok": true,
+  "note": "status 400 Path `fullName` (`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...`, length 5000) is longer than the maximum allowed length "
+ },
+ {
+  "id": "m2w:contact-validation:nosql-operator-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "m2w:contact-validation:wrong-type-phone",
+  "ok": true,
+  "note": "status 400 A valid phone number is required."
+ },
+ {
+  "id": "m2w:contact-duplicate-blocked",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "m2w:contact-invalid-id",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "m2w:contact-ignores-forged-owner/workspace",
+  "ok": true,
+  "note": "rejected 400"
+ },
+ {
+  "id": "m2w:template-preview-uses-business-name",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "m2w:template-preview-no-other-business",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:template-edit",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "m2w:template-edit-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:template-create-draft",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "m2w:template-malicious-expression-rejected-or-inert",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "m2w:template-archive-test-draft",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "m2w:original-7-templates-intact",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:contact-delete-test-contact",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "m2w:seed-contacts-untouched",
+  "ok": true,
+  "note": "total=5"
+ },
+ {
+  "id": "gym:workspace-resolves-own",
+  "ok": true,
+  "note": "FitZone Gym/gym/Asia/Kolkata"
+ },
+ {
+  "id": "gym:5-seed-contacts",
+  "ok": true,
+  "note": "seed=5 total=5"
+ },
+ {
+  "id": "gym:7-generic-templates",
+  "ok": true,
+  "note": "total=7"
+ },
+ {
+  "id": "gym:templates-no-fake-meta-approval",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:campaign-draft-exists",
+  "ok": true,
+  "note": "Membership Enquiry Follow-Up — Demo[Draft]"
+ },
+ {
+  "id": "gym:3-demo-autoreply-rules",
+  "ok": true,
+  "note": "STOP,MEMBERSHIP,TRIAL,TIMINGS"
+ },
+ {
+  "id": "gym:contact-create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "gym:contact-edit",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "gym:contact-search",
+  "ok": true,
+  "note": "found=1"
+ },
+ {
+  "id": "gym:contact-persisted-notes",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:contact-validation:empty-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "gym:contact-validation:invalid-email",
+  "ok": true,
+  "note": "status 400 Enter a valid email address."
+ },
+ {
+  "id": "gym:contact-validation:malformed-phone",
+  "ok": true,
+  "note": "status 400 Enter a valid international phone number."
+ },
+ {
+  "id": "gym:contact-validation:oversized-name",
+  "ok": true,
+  "note": "status 400 Path `fullName` (`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...`, length 5000) is longer than the maximum allowed length "
+ },
+ {
+  "id": "gym:contact-validation:nosql-operator-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "gym:contact-validation:wrong-type-phone",
+  "ok": true,
+  "note": "status 400 A valid phone number is required."
+ },
+ {
+  "id": "gym:contact-duplicate-blocked",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "gym:contact-invalid-id",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "gym:contact-ignores-forged-owner/workspace",
+  "ok": true,
+  "note": "rejected 400"
+ },
+ {
+  "id": "gym:template-preview-uses-business-name",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "gym:template-preview-no-other-business",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:template-edit",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "gym:template-edit-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:template-create-draft",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "gym:template-malicious-expression-rejected-or-inert",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "gym:template-archive-test-draft",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "gym:original-7-templates-intact",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:contact-delete-test-contact",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "gym:seed-contacts-untouched",
+  "ok": true,
+  "note": "total=5"
+ },
+ {
+  "id": "clinic:workspace-resolves-own",
+  "ok": true,
+  "note": "CarePlus Clinic/clinic/Asia/Kolkata"
+ },
+ {
+  "id": "clinic:5-seed-contacts",
+  "ok": true,
+  "note": "seed=5 total=5"
+ },
+ {
+  "id": "clinic:7-generic-templates",
+  "ok": true,
+  "note": "total=7"
+ },
+ {
+  "id": "clinic:templates-no-fake-meta-approval",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:campaign-draft-exists",
+  "ok": true,
+  "note": "Clinic Enquiry Follow-Up — Demo[Draft]"
+ },
+ {
+  "id": "clinic:3-demo-autoreply-rules",
+  "ok": true,
+  "note": "STOP,APPOINTMENT,TIMINGS,LOCATION"
+ },
+ {
+  "id": "clinic:contact-create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "clinic:contact-edit",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "clinic:contact-search",
+  "ok": true,
+  "note": "found=1"
+ },
+ {
+  "id": "clinic:contact-persisted-notes",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:contact-validation:empty-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "clinic:contact-validation:invalid-email",
+  "ok": true,
+  "note": "status 400 Enter a valid email address."
+ },
+ {
+  "id": "clinic:contact-validation:malformed-phone",
+  "ok": true,
+  "note": "status 400 Enter a valid international phone number."
+ },
+ {
+  "id": "clinic:contact-validation:oversized-name",
+  "ok": true,
+  "note": "status 400 Path `fullName` (`AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...`, length 5000) is longer than the maximum allowed length "
+ },
+ {
+  "id": "clinic:contact-validation:nosql-operator-name",
+  "ok": true,
+  "note": "status 400 Full name must contain at least 2 characters."
+ },
+ {
+  "id": "clinic:contact-validation:wrong-type-phone",
+  "ok": true,
+  "note": "status 400 A valid phone number is required."
+ },
+ {
+  "id": "clinic:contact-duplicate-blocked",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "clinic:contact-invalid-id",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "clinic:contact-ignores-forged-owner/workspace",
+  "ok": true,
+  "note": "rejected 400"
+ },
+ {
+  "id": "clinic:template-preview-uses-business-name",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "clinic:template-preview-no-other-business",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:template-edit",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "clinic:template-edit-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:template-create-draft",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "clinic:template-malicious-expression-rejected-or-inert",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "clinic:template-archive-test-draft",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "clinic:original-7-templates-intact",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:contact-delete-test-contact",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "clinic:seed-contacts-untouched",
+  "ok": true,
+  "note": "total=5"
+ },
+ {
+  "id": "xt:gym->m2w:read-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:write-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:read-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:write-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:read-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:launch-foreign-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:write-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:deactivate-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:conversation-for-foreign-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:gym->m2w:forged-workspace-header-on-workspace-api",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "xt:gym->m2w:forged-header-returns-no-victim-contacts",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "xt:gym->m2w:foreign-contact-in-own-campaign-audience",
+  "ok": true,
+  "note": "status 400 {\"message\":\"Select up to 5,000 contacts at a time.\"}"
+ },
+ {
+  "id": "xt:gym->m2w:template-campaign-listing",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:read-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:write-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:read-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:write-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:read-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:launch-foreign-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:write-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:deactivate-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:conversation-for-foreign-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:clinic->gym:forged-workspace-header-on-workspace-api",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "xt:clinic->gym:forged-header-returns-no-victim-contacts",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "xt:clinic->gym:foreign-contact-in-own-campaign-audience",
+  "ok": true,
+  "note": "status 400 {\"message\":\"Select up to 5,000 contacts at a time.\"}"
+ },
+ {
+  "id": "xt:clinic->gym:template-campaign-listing",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:read-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:write-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:read-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:write-template",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:read-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:launch-foreign-campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:write-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:deactivate-rule",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:conversation-for-foreign-contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w->clinic:forged-workspace-header-on-workspace-api",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "xt:m2w->clinic:forged-header-returns-no-victim-contacts",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "xt:m2w->clinic:foreign-contact-in-own-campaign-audience",
+  "ok": true,
+  "note": "status 400 {\"message\":\"Select up to 5,000 contacts at a time.\"}"
+ },
+ {
+  "id": "xt:m2w->clinic:template-campaign-listing",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "xt:m2w:templates-bodies-unchanged-after-attacks",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "xt:m2w:no-HACKED-notes",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "xt:gym:templates-bodies-unchanged-after-attacks",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "xt:gym:no-HACKED-notes",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "xt:clinic:templates-bodies-unchanged-after-attacks",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "xt:clinic:no-HACKED-notes",
+  "ok": true,
+  "note": ""
+ }
+]

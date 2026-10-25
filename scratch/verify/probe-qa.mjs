@@ -1,0 +1,11 @@
+import fs from 'fs'; import { call, ws, sh } from './lib.mjs';
+const c = JSON.parse(fs.readFileSync(new URL('./qa-credentials.json', import.meta.url)));
+const A = c.accounts['real_estate:a']; const H = ws(A.workspaceId);
+const g = async (p) => (await call(A.token,'GET',p,undefined,H));
+const t = await g('/templates?limit=2'); console.log('TEMPLATE sample:', sh(t.j.records[0], 900));
+const v = await g('/templates/variables'); console.log('VARIABLES:', sh(v.j, 700));
+const q = await g('/inbox/quick-replies'); console.log('QUICK sample:', sh(q.j.records[0], 400));
+const r = await g('/inbox/auto-reply-rules'); console.log('RULE sample:', sh(r.j.records[1], 600));
+const s = await g('/campaigns/starter-drafts'); console.log('STARTER campaign:', sh(s.j.records?.[0], 500));
+const aud = await call(A.token,'GET','/templates/ai/status',undefined,H); console.log('AI status', sh(aud.j));
+const ai = await call(A.token,'POST','/templates/ai/generate',{prompt:'Write a site visit reminder'},H); console.log('AI generate', ai.s, sh(ai.j));

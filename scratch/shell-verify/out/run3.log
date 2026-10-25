@@ -1,0 +1,119 @@
+PASS  [m2w] brand header shows Relay only (no business name)  -> relay.
+PASS  [m2w] workspace card = business name + industry  -> M2W Realty Real Estate
+PASS  [m2w] no other business identity leaked in shell
+PASS  [m2w] account footer shows person, not business-only identity  -> MO M2W Realty Owner owner.m2w@relay-demo.test
+PASS  [m2w] nav groups  -> WORKSPACE | INSIGHTS & MANAGEMENT
+PASS  [m2w] seven nav items in order  -> Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings
+PASS  [m2w] only Overview active at /app  -> Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)
+PASS  [m2w] sidebar 252px, topbar 68px white  -> sb=252 top=68 bg=rgb(255, 255, 255)
+PASS  [m2w] breadcrumb "Workspace > Overview"  -> Workspace Overview
+PASS  [m2w] status chip + Mock Mode badge  -> System operational | Mock Mode
+PASS  [m2w] footer fully inside viewport  -> 963/963
+PASS  [m2w] no horizontal overflow  -> 0
+PASS  [m2w] account menu: name, email, backend role, Sign out  -> MO M2W Realty Owner owner.m2w@relay-demo.test OWNER Profile & Settings Activity Logs Sign out
+PASS  [m2w] Escape closes account menu
+PASS  [m2w] workspace logo or blue-initials fallback  -> logo image
+PASS  [m2w] long business/user/email truncate without overflow; Sign out stays visible  -> {"sidebarScroll":0,"pageOverflow":0,"ellipsis":"ellipsis","signOutVisible":true}
+PASS  [m2w] no console errors/warnings
+PASS  [gym] brand header shows Relay only (no business name)  -> relay.
+PASS  [gym] workspace card = business name + industry  -> FG FitZone Gym Gym
+PASS  [gym] no other business identity leaked in shell
+PASS  [gym] account footer shows person, not business-only identity  -> FO FitZone Gym Owner owner.gym@relay-demo.test
+PASS  [gym] nav groups  -> WORKSPACE | INSIGHTS & MANAGEMENT
+PASS  [gym] seven nav items in order  -> Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings
+PASS  [gym] only Overview active at /app  -> Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)
+PASS  [gym] sidebar 252px, topbar 68px white  -> sb=252 top=68 bg=rgb(255, 255, 255)
+PASS  [gym] breadcrumb "Workspace > Overview"  -> Workspace Overview
+PASS  [gym] status chip + Mock Mode badge  -> System operational | Mock Mode
+PASS  [gym] footer fully inside viewport  -> 963/963
+PASS  [gym] no horizontal overflow  -> 0
+PASS  [gym] account menu: name, email, backend role, Sign out  -> FO FitZone Gym Owner owner.gym@relay-demo.test OWNER Profile & Settings Activity Logs Sign out
+PASS  [gym] Escape closes account menu
+PASS  [gym] workspace logo or blue-initials fallback  -> {"text":"FG","bg":"rgb(30, 58, 138)"}
+PASS  [gym] long business/user/email truncate without overflow; Sign out stays visible  -> {"sidebarScroll":0,"pageOverflow":0,"ellipsis":"ellipsis","signOutVisible":true}
+PASS  [gym] no console errors/warnings
+PASS  [clinic] brand header shows Relay only (no business name)  -> relay.
+PASS  [clinic] workspace card = business name + industry  -> CC CarePlus Clinic Clinic
+PASS  [clinic] no other business identity leaked in shell
+PASS  [clinic] account footer shows person, not business-only identity  -> CO CarePlus Clinic Owner owner.clinic@relay-demo.test
+PASS  [clinic] nav groups  -> WORKSPACE | INSIGHTS & MANAGEMENT
+PASS  [clinic] seven nav items in order  -> Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings
+PASS  [clinic] only Overview active at /app  -> Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)
+PASS  [clinic] sidebar 252px, topbar 68px white  -> sb=252 top=68 bg=rgb(255, 255, 255)
+PASS  [clinic] breadcrumb "Workspace > Overview"  -> Workspace Overview
+PASS  [clinic] status chip + Mock Mode badge  -> System operational | Mock Mode
+PASS  [clinic] footer fully inside viewport  -> 963/963
+PASS  [clinic] no horizontal overflow  -> 0
+PASS  [clinic] account menu: name, email, backend role, Sign out  -> CO CarePlus Clinic Owner owner.clinic@relay-demo.test OWNER Profile & Settings Activity Logs Sign out
+PASS  [clinic] Escape closes account menu
+PASS  [clinic] workspace logo or blue-initials fallback  -> {"text":"CC","bg":"rgb(30, 58, 138)"}
+PASS  [clinic] long business/user/email truncate without overflow; Sign out stays visible  -> {"sidebarScroll":0,"pageOverflow":0,"ellipsis":"ellipsis","signOutVisible":true}
+PASS  [clinic] no console errors/warnings
+PASS  [route] Overview: url, single active item, breadcrumb  -> /app active=Overview crumb="Workspace Overview"
+PASS  [route] Contacts: url, single active item, breadcrumb  -> /contacts active=Contacts crumb="Workspace Contacts"
+PASS  [route] Templates: url, single active item, breadcrumb  -> /templates active=Templates crumb="Workspace Templates"
+PASS  [route] Campaigns: url, single active item, breadcrumb  -> /campaigns active=Campaigns crumb="Workspace Campaigns"
+PASS  [route] Inbox & Auto-reply: url, single active item, breadcrumb  -> /inbox active=Inbox & Auto-reply crumb="Workspace Inbox & Auto-reply"
+PASS  [route] Reports: url, single active item, breadcrumb  -> /reports active=Reports crumb="Workspace Reports"
+PASS  [route] Settings: url, single active item, breadcrumb  -> /settings active=Settings crumb="Workspace Settings"
+PASS  [route] Back -> Reports active  -> /reports Reports
+PASS  [route] Back -> Inbox active  -> /inbox Inbox & Auto-reply
+PASS  [route] Forward -> Reports active  -> /reports Reports
+PASS  [route] direct load /templates  -> active=Templates crumb="Workspace Templates"
+PASS  [route] direct load /app/contacts  -> active=Contacts crumb="Workspace Contacts"
+PASS  [route] direct load /campaigns/new  -> active=Campaigns crumb="Workspace Campaigns New Campaign"
+PASS  [route] direct load /import  -> active=Contacts crumb="Workspace Contacts Import Contacts"
+PASS  [route] direct load /activity  -> active=Settings crumb="Workspace Settings Activity Logs"
+PASS  [route] refresh keeps session + active state  -> /activity Settings
+PASS  [route] real campaign id available for nested-route test  -> 6ada1e2e2c691eeac0f3880c
+PASS  [route] campaign details: Campaigns active + "Workspace / Campaigns / Campaign Details"  -> active=Campaigns crumb="Workspace Campaigns Campaign Details"
+PASS  [route] campaign edit: Campaigns active + 4-level breadcrumb  -> active=Campaigns crumb="Workspace Campaigns Campaign Details Edit"
+PASS  [route] no console errors across navigation
+PASS  [responsive] 1920px expanded: layout  -> sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1600px expanded: layout  -> sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1440px expanded: layout  -> sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1280px expanded: layout  -> sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1024px expanded: layout  -> sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 768px expanded: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 390px expanded: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 375px expanded: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 320px expanded: layout  -> sb=275@-275 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 1920px collapsed: layout  -> sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1920px rail: no labels, centered icons, aria-labels, signout+avatar kept  -> {"labelsHidden":true,"itemsCentered":true,"activeBar":true,"signOut":true,"avatar":true,"ariaLabels":true}
+PASS  [responsive] 1600px collapsed: layout  -> sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1600px rail: no labels, centered icons, aria-labels, signout+avatar kept  -> {"labelsHidden":true,"itemsCentered":true,"activeBar":true,"signOut":true,"avatar":true,"ariaLabels":true}
+PASS  [responsive] 1440px collapsed: layout  -> sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1440px rail: no labels, centered icons, aria-labels, signout+avatar kept  -> {"labelsHidden":true,"itemsCentered":true,"activeBar":true,"signOut":true,"avatar":true,"ariaLabels":true}
+PASS  [responsive] 1280px collapsed: layout  -> sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1280px rail: no labels, centered icons, aria-labels, signout+avatar kept  -> {"labelsHidden":true,"itemsCentered":true,"activeBar":true,"signOut":true,"avatar":true,"ariaLabels":true}
+PASS  [responsive] 1024px collapsed: layout  -> sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68
+PASS  [responsive] 1024px rail: no labels, centered icons, aria-labels, signout+avatar kept  -> {"labelsHidden":true,"itemsCentered":true,"activeBar":true,"signOut":true,"avatar":true,"ariaLabels":true}
+PASS  [responsive] 768px collapsed: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 390px collapsed: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 375px collapsed: layout  -> sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] 320px collapsed: layout  -> sb=275@-275 vis=false main@0 burger=grid toggle=false overflowX=0 top=68
+PASS  [responsive] short 520h: footer + Sign out reachable  -> foot=520/520 navScrolls=true signOutVisible=true
+PASS  [responsive] short 560h: footer + Sign out reachable  -> foot=560/560 navScrolls=true signOutVisible=true
+PASS  [responsive] zoom125 (1920x963/1.25): footer + Sign out reachable  -> foot=770/770 navScrolls=false signOutVisible=true
+PASS  [responsive] zoom90 (1920x963/0.9): footer + Sign out reachable  -> foot=1070/1070 navScrolls=false signOutVisible=true
+PASS  [collapse] keyboard Enter on header toggle collapses (aria-expanded=false, persisted)  -> w=72 stored=true
+PASS  [collapse] rail tooltip appears on hover  -> Campaigns
+PASS  [collapse] collapsed state survives reload  -> 72
+PASS  [collapse] expand restores 252px  -> 252
+PASS  [collapse] navigate while collapsed (Templates active, still rail)  -> /templates  w=72
+PASS  [drawer] closed drawer is hidden from focus/AT (visibility:hidden)  -> hidden
+PASS  [drawer] opens: dialog semantics, Relay brand, workspace, 7 links, sign out, no collapse btn  -> {"open":true,"role":"dialog","modal":"true","brand":"relay.","workspace":"M2W Realty Real Estate","links":7,"signOut":true,"collapseHidden":true,"scrim":true}
+PASS  [drawer] body scroll locked + focus moved into drawer + footer visible  -> overflow=hidden focus=Close navigation menu foot=700/700
+PASS  [drawer] Tab focus is trapped inside the open drawer (16 Tabs)
+PASS  [drawer] Escape closes drawer, restores scroll, returns focus to hamburger  -> vis=false overflow="" focus=Open navigation menu
+PASS  [drawer] backdrop click closes drawer  -> vis=false
+PASS  [drawer] selecting a link navigates and closes drawer; mobile breadcrumb shows only current page  -> /contacts vis=false crumbs=["Contacts"]
+PASS  [drawer] resize to desktop with drawer open: no stale scroll lock, sidebar docked  -> overflow="" sb=252
+PASS  [responsive] 320px status popover stays inside viewport  -> {"left":12,"right":308,"vw":320}
+PASS  [responsive] 320px notifications popover stays inside viewport  -> {"left":12,"right":308,"vw":320}
+PASS  [responsive] 320px account popover stays inside viewport  -> {"left":12,"right":308,"vw":320}
+PASS  [logout] sidebar Sign out returns to /login  -> /login
+PASS  [logout] protected route redirects to /login after logout  -> /login
+PASS  [logout] account-menu Sign out returns to /login  -> /login
+
+SUMMARY: 117/117 passed

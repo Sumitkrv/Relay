@@ -29,7 +29,7 @@ const businessProfileSchema = new mongoose.Schema(
     businessCategory: {
       type: String,
       trim: true,
-      default: 'Real Estate',
+      default: 'Other',
       maxlength: 80,
     },
     email: {

@@ -1,0 +1,4 @@
+[
+{"_id":"6adacdbe2875c8286ecc944f","ownerId":"6adacdb92875c8286ecc9400","contactId":"6adacdbd2875c8286ecc9449","status":"Opted In","consentPurpose":"Property alerts & brochures","consentedBusinessName":"","consentSource":"In-person site visit form","evidenceReference":"","consentCapturedAt":"2026-01-15T10:00:00.000Z","recordedBy":"6adacdb92875c8286ecc9400","recordedAt":"2026-10-23T03:00:14.182Z","__v":0},
+{"_id":"6adacdbf2875c8286ecc946f","ownerId":"6adacdbd2875c8286ecc943d","contactId":"6adacdbf2875c8286ecc946d","status":"Opted In","consentPurpose":"Membership renewal notices","consentedBusinessName":"","consentSource":"Front desk paper sign-up","evidenceReference":"","consentCapturedAt":"2026-02-01T12:00:00.000Z","recordedBy":"6adacdbd2875c8286ecc943d","recordedAt":"2026-10-23T03:00:15.323Z","__v":0}
+]

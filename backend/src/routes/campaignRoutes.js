@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveWorkspaceContext } from '../middleware/requireWorkspace.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as c from '../controllers/campaignController.js';
 import * as e from '../controllers/campaignExecutionController.js';
 
-const router=Router();router.use(requireAuth);
+const router = Router();
+router.use(requireAuth);
+router.use(resolveWorkspaceContext);
 
 // Static routes registered before /:id parameter routes
+router.get('/starter-drafts',asyncHandler(c.starterDrafts));
 router.get('/stats',asyncHandler(c.campaignStats));
 router.get('/categories',asyncHandler(c.categoryCounts));
 router.post('/audience/preview',asyncHandler(c.previewAudienceEligibility));

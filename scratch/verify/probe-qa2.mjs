@@ -1,0 +1,11 @@
+import fs from 'fs'; import { call, ws, sh } from './lib.mjs';
+const c = JSON.parse(fs.readFileSync(new URL('./qa-credentials.json', import.meta.url)));
+const S = JSON.parse(fs.readFileSync(new URL('./qa-state.json', import.meta.url))).real_estate;
+const A = c.accounts['real_estate:a']; const H = ws(A.workspaceId); const api=(m,p,b)=>call(A.token,m,p,b,H);
+const cons = await api('GET', `/contacts/${S.contactIds[0]}/consent`); console.log('CONSENT:', sh(cons.j, 900));
+const tm = await api('POST','/inbox/auto-reply-rules/test-match',{message:'hello price'}); console.log('TESTMATCH(message):', tm.s, sh(tm.j,300));
+const tm2 = await api('POST','/inbox/auto-reply-rules/test-match',{text:'hello price'}); console.log('TESTMATCH(text):', tm2.s, sh(tm2.j,300));
+const tm3 = await api('POST','/inbox/auto-reply-rules/test-match',{sampleMessage:'hello price', messageBody:'hello price', body:'hello price'}); console.log('TESTMATCH(body):', tm3.s, sh(tm3.j,500));
+const hist = await api('GET','/inbox/auto-reply-rules/history'); console.log('HISTORY:', sh(hist.j,700));
+const imp = await api('GET', `/imports/${S.importJobId}`); console.log('IMPORT JOB:', sh(imp.j,1000));
+const all = await api('GET','/contacts?limit=100&sort=createdAt'); console.log('CONTACT NAMES:', all.j.records.map(r=>r.fullName+'|'+r.phoneNumber).join(' ; '));

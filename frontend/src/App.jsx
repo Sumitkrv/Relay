@@ -42,12 +42,17 @@ import PrivacyPage from './marketing/pages/PrivacyPage';
 import TermsPage from './marketing/pages/TermsPage';
 import SignupPage from './marketing/pages/SignupPage';
 
+import DevMailboxPage from './pages/DevMailboxPage';
+import DevTestingHubPage from './pages/DevTestingHubPage';
+import IndustryPreviewPage from './pages/IndustryPreviewPage';
+import SuperAdminPage from './pages/SuperAdminPage';
+import AgencyDashboardPage from './pages/AgencyDashboardPage';
+
 export default function App() {
   return (
     <Routes>
-      {/* Public Marketing Website Routes */}
+      <Route path="/" element={<Navigate to="/app" replace />} />
       <Route element={<MarketingLayout />}>
-        <Route path="/" element={<HomePage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/industries" element={<IndustriesPage />} />
         <Route path="/industries/:slug" element={<IndustryDetailPage />} />
@@ -60,6 +65,11 @@ export default function App() {
         <Route path="/signup" element={<SignupPage />} />
       </Route>
 
+      {/* Offline Testing Control & Local Mailbox Entry Points */}
+      {import.meta.env.DEV && <Route path="/dev/mailbox" element={<DevMailboxPage />} />}
+      {import.meta.env.DEV && <Route path="/dev/testing" element={<DevTestingHubPage />} />}
+      {import.meta.env.DEV && <Route path="/dev/industry-preview" element={<IndustryPreviewPage />} />}
+
       {/* Authentication Entry Points */}
       <Route path="/login" element={<AuthPage />} />
       <Route path="/register" element={<AuthPage mode="register" />} />
@@ -69,9 +79,15 @@ export default function App() {
       <Route path="/onboarding" element={<BusinessOnboardingPage />} />
       <Route path="/onboarding/handoff" element={<OnboardingHandoffPage />} />
 
+      {/* Platform Super Admin & Agency Dedicated Control Panels */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/admin" element={<SuperAdminPage />} />
+        <Route path="/agency" element={<AgencyDashboardPage />} />
+      </Route>
+
       {/* Authenticated Workspace Application Routes */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/app/getting-started" element={<WorkspaceGettingStartedPage />} />
+        <Route path="/app/getting-started" element={<Navigate to="/app" replace />} />
         <Route element={<AppLayout />}>
           {/* New namespaced workspace routes */}
           <Route path="/app" element={<Dashboard />} />

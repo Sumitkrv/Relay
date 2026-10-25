@@ -575,8 +575,12 @@ export function stopMessageWorker() {
 /**
  * Returns comprehensive queue health and operational metrics.
  */
-export async function getQueueHealth(ownerId = null) {
-  const query = ownerId ? { ownerId } : {};
+export function getWorkerStatus() {
+  return { running: workerRunning, lastHeartbeat };
+}
+
+export async function getQueueHealth(ownerId = null, workspaceId = null) {
+  const query = { ...(ownerId ? { ownerId } : {}), ...(workspaceId ? { workspaceId } : {}) };
 
   const [counts, processingCount] = await Promise.all([
     Message.aggregate([

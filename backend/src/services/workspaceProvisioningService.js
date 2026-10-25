@@ -8,6 +8,7 @@ import WorkspaceMembership from '../models/WorkspaceMembership.js';
 import BusinessProfile from '../models/BusinessProfile.js';
 import OnboardingDraft from '../models/OnboardingDraft.js';
 import { generateSlug } from './workspaceContextService.js';
+import { provisionNewWorkspaceSafely, provisionWorkspaceStarterData } from './industryStarterProvisioningService.js';
 
 export const LOGOS_DIR = path.join(process.cwd(), 'uploads/logos');
 
@@ -391,11 +392,23 @@ export async function provisionWorkspaceFromDraft(userId) {
     if (eligibility.code === 'ALREADY_HAS_WORKSPACE') {
       // Idempotent return of existing workspace
       const existingProfile = await BusinessProfile.findOne({ ownerId: userId });
+      const ws = eligibility.workspace;
+      let starterProvisioning = ws?.starterProvisioning || null;
+      // Resume an interrupted provisioning for workspaces created by this flow only.
+      // Legacy workspaces (no starterProvisioning field) are never seeded here.
+      if (starterProvisioning && starterProvisioning.status !== 'COMPLETED' && String(ws.createdBy) === String(userId)) {
+        try {
+          starterProvisioning = await provisionWorkspaceStarterData({ workspaceId: ws._id, ownerId: userId, industryKey: ws.industryKey });
+        } catch (err) {
+          starterProvisioning = { status: 'FAILED', error: err.code || 'PROVISIONING_FAILED', message: err.message };
+        }
+      }
       return {
         isExisting: true,
-        workspace: eligibility.workspace,
+        workspace: ws,
         membership: eligibility.membership,
         businessProfile: existingProfile,
+        starterProvisioning,
       };
     }
     const err = new Error(eligibility.message);
@@ -450,9 +463,34 @@ export async function provisionWorkspaceFromDraft(userId) {
 
   const uniqueSlug = await generateUniqueWorkspaceSlug(name);
 
-  // Mark draft as PROVISIONING
+  // Atomically claim the draft (compare-and-swap on the state we observed) so
+  // concurrent/duplicate submissions cannot create two workspaces. A claim older
+  // than 2 minutes is treated as a crashed attempt and may be taken over.
+  const staleBefore = new Date(Date.now() - 2 * 60 * 1000);
+  const inFlight = () => {
+    const err = new Error('Workspace setup is already in progress. Please wait a moment and refresh.');
+    err.status = 409;
+    err.code = 'PROVISIONING_IN_PROGRESS';
+    return err;
+  };
+  if (draft.status === 'PROVISIONING' && draft.updatedAt && draft.updatedAt >= staleBefore) throw inFlight();
+  const claimedDraft = await OnboardingDraft.findOneAndUpdate(
+    { _id: draft._id, status: draft.status, updatedAt: draft.updatedAt },
+    { $set: { status: 'PROVISIONING' } },
+    { new: true }
+  );
+  if (!claimedDraft) {
+    const recheck = await validateProvisioningEligibility(userId);
+    if (recheck.code === 'ALREADY_HAS_WORKSPACE') return provisionWorkspaceFromDraft(userId);
+    throw inFlight();
+  }
+  // A concurrent request may have finished between our eligibility check and claim.
+  const finishedMeanwhile = (await validateProvisioningEligibility(userId)).code === 'ALREADY_HAS_WORKSPACE';
+  if (finishedMeanwhile) {
+    await OnboardingDraft.updateOne({ _id: draft._id }, { $set: { status: 'COMPLETED' } });
+    return provisionWorkspaceFromDraft(userId);
+  }
   draft.status = 'PROVISIONING';
-  await draft.save();
 
   try {
     // Create Workspace
@@ -520,11 +558,21 @@ export async function provisionWorkspaceFromDraft(userId) {
     draft.provisionedWorkspaceId = workspace._id;
     await draft.save();
 
+    // Provision the industry starter pack (15 templates, 8 quick replies,
+    // 5 disabled rules, 2 draft campaigns). Never throws: a failure is reported
+    // honestly and can be retried without losing the account or workspace.
+    const starterProvisioning = await provisionNewWorkspaceSafely({
+      workspaceId: workspace._id,
+      ownerId: userId,
+      industryKey: workspace.industryKey,
+    });
+
     return {
       isExisting: false,
-      workspace,
+      workspace: await Workspace.findById(workspace._id),
       membership,
       businessProfile,
+      starterProvisioning,
     };
   } catch (err) {
     draft.status = 'FAILED';

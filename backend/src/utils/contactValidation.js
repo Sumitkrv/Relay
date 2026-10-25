@@ -7,7 +7,7 @@ export const CONTACT_FIELDS=[
   'fullName','phoneNumber','countryCode','email','companyName','designation','website',
   'location','interestedService','interestedPropertyType','industry','businessCategory','businessSubcategory',
   'leadSource','leadStatus','priority','estimatedDealValue','currency','notes','tags',
-  'customFields','city','state','country','preferredLocation','interestedProject','budgetRange',
+  'industryData','customFields','city','state','country','preferredLocation','interestedProject','budgetRange',
   'alternatePhone','groups','preferredContactTime','enquiryDate','isSuppressed','suppressionReason'
 ];
 export function normalizePhone(input,region='IN'){

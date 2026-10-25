@@ -1,8 +1,13 @@
 import mongoose from 'mongoose';
 import User from '../models/User.js';
+import { tenantScope } from '../utils/tenantScope.js';
 import BusinessProfile from '../models/BusinessProfile.js';
 import UserPreferences from '../models/UserPreferences.js';
 import SecurityAuditLog from '../models/SecurityAuditLog.js';
+import Workspace from '../models/Workspace.js';
+import { saveDraftLogo } from '../services/workspaceProvisioningService.js';
+
+import { getIndustryConfig } from '../config/industries/industryRegistry.js';
 
 const fail = (message, status = 400) => Object.assign(new Error(message), { status });
 
@@ -26,6 +31,11 @@ function calculateBusinessCompleteness(bp) {
     missingFields,
   };
 }
+
+const getHeader = (req, name) =>
+  typeof req.get === 'function'
+    ? req.get(name)
+    : req.headers?.[name.toLowerCase()] || req.headers?.[name] || '';
 
 // 1. GET /api/settings/profile
 export async function getProfile(req, res) {
@@ -68,7 +78,7 @@ export async function updateProfile(req, res) {
 
     // Also update BusinessProfile legalOrTradingName if it exists
     await BusinessProfile.findOneAndUpdate(
-      { ownerId: req.user._id },
+      tenantScope(req),
       { $set: { legalOrTradingName: req.user.businessName, displayName: req.user.businessName } },
       { upsert: false }
     );
@@ -80,8 +90,8 @@ export async function updateProfile(req, res) {
     ownerId: req.user._id,
     actorId: req.user._id,
     action: 'profile_updated',
-    ipAddress: req.ip || req.get('x-forwarded-for') || '',
-    userAgent: req.get('user-agent') || '',
+    ipAddress: req.ip || getHeader(req, 'x-forwarded-for') || '',
+    userAgent: getHeader(req, 'user-agent') || '',
     metadata: { fromName: beforeName, toName: req.user.name, businessName: req.user.businessName },
   }).catch(() => {});
 
@@ -108,25 +118,47 @@ export async function updateProfile(req, res) {
 
 // 3. GET /api/settings/business
 export async function getBusinessProfile(req, res) {
-  let bp = await BusinessProfile.findOne({ ownerId: req.user._id }).lean();
+  const wsId = getHeader(req, 'x-workspace-id') || req.user.defaultWorkspaceId;
+  const ws = wsId && mongoose.isObjectIdOrHexString(wsId)
+    ? await Workspace.findOne({
+        _id: wsId,
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).lean()
+    : await Workspace.findOne({
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).sort({ createdAt: -1 }).lean();
+
+  let bp = await BusinessProfile.findOne(tenantScope(req)).lean();
   if (!bp) {
+    const isM2W = ws?.slug === 'm2w-realty' || (!ws && req.user.businessName === 'M2W Realty');
+    const indConfig = ws?.industryKey ? getIndustryConfig(ws.industryKey) : null;
+
     bp = {
       ownerId: req.user._id,
-      legalOrTradingName: req.user.businessName || 'M2W Realty',
-      displayName: req.user.businessName || 'M2W Realty',
-      businessCategory: 'Real Estate',
-      email: req.user.email || '',
-      phone: '',
-      website: 'https://m2wrealty.com',
-      description: 'M2W Realty real estate advisory, property inquiry automation and client engagement.',
+      legalOrTradingName: ws?.name || req.user.businessName || 'Relay Business',
+      displayName: ws?.name || req.user.businessName || 'Relay Business',
+      businessCategory: indConfig?.displayLabel || indConfig?.name || (isM2W ? 'Real Estate' : 'General Business'),
+      email: ws?.businessEmail || req.user.email || '',
+      phone: ws?.businessPhone || '',
+      website: ws?.website || '',
+      description: ws?.description || '',
       address: '',
-      city: '',
+      city: ws?.city || '',
       state: '',
-      country: 'India',
+      country: ws?.country || 'India',
       postalCode: '',
-      logoUrl: '/logo.png',
-      supportEmail: req.user.email || '',
+      logoUrl: ws?.logoUrl || (isM2W ? '/logo.png' : ''),
+      supportEmail: ws?.businessEmail || req.user.email || '',
     };
+  } else if (ws) {
+    // Keep workspace and business profile aligned
+    if (!bp.logoUrl && ws.logoUrl) bp.logoUrl = ws.logoUrl;
+    if (!bp.legalOrTradingName && ws.name) bp.legalOrTradingName = ws.name;
+    if (ws.industryKey && (bp.businessCategory === ws.industryKey || !bp.businessCategory)) {
+      const indConfig = getIndustryConfig(ws.industryKey);
+      const label = indConfig?.displayLabel || indConfig?.name;
+      if (label) bp.businessCategory = label;
+    }
   }
 
   const { score, isComplete, missingFields } = calculateBusinessCompleteness(bp);
@@ -169,7 +201,7 @@ export async function updateBusinessProfile(req, res) {
   const payload = {
     legalOrTradingName: b.legalOrTradingName.trim().slice(0, 160),
     displayName: String(b.displayName || b.legalOrTradingName).trim().slice(0, 120),
-    businessCategory: String(b.businessCategory || 'Real Estate').trim().slice(0, 80),
+    businessCategory: String(b.businessCategory || req.workspace?.industryKey || 'Other').trim().slice(0, 80),
     email: String(b.email || '').trim().toLowerCase().slice(0, 120),
     phone: String(b.phone || '').trim().slice(0, 40),
     website: String(b.website || '').trim().slice(0, 240),
@@ -184,10 +216,35 @@ export async function updateBusinessProfile(req, res) {
   };
 
   const updated = await BusinessProfile.findOneAndUpdate(
-    { ownerId: req.user._id },
+    tenantScope(req),
     { $set: payload },
     { new: true, upsert: true, runValidators: true }
   ).lean();
+
+  // Keep Workspace in sync with the legal or display name, city, country, logo
+  const wsId = getHeader(req, 'x-workspace-id') || req.user.defaultWorkspaceId;
+  const ws = wsId && mongoose.isObjectIdOrHexString(wsId)
+    ? await Workspace.findOne({
+        _id: wsId,
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).lean()
+    : await Workspace.findOne({
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).sort({ createdAt: -1 }).lean();
+
+  if (ws) {
+    await Workspace.updateOne(
+      { _id: ws._id },
+      {
+        $set: {
+          name: payload.legalOrTradingName,
+          logoUrl: payload.logoUrl,
+          city: payload.city,
+          country: payload.country,
+        },
+      }
+    );
+  }
 
   // Keep User.businessName in sync with the legal or display name
   if (req.user.businessName !== payload.legalOrTradingName) {
@@ -199,14 +256,15 @@ export async function updateBusinessProfile(req, res) {
     ownerId: req.user._id,
     actorId: req.user._id,
     action: 'business_updated',
-    ipAddress: req.ip || req.get('x-forwarded-for') || '',
-    userAgent: req.get('user-agent') || '',
+    ipAddress: req.ip || getHeader(req, 'x-forwarded-for') || '',
+    userAgent: getHeader(req, 'user-agent') || '',
     metadata: { legalOrTradingName: payload.legalOrTradingName, city: payload.city },
   }).catch(() => {});
 
   const { score, isComplete, missingFields } = calculateBusinessCompleteness(updated);
 
   res.json({
+    success: true,
     businessProfile: updated,
     completenessScore: score,
     isComplete,
@@ -214,6 +272,70 @@ export async function updateBusinessProfile(req, res) {
     message: 'Business profile saved successfully.',
   });
 }
+
+// 4b. POST /api/settings/logo - Upload business logo
+export async function uploadBusinessLogo(req, res) {
+  const file = req.file || req.files?.logo?.[0] || req.files?.file?.[0];
+  if (!file) {
+    return res.status(400).json({ message: 'No image file uploaded.' });
+  }
+
+  const result = await saveDraftLogo(req.user._id, file);
+
+  await BusinessProfile.findOneAndUpdate(
+    tenantScope(req),
+    { $set: { logoUrl: result.logoUrl } },
+    { upsert: true }
+  );
+
+  const wsId = getHeader(req, 'x-workspace-id') || req.user.defaultWorkspaceId;
+  const ws = wsId && mongoose.isObjectIdOrHexString(wsId)
+    ? await Workspace.findOne({
+        _id: wsId,
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).lean()
+    : await Workspace.findOne({
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).sort({ createdAt: -1 }).lean();
+
+  if (ws) {
+    await Workspace.updateOne({ _id: ws._id }, { $set: { logoUrl: result.logoUrl } });
+  }
+
+  res.json({
+    success: true,
+    message: 'Logo uploaded successfully.',
+    logoUrl: result.logoUrl,
+    filename: result.filename,
+    sizeBytes: result.sizeBytes,
+    mimeType: result.mimeType,
+  });
+}
+
+// 4c. DELETE /api/settings/logo - Remove business logo
+export async function deleteBusinessLogo(req, res) {
+  await BusinessProfile.findOneAndUpdate(
+    tenantScope(req),
+    { $set: { logoUrl: '' } }
+  );
+
+  const wsId = getHeader(req, 'x-workspace-id') || req.user.defaultWorkspaceId;
+  const ws = wsId && mongoose.isObjectIdOrHexString(wsId)
+    ? await Workspace.findOne({
+        _id: wsId,
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).lean()
+    : await Workspace.findOne({
+        $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+      }).sort({ createdAt: -1 }).lean();
+
+  if (ws) {
+    await Workspace.updateOne({ _id: ws._id }, { $set: { logoUrl: '' } });
+  }
+
+  res.json({ success: true, message: 'Logo removed successfully.', logoUrl: '' });
+}
+
 
 // 5. GET /api/settings/preferences
 export async function getPreferences(req, res) {
@@ -299,16 +421,33 @@ export async function updatePreferences(req, res) {
     { new: true, upsert: true, runValidators: true }
   ).lean();
 
+  if (payload.timezone) {
+    const wsId = getHeader(req, 'x-workspace-id') || req.user.defaultWorkspaceId;
+    const ws = wsId && mongoose.isObjectIdOrHexString(wsId)
+      ? await Workspace.findOne({
+          _id: wsId,
+          $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+        }).lean()
+      : await Workspace.findOne({
+          $or: [{ ownerId: req.user._id }, { createdBy: req.user._id }],
+        }).sort({ createdAt: -1 }).lean();
+
+    if (ws) {
+      await Workspace.updateOne({ _id: ws._id }, { $set: { timezone: payload.timezone } });
+    }
+  }
+
   await SecurityAuditLog.create({
     ownerId: req.user._id,
     actorId: req.user._id,
     action: 'preferences_updated',
-    ipAddress: req.ip || req.get('x-forwarded-for') || '',
-    userAgent: req.get('user-agent') || '',
+    ipAddress: req.ip || getHeader(req, 'x-forwarded-for') || '',
+    userAgent: getHeader(req, 'user-agent') || '',
     metadata: { timezone: payload.timezone, dateFormat: payload.dateFormat },
   }).catch(() => {});
 
   res.json({
+    success: true,
     preferences: updated,
     message: 'Preferences updated successfully.',
   });
@@ -360,7 +499,7 @@ export async function getIntegrationStatus(req, res) {
 
 // 9. GET /api/settings/system-status
 export async function getSystemStatus(req, res) {
-  const bp = await BusinessProfile.findOne({ ownerId: req.user._id }).lean();
+  const bp = await BusinessProfile.findOne(tenantScope(req)).lean();
   const prefs = await UserPreferences.findOne({ ownerId: req.user._id }).lean();
   const { score, isComplete } = calculateBusinessCompleteness(bp);
 
@@ -425,10 +564,16 @@ export async function getDemoStatus(req, res) {
 }
 
 // 11. POST /api/settings/demo-seed (Development only)
-export async function triggerDemoSeed(req, res) {
-  if (process.env.NODE_ENV === 'production') {
-    throw fail('Demo seeding is disabled in production.', 403);
+function assertDemoMaintenanceAllowed(label) {
+  // These maintenance scripts operate globally (not per-tenant). They are disabled
+  // unless an operator explicitly opts in on a verified local demo database.
+  if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEMO_MAINTENANCE_API !== 'true') {
+    throw fail(`${label} is disabled. Use the CLI scripts on the isolated demo database instead.`, 403);
   }
+}
+
+export async function triggerDemoSeed(req, res) {
+  assertDemoMaintenanceAllowed('Demo seeding');
   const { seed } = await import('../scripts/seedDemoData.js');
   const result = await seed();
   res.json({ result, message: 'Demo seeding operation completed.' });
@@ -436,9 +581,7 @@ export async function triggerDemoSeed(req, res) {
 
 // 12. POST /api/settings/demo-reset (Development only)
 export async function triggerDemoReset(req, res) {
-  if (process.env.NODE_ENV === 'production') {
-    throw fail('Demo data reset is disabled in production.', 403);
-  }
+  assertDemoMaintenanceAllowed('Demo data reset');
   const { reset } = await import('../scripts/resetDemoData.js');
   const result = await reset();
   res.json({ result, message: 'Demo dataset reset successfully. Production records preserved.' });

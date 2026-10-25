@@ -1,0 +1,393 @@
+{
+  "database": "relay_demo",
+  "createdAt": "2026-10-24T15:48:55.301Z",
+  "format": "EJSON canonical, one document per line",
+  "collections": [
+    {
+      "collection": "agencies",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "agencyclientrelations",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "agencymemberships",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "audiencesegmentmembers",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "audiencesegments",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "authsessions",
+      "documents": 84,
+      "indexes": 3
+    },
+    {
+      "collection": "authtokens",
+      "documents": 4,
+      "indexes": 8
+    },
+    {
+      "collection": "automationworkflows",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "autoreplyrules",
+      "documents": 19,
+      "indexes": 9
+    },
+    {
+      "collection": "billinginvoices",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "businessprofiles",
+      "documents": 13,
+      "indexes": 3
+    },
+    {
+      "collection": "campaignactivities",
+      "documents": 13,
+      "indexes": 4
+    },
+    {
+      "collection": "campaignaudiences",
+      "documents": 5,
+      "indexes": 7
+    },
+    {
+      "collection": "campaignexecutions",
+      "documents": 0,
+      "indexes": 8
+    },
+    {
+      "collection": "campaignmessagejobs",
+      "documents": 0,
+      "indexes": 7
+    },
+    {
+      "collection": "campaigns",
+      "documents": 2,
+      "indexes": 8
+    },
+    {
+      "collection": "chatbotdefinitions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "chatbottestsessions",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "chatbotversions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "consentrecords",
+      "documents": 2,
+      "indexes": 5
+    },
+    {
+      "collection": "contactactivities",
+      "documents": 5,
+      "indexes": 5
+    },
+    {
+      "collection": "contactcategories",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "contactgroups",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "contacts",
+      "documents": 23,
+      "indexes": 24
+    },
+    {
+      "collection": "conversationactivities",
+      "documents": 42,
+      "indexes": 6
+    },
+    {
+      "collection": "conversationmessages",
+      "documents": 5,
+      "indexes": 7
+    },
+    {
+      "collection": "conversations",
+      "documents": 7,
+      "indexes": 8
+    },
+    {
+      "collection": "crminsights",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "dealactivities",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "dealconversions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "deals",
+      "documents": 0,
+      "indexes": 7
+    },
+    {
+      "collection": "followuprecommendations",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "followuptasks",
+      "documents": 0,
+      "indexes": 13
+    },
+    {
+      "collection": "importerrors",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "importjobs",
+      "documents": 2,
+      "indexes": 4
+    },
+    {
+      "collection": "importmappingpresets",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "importrows",
+      "documents": 113,
+      "indexes": 6
+    },
+    {
+      "collection": "inboundruleclaims",
+      "documents": 2,
+      "indexes": 1
+    },
+    {
+      "collection": "inboxnotifications",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "internalnotes",
+      "documents": 2,
+      "indexes": 8
+    },
+    {
+      "collection": "leadconversions",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "leadscorehistories",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "leadscorejobs",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "leadscores",
+      "documents": 0,
+      "indexes": 5
+    },
+    {
+      "collection": "leadscoringrulehistories",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "leadscoringrulesets",
+      "documents": 0,
+      "indexes": 2
+    },
+    {
+      "collection": "messagedrafts",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "messageevents",
+      "documents": 5,
+      "indexes": 6
+    },
+    {
+      "collection": "messages",
+      "documents": 1,
+      "indexes": 16
+    },
+    {
+      "collection": "messagetemplates",
+      "documents": 14,
+      "indexes": 7
+    },
+    {
+      "collection": "onboardingdrafts",
+      "documents": 3,
+      "indexes": 3
+    },
+    {
+      "collection": "pipelinestages",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "proposals",
+      "documents": 0,
+      "indexes": 7
+    },
+    {
+      "collection": "proposaltemplates",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "proposalversions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "publicenquiries",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "quickreplies",
+      "documents": 40,
+      "indexes": 10
+    },
+    {
+      "collection": "reportgenerations",
+      "documents": 4,
+      "indexes": 7
+    },
+    {
+      "collection": "ruleexecutions",
+      "documents": 16,
+      "indexes": 6
+    },
+    {
+      "collection": "savedreports",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "securityauditlogs",
+      "documents": 155,
+      "indexes": 3
+    },
+    {
+      "collection": "supportcases",
+      "documents": 0,
+      "indexes": 3
+    },
+    {
+      "collection": "templatemedias",
+      "documents": 0,
+      "indexes": 6
+    },
+    {
+      "collection": "templates",
+      "documents": 0,
+      "indexes": 1
+    },
+    {
+      "collection": "templateversions",
+      "documents": 27,
+      "indexes": 5
+    },
+    {
+      "collection": "userpreferences",
+      "documents": 0,
+      "indexes": 2
+    },
+    {
+      "collection": "users",
+      "documents": 15,
+      "indexes": 2
+    },
+    {
+      "collection": "workflowevents",
+      "documents": 0,
+      "indexes": 6
+    },
+    {
+      "collection": "workflowexecutions",
+      "documents": 0,
+      "indexes": 9
+    },
+    {
+      "collection": "workflowschedules",
+      "documents": 0,
+      "indexes": 6
+    },
+    {
+      "collection": "workflowsettings",
+      "documents": 0,
+      "indexes": 2
+    },
+    {
+      "collection": "workflowstepexecutions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "workflowversions",
+      "documents": 0,
+      "indexes": 4
+    },
+    {
+      "collection": "workflowwaits",
+      "documents": 0,
+      "indexes": 6
+    },
+    {
+      "collection": "workspacememberships",
+      "documents": 13,
+      "indexes": 6
+    },
+    {
+      "collection": "workspaces",
+      "documents": 13,
+      "indexes": 6
+    },
+    {
+      "collection": "workspacesubscriptions",
+      "documents": 1,
+      "indexes": 3
+    }
+  ],
+  "totalDocuments": 650
+}

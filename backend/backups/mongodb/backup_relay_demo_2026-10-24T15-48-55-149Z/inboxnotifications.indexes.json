@@ -1,0 +1,1 @@
+[{"v":2,"key":{"_id":1},"name":"_id_"},{"v":2,"key":{"ownerId":1},"name":"ownerId_1","background":true},{"v":2,"key":{"recipientUserId":1},"name":"recipientUserId_1","background":true},{"v":2,"key":{"ownerId":1,"recipientUserId":1,"isRead":1,"createdAt":-1},"name":"ownerId_1_recipientUserId_1_isRead_1_createdAt_-1","background":true}]

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { X, UserRound, Home, Building2, Tag, ShieldCheck, Clock, DollarSign, Layers } from 'lucide-react';
+import { X, UserRound, Home, Building2, Tag, ShieldCheck, Clock, DollarSign, Layers, Dumbbell, Stethoscope, Sparkles, Car, Plane, Utensils, Briefcase } from 'lucide-react';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { listContactGroups } from '../services/contactGroups';
+import { COMMON_CONTACT_FIELDS, fieldOptions, readContactField, industryFieldPayload } from '../utils/contactFields';
 
 const regions = [
   ['IN', 'India (+91)'],
@@ -16,48 +18,6 @@ const regions = [
   ['JP', 'Japan (+81)']
 ];
 
-const PROPERTY_TYPES = [
-  'Residential Plots',
-  'Apartments',
-  'Farmhouses',
-  'Villas',
-  'Commercial Property',
-  'Residential Houses',
-  'Land',
-  '2 BHK Apartment',
-  '3 BHK Apartment',
-  '4 BHK Luxury Flat',
-  'Penthouse',
-  'Studio Apartment',
-  'Retail Shop',
-  'Commercial Office',
-  'Other'
-];
-
-const LEAD_SOURCES = [
-  'Website Enquiry',
-  '99acres',
-  'Magicbricks',
-  'Housing.com',
-  'Facebook / Instagram Ad',
-  'Referral',
-  'Walk-in Client',
-  'Direct WhatsApp',
-  'Cold Outreach',
-  'Other'
-];
-
-const LEAD_STATUSES = [
-  'New',
-  'Contacted',
-  'Interested',
-  'Follow-up Required',
-  'Negotiation',
-  'Converted',
-  'Not Interested',
-  'Closed'
-];
-
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 
 const initial = {
@@ -70,14 +30,9 @@ const initial = {
   state: '',
   country: 'India',
   location: '',
-  interestedPropertyType: 'Apartments',
-  customPropertyType: '',
-  interestedProject: '',
-  preferredLocation: '',
-  budgetRange: '',
   estimatedDealValue: '',
   currency: 'INR',
-  leadSource: 'Website Enquiry',
+  leadSource: '',
   leadStatus: 'New',
   priority: 'Medium',
   preferredContactTime: '',
@@ -99,6 +54,11 @@ const localDate = () => {
 };
 
 export default function ContactFormModal({ contact, onClose, onSave }) {
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const fields = industryConfig.contactFields.filter(f => !COMMON_CONTACT_FIELDS.has(f.key));
+  const LEAD_STATUSES = industryConfig.leadStatuses;
+  const LEAD_SOURCES = fieldOptions(industryConfig.contactFields.find(f => f.key === 'leadSource'));
+  const [industryValues, setIndustryValues] = useState(() => Object.fromEntries(fields.map(f => [f.key, readContactField(contact, f)])));
   const [form, setForm] = useState(initial);
   const [availableGroups, setAvailableGroups] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -113,20 +73,12 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
 
   useEffect(() => {
     if (contact) {
-      const propType = contact.interestedPropertyType || contact.interestedService || '';
-      const isCustomType = Boolean(propType) && !PROPERTY_TYPES.includes(propType);
-
       setForm({
         ...initial,
         ...contact,
         city: contact.city || contact.location || '',
         state: contact.state || '',
         country: contact.country || 'India',
-        interestedPropertyType: isCustomType ? 'Other' : (propType || 'Apartments'),
-        customPropertyType: isCustomType ? propType : '',
-        interestedProject: contact.interestedProject || contact.businessCategory || '',
-        preferredLocation: contact.preferredLocation || '',
-        budgetRange: contact.budgetRange || '',
         estimatedDealValue: contact.estimatedDealValue ?? '',
         tags: (contact.tags || []).join(', '),
         groups: Array.isArray(contact.groups) ? contact.groups.map(g => (g._id || g).toString()) : [],
@@ -134,7 +86,8 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
         preferredContactTime: contact.preferredContactTime || ''
       });
     }
-  }, [contact]);
+    setIndustryValues(Object.fromEntries(fields.map(f => [f.key, readContactField(contact, f)])));
+  }, [contact, industryConfig]);
 
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
 
@@ -163,10 +116,6 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
 
     setBusy(true);
     try {
-      const finalPropType = form.interestedPropertyType === 'Other' && form.customPropertyType.trim()
-        ? form.customPropertyType.trim()
-        : form.interestedPropertyType;
-
       const payload = {
         fullName: form.fullName.trim(),
         phoneNumber: form.phoneNumber.trim(),
@@ -177,12 +126,6 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
         state: form.state.trim(),
         country: form.country.trim(),
         location: form.city.trim() + (form.state.trim() ? `, ${form.state.trim()}` : ''),
-        interestedPropertyType: finalPropType,
-        interestedService: finalPropType,
-        interestedProject: form.interestedProject.trim(),
-        businessCategory: form.interestedProject.trim() || 'Real Estate',
-        preferredLocation: form.preferredLocation.trim(),
-        budgetRange: form.budgetRange.trim(),
         estimatedDealValue: form.estimatedDealValue === '' ? null : Number(form.estimatedDealValue),
         currency: form.currency,
         leadSource: form.leadSource,
@@ -191,8 +134,10 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
         preferredContactTime: form.preferredContactTime?.trim() || undefined,
         notes: form.notes,
         tags: form.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        groups: form.groups
+        groups: form.groups,
       };
+
+      Object.assign(payload, industryFieldPayload(fields, industryValues, contact));
 
       if (!editing) {
         payload.consent = {
@@ -219,9 +164,9 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
       <section className="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-form-title" style={{ maxWidth: '680px' }}>
         <header className="contact-modal-head">
           <div>
-            <span className="form-kicker">REAL ESTATE CONTACT</span>
-            <h2 id="contact-form-title">{editing ? 'Edit Property Enquiry' : 'Add Property Enquiry'}</h2>
-            <p>{editing ? 'Update client requirements, property preferences, and internal notes.' : 'Record a new real estate buyer or prospect. Consent defaults strictly to Unknown.'}</p>
+            <span className="form-kicker">{industryConfig.industryName}</span>
+            <h2 id="contact-form-title">{editing ? 'Edit Contact' : 'Add Contact'}</h2>
+            <p>Manage contact details and {industryConfig.terminology.leadPlural.toLowerCase()}.</p>
           </div>
           <button className="icon-btn modal-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </header>
@@ -283,98 +228,42 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
               </div>
             </section>
 
-            {/* SECTION 2: REAL ESTATE REQUIREMENTS */}
             <section className="form-section">
-              <h3><Building2 size={15} /> 2. Property Interest & Requirements</h3>
+              <h3><Building2 size={15} /> 2. {industryConfig.ui.contacts.requirementsTitle}</h3>
               <div className="form-grid">
-                <label className="field">
-                  Interested Property Type <b>*</b>
-                  <select
-                    value={form.interestedPropertyType}
-                    onChange={e => update('interestedPropertyType', e.target.value)}
-                  >
-                    {PROPERTY_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
-                  </select>
-                </label>
-                {form.interestedPropertyType === 'Other' && (
-                  <label className="field">
-                    Custom Property Type
-                    <input
-                      value={form.customPropertyType}
-                      onChange={e => update('customPropertyType', e.target.value)}
-                      placeholder="e.g. Penthouse with Private Pool"
-                    />
-                  </label>
-                )}
-                <label className="field">
-                  Interested Project / Community
-                  <input
-                    value={form.interestedProject}
-                    onChange={e => update('interestedProject', e.target.value)}
-                    placeholder="e.g. Godrej Aristocrat, DLF Privana"
-                  />
-                </label>
-                <label className="field">
-                  Target City <b>*</b>
-                  <input
-                    required
-                    value={form.city}
-                    onChange={e => update('city', e.target.value)}
-                    placeholder="e.g. Gurugram, Delhi, Noida"
-                  />
-                </label>
-                <label className="field">
-                  State / Region
-                  <input
-                    value={form.state}
-                    onChange={e => update('state', e.target.value)}
-                    placeholder="e.g. Haryana, Delhi NCR"
-                  />
-                </label>
-                <label className="field wide">
-                  Preferred Location / Micro-Market
-                  <input
-                    value={form.preferredLocation}
-                    onChange={e => update('preferredLocation', e.target.value)}
-                    placeholder="e.g. Golf Course Extension Road, Sector 76"
-                  />
-                </label>
-                <label className="field">
-                  Budget Range
-                  <input
-                    value={form.budgetRange}
-                    onChange={e => update('budgetRange', e.target.value)}
-                    placeholder="e.g. ₹2.5 Cr - ₹4 Cr"
-                  />
-                </label>
-                <label className="field">
-                  Estimated Deal Value (Numeric)
-                  <input
-                    type="number"
-                    min="0"
-                    step="10000"
-                    value={form.estimatedDealValue ?? ''}
-                    onChange={e => update('estimatedDealValue', e.target.value)}
-                    placeholder="e.g. 35000000"
-                  />
-                </label>
-                <label className="field">
-                  Currency
-                  <select value={form.currency || 'INR'} onChange={e => update('currency', e.target.value)}>
-                    {['INR', 'USD', 'AED', 'EUR', 'GBP'].map(curr => <option key={curr} value={curr}>{curr}</option>)}
-                  </select>
-                </label>
+                {fields.map(field => {
+                  const value = industryValues[field.key] ?? '';
+                  const options = fieldOptions(field);
+                  const updateField = value => setIndustryValues(current => ({ ...current, [field.key]: value }));
+                  return <label className="field" key={field.key}>
+                    {field.label}{field.required && !editing && <b> *</b>}
+                    {field.type === 'select' ? <select value={value} required={field.required && !editing} onChange={e => updateField(e.target.value)}>
+                      <option value="">Select {field.label}</option>
+                      {value !== '' && !options.some(o => o.value === value) && <option value={value}>{value} (saved)</option>}
+                      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select> : field.type === 'multiselect' ? <select multiple value={Array.isArray(value) ? value : []} onChange={e => updateField(Array.from(e.target.selectedOptions, o => o.value))}>
+                      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select> : field.type === 'boolean' ? <select value={String(value)} onChange={e => updateField(e.target.value === '' ? '' : e.target.value === 'true')}><option value="">Not specified</option><option value="true">Yes</option><option value="false">No</option></select> :
+                      <input type={['date', 'number'].includes(field.type) ? field.type : 'text'} required={field.required && !editing} value={value} placeholder={field.placeholder || ''} onChange={e => updateField(e.target.value)} />}
+                  </label>;
+                })}
+                <label className="field">City / Location<input value={form.city} onChange={e => update('city', e.target.value)} /></label>
+                <label className="field">State / Region<input value={form.state} onChange={e => update('state', e.target.value)} /></label>
+                <label className="field">Estimated Deal Value (Numeric)<input type="number" min="0" value={form.estimatedDealValue} onChange={e => update('estimatedDealValue', e.target.value)} /></label>
+                <label className="field">Currency<input value={form.currency} maxLength={3} onChange={e => update('currency', e.target.value.toUpperCase())} /></label>
               </div>
             </section>
 
             {/* SECTION 3: ORGANIZATION & ENQUIRY STATUS */}
             <section className="form-section">
-              <h3><Layers size={15} /> 3. Organization & Lead Status</h3>
+              <h3><Layers size={15} /> 3. Organization &amp; Lead Status</h3>
               <div className="form-grid">
                 <label className="field">
                   Enquiry Source
                   <select value={form.leadSource} onChange={e => update('leadSource', e.target.value)}>
-                    {LEAD_SOURCES.map(src => <option key={src} value={src}>{src}</option>)}
+                    <option value="">Select source</option>
+                    {form.leadSource && !LEAD_SOURCES.some(o => o.value === form.leadSource) && <option value={form.leadSource}>{form.leadSource} (saved)</option>}
+                    {LEAD_SOURCES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </label>
                 <label className="field">
@@ -540,7 +429,7 @@ export default function ContactFormModal({ contact, onClose, onSave }) {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button type="button" className="outline-btn" onClick={onClose}>Cancel</button>
               <button className="primary-btn small" disabled={busy}>
-                {busy ? 'Saving…' : editing ? 'Save Changes' : 'Add Property Contact'}
+                {busy ? 'Saving…' : editing ? 'Save Changes' : 'Add Contact'}
               </button>
             </div>
           </footer>

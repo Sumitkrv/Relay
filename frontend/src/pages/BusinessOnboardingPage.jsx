@@ -8,6 +8,12 @@ import {
   Scissors,
   Car,
   Briefcase,
+  Plane,
+  ShoppingBag,
+  Utensils,
+  Wrench,
+  Hotel,
+  Store,
   Sparkles,
   Check,
   ArrowRight,
@@ -27,9 +33,13 @@ import {
   LogOut,
   Layers,
   ExternalLink,
+  CreditCard,
+  CheckSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { retryStarterProvisioning } from '../services/workspaces';
 import { useWorkspace } from '../context/WorkspaceContext';
+import { getIndustrySummaries } from '../services/industries';
 import {
   getOnboardingStatus,
   getOnboardingDraft,
@@ -39,103 +49,13 @@ import {
   completeOnboarding,
 } from '../services/onboarding';
 
-export const INDUSTRIES = [
-  {
-    key: 'real_estate',
-    name: 'Real Estate',
-    icon: Building2,
-    tagline: 'Brokers, Developers & PropTech',
-    description: 'Automate property enquiries, schedule site visits, and broadcast new project brochures.',
-    accentColor: 'text-amber-500',
-    metaDefaults: {
-      operatingCity: 'Mumbai',
-      propertyCategories: ['Residential', 'Commercial'],
-      projectFocus: 'Luxury & High-Rise Apartments',
-    },
-  },
-  {
-    key: 'gym',
-    name: 'Fitness & Gym',
-    icon: Dumbbell,
-    tagline: 'Gyms, Yoga & CrossFit Studios',
-    description: 'Capture trial workout bookings, renew memberships, and send class schedule reminders.',
-    accentColor: 'text-rose-500',
-    metaDefaults: {
-      gymType: 'Fitness & Strength Center',
-      branchCount: '1-3 Locations',
-      primaryPrograms: ['Strength Training', 'HIIT', 'Yoga'],
-    },
-  },
-  {
-    key: 'clinic',
-    name: 'Healthcare & Clinic',
-    icon: Stethoscope,
-    tagline: 'Clinics, Dental & Diagnostic Centers',
-    description: 'Streamline patient visit enquiries, share doctor availability, and send appointment alerts.',
-    accentColor: 'text-blue-500',
-    metaDefaults: {
-      clinicType: 'Multi-Specialty Clinic',
-      operatingHours: '9:00 AM - 8:00 PM',
-      generalServices: ['Outpatient Consultations', 'Preventive Checkups'],
-    },
-  },
-  {
-    key: 'education',
-    name: 'Education & Coaching',
-    icon: GraduationCap,
-    tagline: 'Institutes, Test Prep & Academies',
-    description: 'Nurture admission leads, share syllabus brochures, and announce upcoming batch dates.',
-    accentColor: 'text-indigo-500',
-    metaDefaults: {
-      institutionType: 'Professional Coaching Academy',
-      learningMode: 'Hybrid (Online + Classroom)',
-      courseCategories: ['Competitive Exams', 'Skill Development'],
-    },
-  },
-  {
-    key: 'salon',
-    name: 'Salon & Wellness',
-    icon: Scissors,
-    tagline: 'Salons, Spas & Beauty Studios',
-    description: 'Automate beauty appointments, share seasonal rate cards, and re-engage lapsed clients.',
-    accentColor: 'text-pink-500',
-    metaDefaults: {
-      salonType: 'Unisex Premium Salon',
-      primaryServices: ['Hair Styling', 'Skin Care', 'Bridal Packages'],
-      operatingDays: 'Tuesday - Sunday',
-    },
-  },
-  {
-    key: 'automobile',
-    name: 'Automobile & Dealerships',
-    icon: Car,
-    tagline: 'Dealers, Showrooms & Service Centers',
-    description: 'Drive test drive bookings, service appointment reminders, and trade-in enquiries.',
-    accentColor: 'text-teal-500',
-    metaDefaults: {
-      dealerType: 'Authorized 4-Wheeler Dealership',
-      serviceOffered: ['New Vehicle Sales', 'Periodic Maintenance'],
-      operatingTerritory: 'Regional Metro Area',
-    },
-  },
-  {
-    key: 'other',
-    name: 'Professional Services',
-    icon: Briefcase,
-    tagline: 'Consulting, Agencies & B2B Services',
-    description: 'General customer communication, quotation delivery, and inbound lead qualification.',
-    accentColor: 'text-emerald-500',
-    metaDefaults: {
-      businessType: 'B2B Client Services',
-      serviceCategory: 'Consulting & Implementation',
-    },
-  },
-];
+const INDUSTRY_ICONS = { Building2, Dumbbell, Stethoscope, GraduationCap, Sparkles, Scissors, Car, Plane, ShoppingBag, Utensils, Wrench, Hotel, Briefcase, Store };
 
 export default function BusinessOnboardingPage() {
   const { user, logout, refreshUser } = useAuth();
   const { refreshWorkspace } = useWorkspace();
   const navigate = useNavigate();
+  const [industries, setIndustries] = useState([]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -153,7 +73,8 @@ export default function BusinessOnboardingPage() {
     description: '',
   });
 
-  const [industryKey, setIndustryKey] = useState('real_estate');
+  // No preselected industry: the owner must choose explicitly (never default to Real Estate).
+  const [industryKey, setIndustryKey] = useState('');
 
   const [details, setDetails] = useState({
     address: '',
@@ -180,11 +101,12 @@ export default function BusinessOnboardingPage() {
     let isMounted = true;
     async function init() {
       try {
-        const status = await getOnboardingStatus();
+        const [status, catalog] = await Promise.all([getOnboardingStatus(), getIndustrySummaries()]);
         if (!isMounted) return;
+        setIndustries(catalog);
 
         if (status.hasWorkspace && status.workspace) {
-          navigate('/app/getting-started');
+          navigate('/app');
           return;
         }
 
@@ -198,7 +120,7 @@ export default function BusinessOnboardingPage() {
             website: d.businessIdentity?.website || '',
             description: d.businessIdentity?.description || '',
           });
-          setIndustryKey(d.industryKey || 'real_estate');
+          setIndustryKey(catalog.find(i => i.key === d.industryKey || i.aliases?.includes(d.industryKey))?.key || '');
           setDetails({
             address: d.businessDetails?.address || '',
             city: d.businessDetails?.city || '',
@@ -245,7 +167,9 @@ export default function BusinessOnboardingPage() {
       await updateOnboardingDraft({
         step: stepToSave || currentStep,
         businessIdentity: identity,
-        industryKey,
+        // Only send industryKey once the owner has explicitly chosen one;
+        // the backend rejects an empty key.
+        ...(industryKey ? { industryKey } : {}),
         businessDetails: details,
         branding,
       });
@@ -284,6 +208,10 @@ export default function BusinessOnboardingPage() {
     setErrorMessage('');
     if (currentStep === 1) {
       if (!validateStep1()) return;
+    }
+    if (currentStep === 2 && !industries.some((i) => i.key === industryKey)) {
+      setErrorMessage('Please select your business industry to continue.');
+      return;
     }
 
     const nextStep = currentStep + 1;
@@ -385,9 +313,25 @@ export default function BusinessOnboardingPage() {
     }
   };
 
+  const [isRetryingStarter, setIsRetryingStarter] = useState(false);
+  const [starterRetryError, setStarterRetryError] = useState('');
+  const handleRetryStarter = async () => {
+    setIsRetryingStarter(true);
+    setStarterRetryError('');
+    try {
+      const result = await retryStarterProvisioning();
+      setProvisioningSuccess((prev) => ({ ...prev, starterProvisioning: { ...(prev?.starterProvisioning || {}), ...result } }));
+      if (result.status !== 'COMPLETED') setStarterRetryError(result.message || 'Starter content is still incomplete. Please try again.');
+    } catch (err) {
+      setStarterRetryError(err.response?.data?.message || 'Retry failed. Please try again.');
+    } finally {
+      setIsRetryingStarter(false);
+    }
+  };
+
   const selectedIndustry = useMemo(
-    () => INDUSTRIES.find((i) => i.key === industryKey) || INDUSTRIES[0],
-    [industryKey]
+    () => industries.find((i) => i.key === industryKey) || { key: '', name: 'No industry selected' },
+    [industryKey, industries]
   );
 
   const handleLogout = async () => {
@@ -397,25 +341,25 @@ export default function BusinessOnboardingPage() {
 
   if (loadingInitial) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mb-4" />
+      <div className="min-h-screen bg-[#F4F7FC] flex flex-col items-center justify-center p-4">
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-xs font-semibold text-slate-600">Loading your business setup...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-slate-900 flex flex-col justify-between">
+    <div className="min-h-screen bg-[#F4F7FC] text-slate-900 flex flex-col justify-between">
       {/* Top Navbar */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-sm">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-teal-400 font-extrabold text-sm shadow">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-sm shadow">
             R
           </div>
           <span className="text-xl font-black tracking-tight text-slate-900">
-            RELAY<span className="text-teal-600">.</span>
+            RELAY<span className="text-blue-600">.</span>
           </span>
-          <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 border border-teal-200 text-teal-800 uppercase tracking-wider">
+          <span className="ml-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 border border-blue-200 text-blue-800 uppercase tracking-wider">
             Business Onboarding
           </span>
         </Link>
@@ -457,9 +401,9 @@ export default function BusinessOnboardingPage() {
                   <div
                     className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                       isPast
-                        ? 'bg-teal-600 text-white'
+                        ? 'bg-blue-600 text-white shadow-sm'
                         : isCurrent
-                        ? 'bg-slate-900 text-white ring-4 ring-teal-100'
+                        ? 'bg-[#0B1220] text-white ring-4 ring-blue-100 shadow-md'
                         : 'bg-slate-200 text-slate-500'
                     }`}
                   >
@@ -467,7 +411,7 @@ export default function BusinessOnboardingPage() {
                   </div>
                   <span
                     className={`text-[11px] mt-1.5 font-semibold ${
-                      isCurrent ? 'text-slate-900' : 'text-slate-500'
+                      isCurrent ? 'text-blue-600 font-bold' : isPast ? 'text-slate-700' : 'text-slate-400'
                     }`}
                   >
                     {step.label}
@@ -477,9 +421,9 @@ export default function BusinessOnboardingPage() {
             })}
           </div>
 
-          <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden max-w-2xl mx-auto">
+          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden max-w-2xl mx-auto">
             <div
-              className="bg-teal-600 h-full transition-all duration-300"
+              className="bg-blue-600 h-full transition-all duration-300"
               style={{ width: `${Math.min(100, ((currentStep - 1) / 4) * 100)}%` }}
             />
           </div>
@@ -490,6 +434,7 @@ export default function BusinessOnboardingPage() {
           <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-3 shadow-sm animate-in fade-in">
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             <span className="font-medium">{errorMessage}</span>
+            {!industries.length && <button type="button" onClick={() => window.location.reload()}>Retry industry catalog</button>}
           </div>
         )}
 
@@ -499,8 +444,8 @@ export default function BusinessOnboardingPage() {
           {currentStep === 1 && (
             <div className="space-y-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3 text-teal-600" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3 text-blue-600" />
                   <span>Step 1 of 5</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -522,7 +467,7 @@ export default function BusinessOnboardingPage() {
                     value={identity.name}
                     onChange={(e) => setIdentity((p) => ({ ...p, name: e.target.value }))}
                     placeholder="e.g. FitZone Athletics or Apex Realty"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                     required
                   />
                   <p className="text-[11px] text-slate-400 mt-1">
@@ -541,7 +486,7 @@ export default function BusinessOnboardingPage() {
                       value={identity.email}
                       onChange={(e) => setIdentity((p) => ({ ...p, email: e.target.value }))}
                       placeholder="e.g. contact@yourbusiness.com"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                       required
                     />
                   </div>
@@ -556,7 +501,7 @@ export default function BusinessOnboardingPage() {
                       value={identity.phone}
                       onChange={(e) => setIdentity((p) => ({ ...p, phone: e.target.value }))}
                       placeholder="+919811223344"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                     />
                   </div>
                 </div>
@@ -571,7 +516,7 @@ export default function BusinessOnboardingPage() {
                     value={identity.website}
                     onChange={(e) => setIdentity((p) => ({ ...p, website: e.target.value }))}
                     placeholder="https://yourbusiness.com or instagram.com/page"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                   />
                 </div>
 
@@ -585,7 +530,7 @@ export default function BusinessOnboardingPage() {
                     value={identity.description}
                     onChange={(e) => setIdentity((p) => ({ ...p, description: e.target.value }))}
                     placeholder="Briefly describe your services, target audience, or specialties..."
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                   />
                 </div>
               </div>
@@ -596,8 +541,8 @@ export default function BusinessOnboardingPage() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3 text-teal-600" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3 text-blue-600" />
                   <span>Step 2 of 5</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -609,9 +554,9 @@ export default function BusinessOnboardingPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2">
-                {INDUSTRIES.map((ind) => {
+                {industries.map((ind) => {
                   const isSelected = industryKey === ind.key;
-                  const Icon = ind.icon;
+                  const Icon = INDUSTRY_ICONS[ind.icon] || Briefcase;
                   return (
                     <div
                       key={ind.key}
@@ -624,7 +569,7 @@ export default function BusinessOnboardingPage() {
                       aria-pressed={isSelected}
                       className={`p-4 rounded-2xl border-2 transition-all cursor-pointer text-left flex flex-col justify-between ${
                         isSelected
-                          ? 'border-teal-600 bg-teal-50/40 ring-4 ring-teal-100 shadow-md'
+                          ? 'border-blue-600 bg-blue-50/50 ring-4 ring-blue-100 shadow-md'
                           : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
@@ -632,14 +577,14 @@ export default function BusinessOnboardingPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                              isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-700'
+                              isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
                             }`}
                           >
                             <Icon className="w-5 h-5" />
                           </div>
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              isSelected ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-300'
+                              isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
                             }`}
                           >
                             {isSelected && <Check className="w-3 h-3" />}
@@ -647,7 +592,7 @@ export default function BusinessOnboardingPage() {
                         </div>
 
                         <h3 className="text-sm font-bold text-slate-900">{ind.name}</h3>
-                        <p className="text-[11px] font-semibold text-teal-700 mb-1">{ind.tagline}</p>
+                        <p className="text-[11px] font-semibold text-blue-700 mb-1">{ind.displayLabel}</p>
                         <p className="text-xs text-slate-500 leading-relaxed">{ind.description}</p>
                       </div>
                     </div>
@@ -661,8 +606,8 @@ export default function BusinessOnboardingPage() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3 text-teal-600" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3 text-blue-600" />
                   <span>Step 3 of 5</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -684,7 +629,7 @@ export default function BusinessOnboardingPage() {
                       value={details.city}
                       onChange={(e) => setDetails((p) => ({ ...p, city: e.target.value }))}
                       placeholder="e.g. Mumbai, Bengaluru, Delhi"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                     />
                   </div>
 
@@ -696,7 +641,7 @@ export default function BusinessOnboardingPage() {
                       value={details.state}
                       onChange={(e) => setDetails((p) => ({ ...p, state: e.target.value }))}
                       placeholder="e.g. Maharashtra, Karnataka"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                     />
                   </div>
                 </div>
@@ -709,7 +654,7 @@ export default function BusinessOnboardingPage() {
                       name="country"
                       value={details.country}
                       onChange={(e) => setDetails((p) => ({ ...p, country: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                     />
                   </div>
 
@@ -718,7 +663,7 @@ export default function BusinessOnboardingPage() {
                     <select
                       value={details.timezone}
                       onChange={(e) => setDetails((p) => ({ ...p, timezone: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all bg-white"
                     >
                       <option value="Asia/Kolkata">Asia/Kolkata (IST +5:30)</option>
                       <option value="Asia/Dubai">Asia/Dubai (GST +4:00)</option>
@@ -734,7 +679,7 @@ export default function BusinessOnboardingPage() {
                     <select
                       value={details.preferredLanguage}
                       onChange={(e) => setDetails((p) => ({ ...p, preferredLanguage: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all bg-white"
                     >
                       <option value="en">English (Default)</option>
                       <option value="hi">Hindi</option>
@@ -755,24 +700,24 @@ export default function BusinessOnboardingPage() {
                     value={details.address}
                     onChange={(e) => setDetails((p) => ({ ...p, address: e.target.value }))}
                     placeholder="e.g. Unit 402, Signature Towers, BKC"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none text-sm transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all"
                   />
                 </div>
 
                 {/* Industry-Specific Dynamic Preset Preview */}
                 <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <Layers className="w-4 h-4 text-teal-600" />
+                    <Layers className="w-4 h-4 text-blue-600" />
                     <span className="text-xs font-bold text-slate-800">
                       Industry Configuration Preview ({selectedIndustry.name})
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 mb-3">
-                    In SaaS Prompt 6, Relay will dynamically configure CRM fields and broadcast templates based on this configuration.
+                    Relay configures your CRM fields and message templates based on this industry setup.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    {Object.entries(selectedIndustry.metaDefaults).map(([key, val]) => (
+                    {Object.entries({ Templates: selectedIndustry.templateCount || 0, 'Quick Replies': selectedIndustry.quickReplyCount || 0 }).map(([key, val]) => (
                       <div key={key} className="p-2.5 rounded-xl bg-white border border-slate-200">
                         <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">
                           {key.replace(/([A-Z])/g, ' $1')}
@@ -792,8 +737,8 @@ export default function BusinessOnboardingPage() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3 text-teal-600" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3 text-blue-600" />
                   <span>Step 4 of 5</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -815,7 +760,7 @@ export default function BusinessOnboardingPage() {
 
                 {branding.logoUrl ? (
                   /* Logo Preview Card */
-                  <div className="p-6 rounded-2xl border-2 border-teal-500 bg-teal-50/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+                  <div className="p-6 rounded-2xl border-2 border-blue-500 bg-blue-50/30 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
                     <div className="flex items-center gap-5">
                       <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center shadow-inner overflow-hidden">
                         <img
@@ -860,9 +805,9 @@ export default function BusinessOnboardingPage() {
                   /* Empty Upload Dropzone */
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-3xl p-10 text-center cursor-pointer transition-all bg-slate-50 hover:bg-teal-50/20 group"
+                    className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-3xl p-10 text-center cursor-pointer transition-all bg-slate-50 hover:bg-blue-50/20 group"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 text-teal-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-sm">
+                    <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 text-blue-600 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-sm">
                       {logoUploading ? (
                         <RotateCw className="w-7 h-7 animate-spin" />
                       ) : (
@@ -880,7 +825,7 @@ export default function BusinessOnboardingPage() {
                     <button
                       type="button"
                       disabled={logoUploading}
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold shadow hover:bg-slate-800 transition-all inline-flex items-center gap-2"
+                      className="px-4 py-2 rounded-xl bg-[#0B1220] text-white text-xs font-bold shadow hover:bg-[#111827] transition-all inline-flex items-center gap-2"
                     >
                       <Upload className="w-3.5 h-3.5" />
                       <span>Choose File</span>
@@ -901,8 +846,8 @@ export default function BusinessOnboardingPage() {
           {currentStep === 5 && (
             <div className="space-y-6">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3 h-3 text-teal-600" />
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3 h-3 text-blue-600" />
                   <span>Step 5 of 5</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -925,7 +870,7 @@ export default function BusinessOnboardingPage() {
                           className="w-12 h-12 rounded-xl object-contain bg-white border border-slate-200 p-1"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-teal-400 font-extrabold text-base flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#0B1220] text-blue-400 font-extrabold text-base flex items-center justify-center">
                           {identity.name?.slice(0, 2).toUpperCase() || 'BZ'}
                         </div>
                       )}
@@ -938,7 +883,7 @@ export default function BusinessOnboardingPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(1)}
-                      className="text-xs font-bold text-teal-600 hover:text-teal-700 underline"
+                      className="text-xs font-bold text-blue-600 hover:text-blue-700 underline"
                     >
                       Edit
                     </button>
@@ -974,7 +919,7 @@ export default function BusinessOnboardingPage() {
                           href={identity.website}
                           target="_blank"
                           rel="noreferrer"
-                          className="font-semibold text-teal-600 hover:underline flex items-center gap-1"
+                          className="font-semibold text-blue-600 hover:underline flex items-center gap-1"
                         >
                           <span>{identity.website}</span>
                           <ExternalLink className="w-3 h-3" />
@@ -984,20 +929,45 @@ export default function BusinessOnboardingPage() {
                   </div>
                 </div>
 
+                {/* Plan & 14-Day Trial Included Card */}
+                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs text-blue-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm">Relay Solo Plan</span>
+                        <span className="px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+                          14-Day Free Trial
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-0.5">
+                        ₹799/month after trial • Mock billing enabled (no credit card charged during demo testing)
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+                      Trial Ready
+                    </span>
+                  </div>
+                </div>
+
                 {/* Provisioning Disclaimers */}
-                <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-teal-900 space-y-2">
-                  <div className="flex items-center gap-2 font-bold text-teal-950">
-                    <ShieldCheck className="w-4 h-4 text-teal-600" />
-                    <span>Dedicated Workspace Boundaries</span>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+                  <div className="flex items-center gap-2 font-bold text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <span>Dedicated Workspace Boundaries & Server Authorization</span>
                   </div>
                   <p className="leading-relaxed">
-                    • An isolated business workspace will be created under your ownership in MongoDB.
+                    • An isolated business workspace will be created under your ownership in MongoDB with authoritative <strong>OWNER</strong> role.
                   </p>
                   <p className="leading-relaxed">
-                    • <strong>Live WhatsApp Cloud API is not connected automatically.</strong> You can connect your sender during official WhatsApp setup.
+                    • <strong>Live WhatsApp Cloud API is not connected automatically.</strong> You can connect your official sender during Meta WhatsApp setup.
                   </p>
                   <p className="leading-relaxed">
-                    • <strong>Creating a workspace does not start billing charges.</strong> Relay subscription will be configured separately.
+                    • <strong>Creating a workspace does not start billing charges.</strong> Mock billing mode is active for safe local experimentation.
                   </p>
                 </div>
               </div>
@@ -1007,12 +977,12 @@ export default function BusinessOnboardingPage() {
           {/* STEP 6: PROVISIONING / COMPLETE */}
           {currentStep === 6 && (
             <div className="text-center py-8 space-y-6">
-              <div className="w-20 h-20 rounded-3xl bg-teal-50 border-2 border-teal-200 text-teal-600 flex items-center justify-center mx-auto shadow-md">
+              <div className="w-20 h-20 rounded-3xl bg-blue-50 border-2 border-blue-200 text-blue-600 flex items-center justify-center mx-auto shadow-md">
                 <CheckCircle2 className="w-10 h-10" />
               </div>
 
               <div>
-                <span className="px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-bold uppercase tracking-wider">
                   Workspace Provisioned Successfully
                 </span>
                 <h1 className="text-3xl font-extrabold text-slate-900 mt-3">
@@ -1023,6 +993,7 @@ export default function BusinessOnboardingPage() {
                 </p>
               </div>
 
+              {/* Workspace Details Card */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left text-xs space-y-2">
                 <div className="flex justify-between py-1 border-b border-slate-200">
                   <span className="text-slate-500">Workspace Slug:</span>
@@ -1032,19 +1003,77 @@ export default function BusinessOnboardingPage() {
                   <span className="text-slate-500">Industry:</span>
                   <span className="font-bold text-slate-800 capitalize">{selectedIndustry.name}</span>
                 </div>
-                <div className="flex justify-between py-1">
+                <div className="flex justify-between py-1 border-b border-slate-200">
+                  <span className="text-slate-500">Trial Period:</span>
+                  <span className="font-bold text-emerald-700">14 Days Free (Relay Solo)</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-200">
                   <span className="text-slate-500">Owner Role:</span>
-                  <span className="font-bold text-teal-600">OWNER (Full Administrative Access)</span>
+                  <span className="font-bold text-blue-600">OWNER (Full Administrative Access)</span>
+                </div>
+                <div className="flex justify-between py-1" id="onboarding-starter-status">
+                  <span className="text-slate-500">Starter Content:</span>
+                  {provisioningSuccess?.starterProvisioning?.status === 'COMPLETED' ? (
+                    <span className="font-bold text-slate-800">
+                      {provisioningSuccess.starterProvisioning.counts?.templates ?? 0} templates · {provisioningSuccess.starterProvisioning.counts?.quickReplies ?? 0} quick replies · {provisioningSuccess.starterProvisioning.counts?.rules ?? 0} rules (off) · {provisioningSuccess.starterProvisioning.counts?.campaigns ?? 0} drafts
+                    </span>
+                  ) : provisioningSuccess?.starterProvisioning ? (
+                    <span className="flex flex-col items-end gap-1">
+                      <span className="font-bold text-amber-700">Not finished</span>
+                      <button
+                        type="button"
+                        id="onboarding-retry-starter"
+                        onClick={handleRetryStarter}
+                        disabled={isRetryingStarter}
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                      >
+                        {isRetryingStarter ? 'Retrying…' : 'Retry starter setup'}
+                      </button>
+                      {starterRetryError && <span className="text-[11px] text-rose-600">{starterRetryError}</span>}
+                    </span>
+                  ) : (
+                    <span className="font-bold text-slate-500">Status unavailable</span>
+                  )}
                 </div>
               </div>
 
-              <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+              {/* Next Steps Checklist */}
+              <div className="p-5 rounded-2xl bg-white border border-slate-200 max-w-md mx-auto text-left shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+                  <CheckSquare className="w-4 h-4 text-blue-600" />
+                  <span>Next Steps Checklist</span>
+                </h4>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">✓</span>
+                    <span>Review Business Profile & Regional Timezone</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">2</span>
+                    <span>Explore Contacts CRM & Import Client Lists</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">3</span>
+                    <span>Explore Message Templates Tailored for {selectedIndustry.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">4</span>
+                    <span>Create a Mock Campaign & Simulate Broadcasts</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <span className="w-4 h-4 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-[10px]">5</span>
+                    <span>Connect Official Meta WhatsApp Number Later</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={() => navigate('/app/getting-started')}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  onClick={() => navigate('/app')}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
                 >
-                  <span>Go to Workspace Setup</span>
+                  <span>Go to Workspace Dashboard</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -1074,7 +1103,7 @@ export default function BusinessOnboardingPage() {
                     type="button"
                     onClick={handleNext}
                     disabled={isSaving}
-                    className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-all flex items-center gap-2 disabled:opacity-60"
+                    className="px-6 py-2.5 rounded-xl bg-[#0B1220] hover:bg-[#111827] text-white font-bold text-xs shadow transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     {isSaving ? (
                       <>
@@ -1093,7 +1122,7 @@ export default function BusinessOnboardingPage() {
                     type="button"
                     onClick={handleProvisionWorkspace}
                     disabled={isProvisioning}
-                    className="px-8 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-60"
+                    className="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     {isProvisioning ? (
                       <>

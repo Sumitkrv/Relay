@@ -42,3 +42,5 @@ export const deleteSegment=id=>api.delete(`/audience-segments/${id}`);
 export const duplicateSegment=id=>api.post(`/audience-segments/${id}/duplicate`);
 export const previewSegment=body=>api.post('/audience-segments/preview',body);
 
+
+export const getStarterDrafts = () => api.get('/campaigns/starter-drafts');

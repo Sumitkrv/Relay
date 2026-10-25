@@ -1,0 +1,17 @@
+{
+  "mode": "READ_ONLY",
+  "workspaceId": "6adaf2ccbaacf0587d451ae6",
+  "collections": {
+    "contacts": {
+      "originalRecordsVerified": 5,
+      "modifiedOriginalRecords": 0
+    },
+    "messagetemplates": {
+      "originalRecordsVerified": 7,
+      "modifiedOriginalRecords": 0
+    }
+  },
+  "missingOriginalDocuments": 0,
+  "ourExistingDatabaseWrite": "One failed supplied-credential M2W login; normal login_failure audit record.",
+  "concurrentActivity": "New Clinic records and session activity were observed separately and preserved; whole-database zero-write claims are not made."
+}

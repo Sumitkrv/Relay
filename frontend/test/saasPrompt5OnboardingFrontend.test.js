@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getPublicIndustrySummaries } from '../../backend/src/config/industries/industryRegistry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,7 +30,7 @@ test('SaaS Prompt 5 — 2. Frontend Onboarding Service API Surface', () => {
   assert.ok(code.includes('completeOnboarding'), 'Must export completeOnboarding');
 });
 
-test('SaaS Prompt 5 — 3. Seven Supported Industries Configuration', () => {
+test('SaaS Prompt 5 — 3. All 13 Supported Industries Configuration', () => {
   const pagePath = path.resolve(__dirname, '../src/pages/BusinessOnboardingPage.jsx');
   const code = fs.readFileSync(pagePath, 'utf8');
 
@@ -40,12 +41,21 @@ test('SaaS Prompt 5 — 3. Seven Supported Industries Configuration', () => {
     'education',
     'salon',
     'automobile',
-    'other',
+    'travel_tourism',
+    'ecommerce_retail',
+    'restaurant_food',
+    'home_services',
+    'hospitality',
+    'professional_services',
+    'generic_business',
   ];
 
   for (const ind of requiredIndustries) {
-    assert.ok(code.includes(ind), `BusinessOnboardingPage must support industry "${ind}"`);
+    assert.ok(getPublicIndustrySummaries().some(item => item.key === ind), `Industry API must support "${ind}"`);
   }
+  assert.equal(getPublicIndustrySummaries().length, 13, 'No alias duplicates in onboarding');
+  assert.ok(code.includes('getIndustrySummaries()') && code.includes('industries.map'), 'Render the API catalog');
+  assert.ok(code.includes('retryStarterProvisioning'), 'Step 6 must offer a real backend retry for unfinished starter provisioning');
 });
 
 test('SaaS Prompt 5 — 4. Business Identity Form Validation & Inputs', () => {
@@ -79,24 +89,25 @@ test('SaaS Prompt 5 — 6. Review & Provisioning Step Integration', () => {
   assert.ok(code.includes('Create Business Workspace'), 'Must have Create Business Workspace action');
   assert.ok(code.includes('handleProvisionWorkspace'), 'Must call provisioning handler');
   assert.ok(code.includes('Workspace Provisioned Successfully'), 'Must show successful completion state');
-  assert.ok(code.includes('/app/getting-started'), 'Completion must link to /app/getting-started');
+  assert.ok(code.includes('/app'), 'Completion must link to dashboard /app');
 });
 
 test('SaaS Prompt 5 — 7. Workspace Getting Started Post-Onboarding Screen', () => {
   const pagePath = path.resolve(__dirname, '../src/pages/WorkspaceGettingStartedPage.jsx');
   const code = fs.readFileSync(pagePath, 'utf8');
 
-  assert.ok(code.includes('Workspace Setup Area') || code.includes('Workspace Authorized'), 'Must indicate authorized workspace');
+  assert.ok(code.includes('Workspace Authorized') || code.includes('Workspace Hub'), 'Must indicate authorized workspace');
   assert.ok(code.includes('currentWorkspace'), 'Must read currentWorkspace from context');
-  assert.ok(code.includes('Tenant Isolation') || code.includes('Isolated Database Scope'), 'Must emphasize tenant isolation');
-  assert.ok(code.includes('SaaS Prompt 6'), 'Must outline SaaS Prompt 6 next step');
+  assert.ok(code.includes('Tenant Isolation') || code.includes('Isolated Workspace Scope'), 'Must emphasize tenant isolation');
   assert.ok(code.includes('Sign Out') || code.includes('handleLogout'), 'Must offer safe sign out');
+  assert.ok(!code.includes('SaaS Prompt 6'), 'Must not leak internal prompt numbers to customer');
 });
 
-test('SaaS Prompt 5 — 8. Dashboard Access Gate for New Tenants', () => {
+test('SaaS Prompt 5 & Emergency Fix — 8. Full Dashboard Access for All Workspaces', () => {
   const dashPath = path.resolve(__dirname, '../src/pages/Dashboard.jsx');
   const code = fs.readFileSync(dashPath, 'utf8');
 
-  assert.ok(code.includes('m2w-realty'), 'Dashboard must check for m2w-realty workspace slug');
-  assert.ok(code.includes('WorkspaceGettingStartedPage'), 'Non-m2w-realty workspaces must render WorkspaceGettingStartedPage');
+  assert.ok(code.includes('PageHeader'), 'Dashboard must render full PageHeader');
+  assert.ok(code.includes('getDashboardOverview'), 'Dashboard must fetch genuine overview metrics');
+  assert.ok(!code.includes('WorkspaceGettingStartedPage'), 'Must not gate non-m2w workspaces to getting started screen');
 });

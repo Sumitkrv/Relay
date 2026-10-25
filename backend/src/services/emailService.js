@@ -8,6 +8,8 @@
  * 4. Professional Midnight Slate × Jade responsive HTML & plain-text templates.
  */
 
+import nodemailer from 'nodemailer';
+
 // In-memory mailbox for testing and local inspection
 const inMemoryMailbox = [];
 
@@ -27,7 +29,7 @@ export function clearEmailHistory() {
  * Base email dispatcher
  */
 export async function sendEmail({ to, subject, html, text, from = null }) {
-  const sender = from || process.env.EMAIL_FROM || 'Relay <notifications@relayautomation.io>';
+  const sender = from || process.env.SMTP_FROM || process.env.EMAIL_FROM || 'Relay <notifications@relayautomation.io>';
   const provider = (process.env.EMAIL_PROVIDER || 'inmemory').toLowerCase();
 
   const emailRecord = {
@@ -40,16 +42,56 @@ export async function sendEmail({ to, subject, html, text, from = null }) {
     provider,
   };
 
-  // 1. In-memory / Test Mode
-  if (provider === 'inmemory' || process.env.NODE_ENV === 'test' || !process.env.EMAIL_API_KEY) {
-    if (process.env.NODE_ENV === 'production' && provider !== 'inmemory' && !process.env.EMAIL_API_KEY) {
-      throw new Error('EMAIL_DELIVERY_UNAVAILABLE: No transactional email API key configured for production.');
-    }
+  // 1. In-memory / Test Mode / Mock Provider
+  if (provider === 'inmemory' || provider === 'mock' || (process.env.NODE_ENV === 'test' && provider !== 'smtp')) {
     inMemoryMailbox.push(emailRecord);
     return { success: true, messageId: `mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`, inMemory: true };
   }
 
-  // 2. Resend Provider
+  // 2. SMTP Provider (Brevo / Sendinblue / Custom SMTP)
+  if (provider === 'smtp') {
+    const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+    const port = Number(process.env.SMTP_PORT || 587);
+    const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
+    if (!user || user === 'YOUR_BREVO_SMTP_LOGIN' || !pass || pass === 'YOUR_BREVO_SMTP_KEY') {
+      console.warn('[EmailService] SMTP credentials are not fully configured (placeholder detected). Intercepting email in local test mailbox.');
+      inMemoryMailbox.push(emailRecord);
+      return { success: true, messageId: `mock_smtp_placeholder_${Date.now()}`, inMemory: true, note: 'SMTP placeholder detected' };
+    }
+
+    try {
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure,
+        auth: {
+          user,
+          pass,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: sender,
+        to: Array.isArray(to) ? to.join(', ') : to,
+        subject,
+        text,
+        html,
+      });
+
+      inMemoryMailbox.push({ ...emailRecord, messageId: info.messageId, provider: 'smtp' });
+      return { success: true, messageId: info.messageId, provider: 'smtp' };
+    } catch (err) {
+      console.error('[EmailService] SMTP delivery failed:', err.message);
+      // Keep in local mailbox for safety so verification is never lost
+      inMemoryMailbox.push({ ...emailRecord, error: err.message });
+      throw err;
+    }
+  }
+
+  // 3. Resend Provider
   if (provider === 'resend') {
     const apiKey = process.env.EMAIL_API_KEY;
     if (!apiKey) {
@@ -104,11 +146,11 @@ export async function sendVerificationEmail({ to, name, verificationUrl, token }
     .container { max-width: 580px; margin: 40px auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; }
     .header { background-color: #111827; padding: 32px 40px; text-align: left; }
     .brand { color: #FFFFFF; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .brand span { color: #0D9488; }
+    .brand span { color: #2563EB; }
     .content { padding: 40px; color: #1F2937; line-height: 1.6; }
     h1 { font-size: 22px; font-weight: 700; color: #111827; margin-top: 0; margin-bottom: 16px; }
     p { font-size: 15px; color: #4B5563; margin-bottom: 24px; }
-    .btn { display: inline-block; background-color: #0D9488; color: #FFFFFF !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 10px; margin-bottom: 24px; }
+    .btn { display: inline-block; background-color: #2563EB; color: #FFFFFF !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 10px; margin-bottom: 24px; }
     .fallback-url { font-size: 12px; color: #6B7280; word-break: break-all; background-color: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 24px; }
     .notice { font-size: 13px; color: #6B7280; border-top: 1px solid #E5E7EB; padding-top: 24px; margin-top: 32px; }
     .footer { background-color: #F9FAFB; padding: 20px 40px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }
@@ -179,11 +221,11 @@ export async function sendPasswordResetEmail({ to, name, resetUrl, token }) {
     .container { max-width: 580px; margin: 40px auto; background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; }
     .header { background-color: #111827; padding: 32px 40px; text-align: left; }
     .brand { color: #FFFFFF; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-    .brand span { color: #0D9488; }
+    .brand span { color: #2563EB; }
     .content { padding: 40px; color: #1F2937; line-height: 1.6; }
     h1 { font-size: 22px; font-weight: 700; color: #111827; margin-top: 0; margin-bottom: 16px; }
     p { font-size: 15px; color: #4B5563; margin-bottom: 24px; }
-    .btn { display: inline-block; background-color: #0D9488; color: #FFFFFF !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 10px; margin-bottom: 24px; }
+    .btn { display: inline-block; background-color: #2563EB; color: #FFFFFF !important; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 10px; margin-bottom: 24px; }
     .fallback-url { font-size: 12px; color: #6B7280; word-break: break-all; background-color: #F9FAFB; padding: 12px; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 24px; }
     .notice { font-size: 13px; color: #6B7280; border-top: 1px solid #E5E7EB; padding-top: 24px; margin-top: 32px; }
     .footer { background-color: #F9FAFB; padding: 20px 40px; text-align: center; font-size: 12px; color: #9CA3AF; border-top: 1px solid #E5E7EB; }

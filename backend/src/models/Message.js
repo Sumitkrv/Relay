@@ -136,6 +136,14 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  simulatedDeliveredAt: {
+    type: Date,
+    default: null
+  },
+  simulatedReadAt: {
+    type: Date,
+    default: null
+  },
   completedAt: {
     type: Date,
     default: null

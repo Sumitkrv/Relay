@@ -90,9 +90,12 @@ test('Readiness Status: AppLayout checks /health and monitors backend, db, provi
   );
 });
 
-test('Breadcrumbs: Breadcrumbs.jsx defines standard route labels aligned with PPT', () => {
-  const crumbsPath = path.resolve(__dirname, '../src/components/Breadcrumbs.jsx');
+test('Breadcrumbs: route label metadata (shellRoutes.js) aligned with PPT and consumed by Breadcrumbs.jsx', () => {
+  // Label metadata moved to layout/shellRoutes.js so it is shared + unit-testable.
+  const crumbsPath = path.resolve(__dirname, '../src/layout/shellRoutes.js');
   const code = fs.readFileSync(crumbsPath, 'utf8');
+  const component = fs.readFileSync(path.resolve(__dirname, '../src/components/Breadcrumbs.jsx'), 'utf8');
+  assert.ok(component.includes('buildBreadcrumbs'), 'Breadcrumbs.jsx must use the shared buildBreadcrumbs helper');
 
   assert.ok(code.includes("'templates': 'Templates'"), 'Breadcrumb for templates must be Templates');
   assert.ok(code.includes("'inbox': 'Inbox & Auto-reply'"), 'Breadcrumb for inbox must be Inbox & Auto-reply');

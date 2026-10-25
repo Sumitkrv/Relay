@@ -1,0 +1,222 @@
+[
+ {
+  "id": "contacts: create (opted-in with evidence)",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "contacts: create without consent defaults to Unknown",
+  "ok": true,
+  "note": "status 201 consent=Unknown"
+ },
+ {
+  "id": "contacts: duplicate phone rejected (409)",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "contacts: invalid input rejected (400)",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "contacts: opt-in without evidence rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "contacts: update (status, priority, notes, tags)",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "contacts: tags listed",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "contacts: filter by status",
+  "ok": true,
+  "note": "total 1"
+ },
+ {
+  "id": "contacts: search finds new records",
+  "ok": true,
+  "note": "total 3"
+ },
+ {
+  "id": "groups: create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "groups: add members",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "follow-ups: create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "follow-ups: complete",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "contacts: archive then restore",
+  "ok": true,
+  "note": "archive 200 restore 200"
+ },
+ {
+  "id": "contacts: CSV export contains QA records",
+  "ok": true,
+  "note": "status 200, 4 lines"
+ },
+ {
+  "id": "consent: history recorded with evidence",
+  "ok": false,
+  "note": "status 200"
+ },
+ {
+  "id": "import: CSV upload accepted",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "import: validate (flags duplicate + invalid rows)",
+  "ok": true,
+  "note": "status 200 {\"total\":4,\"valid\":3,\"invalid\":1,\"duplicatesInFile\":0,\"alreadyExists\":1,\"newContacts\":2,\"willUpdate\":0}"
+ },
+ {
+  "id": "import: execute",
+  "ok": true,
+  "note": "status 202 "
+ },
+ {
+  "id": "import: finished with counts",
+  "ok": true,
+  "note": "status=Completed created=2 dup=undefined failed=0"
+ },
+ {
+  "id": "import: imported rows visible in Contacts",
+  "ok": false,
+  "note": "visible 0"
+ },
+ {
+  "id": "templates: create custom",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "templates: variable resolution uses real contact + workspace identity",
+  "ok": true,
+  "note": "status 200 {\"preview\":{\"header\":\"\",\"body\":\"Hi QA, this is QA real_estate a confirming your visit. Reply STOP to opt out.\",\"footer\":\"\",\"buttons\":[],\"variables\":[\"first_name\",\"business_name\"],\"missingVariables\":[],\"fallbackVariables\""
+ },
+ {
+  "id": "templates: validate",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "templates: update creates version 2",
+  "ok": true,
+  "note": "status 200 ver 2"
+ },
+ {
+  "id": "templates: version history persisted",
+  "ok": true,
+  "note": "versions 2"
+ },
+ {
+  "id": "templates: duplicate",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "templates: unknown variable is flagged (not silently sent)",
+  "ok": true,
+  "note": "create 201; {\"validation\":{\"errors\":[\"{{totally_unknown_variable}} is not a supported variable. Use an approved field or {{custom.field_name}}.\"],\"warnings\":[],\"variables\":[\"totally_unknown_variable\"],\"valid\":fal"
+ },
+ {
+  "id": "templates: AI generation reports truthful unavailable state (503, no fake output)",
+  "ok": true,
+  "note": "status 503"
+ },
+ {
+  "id": "templates: archive",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "quick replies: create",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "quick replies: update",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "quick replies: persisted in list",
+  "ok": true,
+  "note": "total 9"
+ },
+ {
+  "id": "rules: create keyword rule",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "inbox: conversation created for contact",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "rules: test-match hits the rule",
+  "ok": false,
+  "note": "status 400"
+ },
+ {
+  "id": "inbox: synthetic inbound message stored (labelled synthetic)",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "inbox: inbound persisted + auto-reply executed (rule sent mock reply)",
+  "ok": true,
+  "note": "messages 2: inbound:synthetic_test, outbound:synthetic_test"
+ },
+ {
+  "id": "rules: execution history recorded",
+  "ok": false,
+  "note": "status 200"
+ },
+ {
+  "id": "inbox: manual operator message",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "inbox: internal note",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "compliance: inbound STOP records opt-out on the contact",
+  "ok": true,
+  "note": "consent=Opted Out suppressed=true"
+ },
+ {
+  "id": "settings: business profile update",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "settings: preferences update",
+  "ok": true,
+  "note": "status 200 "
+ }
+]

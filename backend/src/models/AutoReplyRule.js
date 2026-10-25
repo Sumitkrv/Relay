@@ -7,6 +7,17 @@ const autoReplyRuleSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    index: true
+  },
+  presetKey: {
+    type: String,
+    trim: true,
+    index: true,
+    default: null
+  },
   name: {
     type: String,
     required: true,
@@ -75,11 +86,19 @@ const autoReplyRuleSchema = new mongoose.Schema({
   archivedAt: {
     type: Date,
     default: null
-  }
+  },
+  starterPresetKey: { type: String, trim: true, default: null },
+  starterPackVersion: { type: String, trim: true, default: null },
+  provisioningSource: { type: String, trim: true, default: null }
 }, {
   timestamps: true
 });
 
+autoReplyRuleSchema.index({ workspaceId: 1, enabled: 1, priority: 1 });
+autoReplyRuleSchema.index({ workspaceId: 1, presetKey: 1 });
 autoReplyRuleSchema.index({ ownerId: 1, enabled: 1, priority: 1 });
+
+// One provisioned copy of each industry starter per workspace (new field: no legacy conflicts).
+autoReplyRuleSchema.index({ workspaceId: 1, starterPresetKey: 1 }, { unique: true, partialFilterExpression: { starterPresetKey: { $type: 'string' } } });
 
 export default mongoose.model('AutoReplyRule', autoReplyRuleSchema);

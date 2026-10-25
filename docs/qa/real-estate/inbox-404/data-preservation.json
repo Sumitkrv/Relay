@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-23T18:15:10.583Z",
+  "reportedConversationIds": [
+    "6adba0b30cf1681623cc5f9e",
+    "6adba0ad0cf1681623cc5eb7"
+  ],
+  "collections": {
+    "contacts": {
+      "recordsBefore": 7,
+      "missing": [],
+      "modified": [
+        "6adaf2ccbaacf0587d451b00"
+      ],
+      "added": []
+    },
+    "messagetemplates": {
+      "recordsBefore": 12,
+      "missing": [],
+      "modified": [],
+      "added": []
+    },
+    "conversations": {
+      "recordsBefore": 4,
+      "missing": [],
+      "modified": [],
+      "added": [
+        "6adba2bc14ac56cfedf8fb18"
+      ]
+    },
+    "conversationmessages": {
+      "recordsBefore": 0,
+      "missing": [],
+      "modified": [],
+      "added": [
+        "6adba2d49b431a1d712c184f",
+        "6adba2df9b431a1d712c1920",
+        "6adba2e79b431a1d712c19bd",
+        "6adba3cb58681992fa178b4b",
+        "6adba3cb58681992fa178b58"
+      ]
+    },
+    "workspaces": {
+      "recordsBefore": 6,
+      "missing": [],
+      "modified": [],
+      "added": []
+    },
+    "workspacememberships": {
+      "recordsBefore": 6,
+      "missing": [],
+      "modified": [],
+      "added": []
+    }
+  }
+}

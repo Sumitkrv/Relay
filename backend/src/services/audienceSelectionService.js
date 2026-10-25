@@ -1,3 +1,4 @@
+import { legacyWorkspaceScope } from '../utils/legacyWorkspaceScope.js';
 import mongoose from 'mongoose';
 import Contact from '../models/Contact.js';
 import ContactGroup from '../models/ContactGroup.js';
@@ -158,39 +159,41 @@ export function buildAudienceFilter(ownerId,raw={}){
   return {query:q,filters:f};
 }
 
-async function queryForSelection(ownerId,mode,definition={}){
+async function queryForSelection(ownerId,mode,definition={},workspaceId=null){
+  const scope={ownerId,...(workspaceId?{workspaceId}:{})};
   if(!['manual','all','import','filters','segment','group'].includes(mode))throw fail('Choose a supported audience selection method.');
   if(mode==='manual'){
     if(!Array.isArray(definition.contactIds)||definition.contactIds.length>MAX_MANUAL_SELECTION)throw fail(`Select up to ${MAX_MANUAL_SELECTION.toLocaleString()} contacts at a time.`);
     if(definition.contactIds.some(id=>!oid(id)))throw fail('One or more contact IDs are invalid.');
-    const distinct=[...new Set(definition.contactIds.map(String))];return {query:{ownerId,_id:{$in:distinct}},source:'manual',duplicates:definition.contactIds.length-distinct.length,selectionCount:distinct.length,cleanDefinition:{}};
+    const distinct=[...new Set(definition.contactIds.map(String))];return {query:{...scope,_id:{$in:distinct}},source:'manual',duplicates:definition.contactIds.length-distinct.length,selectionCount:distinct.length,cleanDefinition:{}};
   }
-  if(mode==='all')return {query:{ownerId,isDeleted:false,isArchived:false},source:'all',duplicates:0,cleanDefinition:{}};
-  if(mode==='filters'){const built=buildAudienceFilter(ownerId,definition.filters||{});return {query:built.query,source:'filters',duplicates:0,cleanDefinition:{filters:built.filters}};}
+  if(mode==='all')return {query:{...scope,isDeleted:false,isArchived:false},source:'all',duplicates:0,cleanDefinition:{}};
+  if(mode==='filters'){const built=buildAudienceFilter(ownerId,definition.filters||{});return {query:{...built.query,...scope},source:'filters',duplicates:0,cleanDefinition:{filters:built.filters}};}
   if(mode==='import'){
-    if(!oid(definition.batchId))throw fail('Choose a valid import batch.');const job=await ImportJob.exists({_id:definition.batchId,ownerId});if(!job)throw fail('Import batch not found.',404);
-    return {query:{ownerId,isDeleted:false,isArchived:false,sourceImportJobId:definition.batchId},source:'import',duplicates:0,cleanDefinition:{batchId:String(definition.batchId)}};
+    if(!oid(definition.batchId))throw fail('Choose a valid import batch.');const job=await ImportJob.exists({_id:definition.batchId,...scope});if(!job)throw fail('Import batch not found.',404);
+    return {query:{...scope,isDeleted:false,isArchived:false,sourceImportJobId:definition.batchId},source:'import',duplicates:0,cleanDefinition:{batchId:String(definition.batchId)}};
   }
+  // Existing planning libraries are owner-scoped; recipient queries below still enforce the campaign workspace.
   if(mode==='group'){
     if(!oid(definition.groupId))throw fail('Choose a valid contact group.');
-    const group=await ContactGroup.findOne({_id:definition.groupId,ownerId}).lean();
+    const group=await ContactGroup.findOne({_id:definition.groupId,...await legacyWorkspaceScope({user:{_id:ownerId},workspaceId})}).lean();
     if(!group)throw fail('Contact group not found.',404);
-    return {query:{ownerId,groups:new mongoose.Types.ObjectId(definition.groupId),isDeleted:false,isArchived:false},source:'group',duplicates:0,cleanDefinition:{groupId:String(group._id),groupName:group.name}};
+    return {query:{...scope,groups:new mongoose.Types.ObjectId(definition.groupId),isDeleted:false,isArchived:false},source:'group',duplicates:0,cleanDefinition:{groupId:String(group._id),groupName:group.name}};
   }
-  if(!oid(definition.segmentId))throw fail('Choose a valid saved segment.');const segment=await AudienceSegment.findOne({_id:definition.segmentId,ownerId}).lean();if(!segment)throw fail('Saved segment not found.',404);
-  if(segment.segmentType==='dynamic'){const built=buildAudienceFilter(ownerId,segment.filterDefinition);return {query:built.query,source:'segment',duplicates:0,cleanDefinition:{segmentId:String(segment._id),segmentType:'dynamic',filters:built.filters}};}
-  const ids=await AudienceSegmentMember.find({ownerId,segmentId:segment._id}).distinct('contactId');return {query:{ownerId,_id:{$in:ids}},source:'segment',duplicates:0,cleanDefinition:{segmentId:String(segment._id),segmentType:'static'}};
+  if(!oid(definition.segmentId))throw fail('Choose a valid saved segment.');const segment=await AudienceSegment.findOne({_id:definition.segmentId,...await legacyWorkspaceScope({user:{_id:ownerId},workspaceId})}).lean();if(!segment)throw fail('Saved segment not found.',404);
+  if(segment.segmentType==='dynamic'){const built=buildAudienceFilter(ownerId,segment.filterDefinition);return {query:{...built.query,...scope},source:'segment',duplicates:0,cleanDefinition:{segmentId:String(segment._id),segmentType:'dynamic',filters:built.filters}};}
+  const ids=await AudienceSegmentMember.find({ownerId,segmentId:segment._id}).distinct('contactId');return {query:{...scope,_id:{$in:ids}},source:'segment',duplicates:0,cleanDefinition:{segmentId:String(segment._id),segmentType:'static'}};
 }
 
 export async function snapshotAudience(campaign,ownerId,input={}){
   const mode=input.mode||campaign.audienceSelectionMode||'manual';const definition=input.definition||{};const exclusionIds=definition.excludedContactIds||[];
   if(!Array.isArray(exclusionIds)||exclusionIds.length>MAX_CAMPAIGN_MEMBERS||exclusionIds.some(id=>!oid(id)))throw fail('Excluded contact list is invalid.');
-  const selection=await queryForSelection(ownerId,mode,definition);const exclude=new Set(exclusionIds.map(String));const query=selection.query;
+  const selection=await queryForSelection(ownerId,mode,definition,campaign.workspaceId);const exclude=new Set(exclusionIds.map(String));const query=selection.query;
   const version=(campaign.audienceSnapshotVersion||0)+1;const ops=[];let matched=0;let ownedFound=0;
   try{
     const cursor=Contact.find(query).select('_id').sort({_id:1}).cursor();
     for await(const contact of cursor){ownedFound++;const id=String(contact._id);if(exclude.has(id))continue;if(++matched>MAX_CAMPAIGN_MEMBERS)throw fail(`Audience exceeds the ${MAX_CAMPAIGN_MEMBERS.toLocaleString()} contact snapshot limit. Add filters to narrow it.` ,413);
-      ops.push({updateOne:{filter:{ownerId,campaignId:campaign._id,snapshotVersion:version,contactId:contact._id},update:{$setOnInsert:{ownerId,campaignId:campaign._id,snapshotVersion:version,contactId:contact._id,selectionSource:selection.source,eligibilityStatus:'Missing Consent',exclusionReasons:['Validation pending'],validationTimestamp:new Date()}},upsert:true}});
+      ops.push({updateOne:{filter:{ownerId,campaignId:campaign._id,snapshotVersion:version,contactId:contact._id},update:{$setOnInsert:{ownerId,workspaceId:campaign.workspaceId,campaignId:campaign._id,snapshotVersion:version,contactId:contact._id,selectionSource:selection.source,eligibilityStatus:'Missing Consent',exclusionReasons:['Validation pending'],validationTimestamp:new Date()}},upsert:true}});
       if(ops.length>=500){await CampaignAudience.bulkWrite(ops,{ordered:false});ops.length=0;}
     }
     if(ops.length)await CampaignAudience.bulkWrite(ops,{ordered:false});
@@ -204,7 +207,8 @@ export async function snapshotAudience(campaign,ownerId,input={}){
   }catch(error){await CampaignAudience.deleteMany({ownerId,campaignId:campaign._id,snapshotVersion:version});throw error;}
 }
 
-export async function segmentQuery(ownerId,segment){
-  if(segment.segmentType==='dynamic')return buildAudienceFilter(ownerId,segment.filterDefinition).query;
-  const ids=await AudienceSegmentMember.find({ownerId,segmentId:segment._id}).distinct('contactId');return {ownerId,_id:{$in:ids},isDeleted:false};
+export async function segmentQuery(ownerId,segment,workspaceId=segment.workspaceId){
+  const scope={ownerId,...(workspaceId?{workspaceId}:{})};
+  if(segment.segmentType==='dynamic')return {...buildAudienceFilter(ownerId,segment.filterDefinition).query,...scope};
+  const ids=await AudienceSegmentMember.find({ownerId,segmentId:segment._id}).distinct('contactId');return {...scope,_id:{$in:ids},isDeleted:false};
 }

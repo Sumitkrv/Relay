@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveWorkspaceContext } from '../middleware/requireWorkspace.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as c from '../controllers/templateController.js';
 
 const router=Router();
 router.use(requireAuth);
+router.use(resolveWorkspaceContext);
 
 router.get('/variables',asyncHandler(c.getVariables));
 router.get('/categories',asyncHandler(c.getCategories));

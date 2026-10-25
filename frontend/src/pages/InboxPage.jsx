@@ -1,5 +1,7 @@
+import { resolveContactVariables } from '../utils/crmVariables';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertTriangle,
   Archive,
   ArrowLeft,
   ArrowUp,
@@ -8,6 +10,7 @@ import {
   Check,
   CheckCheck,
   ChevronDown,
+  ChevronUp,
   Clock3,
   Copy,
   Edit2,
@@ -15,6 +18,7 @@ import {
   Filter,
   Flame,
   HelpCircle,
+  Lock,
   MessageCircle,
   MessageSquare,
   MoreHorizontal,
@@ -42,21 +46,14 @@ import PageHeader from '../components/PageHeader';
 import { listTemplates, getTemplate } from '../services/templates';
 import http from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useWorkspace } from '../context/WorkspaceContext';
 import * as api from '../services/inbox';
+import '../inbox.css';
 
 const STATUSES = ['Open', 'Needs Attention', 'Pending', 'Follow-up Required', 'Resolved', 'Closed', 'Archived'];
-const LEADS = [
-  'New',
-  'Contacted',
-  'Interested',
-  'Follow-up Required',
-  'Negotiation',
-  'Converted',
-  'Not Interested',
-  'Closed',
-];
 
 const err = (e) => e?.response?.data?.message || 'Could not complete this action.';
+
 const initials = (n) =>
   String(n || '?')
     .split(' ')
@@ -86,11 +83,27 @@ function dateLabel(d) {
     : x.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
+// Helper to extract actual variables used in a text template/reply
+function extractUsedVariables(text) {
+  if (!text) return [];
+  const matches = text.match(/\{\{\s*([\w.]+)\s*\}\}/g);
+  if (!matches) return [];
+  const set = new Set(matches.map((m) => m.replace(/[{}]/g, '').trim()));
+  return Array.from(set);
+}
+
 export function InboxPage() {
   const { user } = useAuth();
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const activeIndustry = industryConfig.industryKey;
+  const qrCategories = industryConfig.ui.qrCategories;
+  const qrPlaceholder = industryConfig.ui.quickReplyPlaceholder;
+  const qrVariableHints = industryConfig.ui.variableHints;
+  const LEADS = industryConfig.leadStatuses;
+
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('conversations'); // 'conversations' | 'rules' | 'quickreplies'
-  
+
   // Conversations State
   const [records, setRecords] = useState([]);
   const [stats, setStats] = useState(null);
@@ -102,6 +115,7 @@ export function InboxPage() {
   const [tagFilter, setTagFilter] = useState('');
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(() => searchParams.get('conversationId') || '');
   const [detail, setDetail] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -111,7 +125,13 @@ export function InboxPage() {
   const [noteText, setNoteText] = useState('');
   const [templates, setTemplates] = useState([]);
   const [templateId, setTemplateId] = useState('');
-  const [showContact, setShowContact] = useState(true);
+  const [showContact, setShowContact] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1440 : true));
+  useEffect(() => {
+    const compact = window.matchMedia('(max-width: 1439px)');
+    const collapse = () => { if (compact.matches) setShowContact(false); };
+    compact.addEventListener('change', collapse);
+    return () => compact.removeEventListener('change', collapse);
+  }, []);
   const [showFollowup, setShowFollowup] = useState(false);
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
@@ -120,18 +140,21 @@ export function InboxPage() {
   const [saving, setSaving] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [newContact, setNewContact] = useState('');
-  
+
   // Manual Log & Simulator Modals
   const [manualOpen, setManualOpen] = useState(false);
   const [manualText, setManualText] = useState('');
   const [manualType, setManualType] = useState('Phone Call');
   const [manualDirection, setManualDirection] = useState('outbound');
-  
+
   const [simulatorOpen, setSimulatorOpen] = useState(false);
   const [testInboundText, setTestInboundText] = useState('Can you send the BROCHURE?');
 
   // Quick Replies State
   const [quickReplies, setQuickReplies] = useState([]);
+  const [quickReplyPresets, setQuickReplyPresets] = useState([]);
+  const [rulePresets, setRulePresets] = useState([]);
+  const [installingStarters, setInstallingStarters] = useState(false);
   const [quickReplyCategory, setQuickReplyCategory] = useState('all');
   const [quickReplySearch, setQuickReplySearch] = useState('');
   const [quickReplyModalOpen, setQuickReplyModalOpen] = useState(false);
@@ -141,6 +164,7 @@ export function InboxPage() {
   const [qrText, setQrText] = useState('');
   const [qrDescription, setQrDescription] = useState('');
   const [qrPickerOpen, setQrPickerOpen] = useState(false);
+  const [expandedQr, setExpandedQr] = useState({});
 
   // Auto-Reply Rules State
   const [rules, setRules] = useState([]);
@@ -153,21 +177,26 @@ export function InboxPage() {
   const [ruleActionType, setRuleActionType] = useState('RUN_MOCK_REPLY');
   const [ruleResponse, setRuleResponse] = useState('');
   const [rulePriority, setRulePriority] = useState(10);
-  
+
   // Rule Match Tester State
-  const [testQueryText, setTestQueryText] = useState('Do you have unit PRICING?');
+  const [testQueryText, setTestQueryText] = useState('HELP');
   const [testMatchResult, setTestMatchResult] = useState(null);
   const [ruleHistory, setRuleHistory] = useState([]);
 
   const listRequest = useRef(0);
   const detailRequest = useRef(0);
+  const didAutoSelect = useRef(false);
   const draftValue = useRef('');
 
+  // Industry-specific contextual descriptions
+  const industrySubtitle = industryConfig.ui.inboxSubtitle;
+
   // Load Conversations List
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (isRefresh = false) => {
     const req = ++listRequest.current;
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
       const [{ data }, st] = await Promise.all([
         api.inboxList({
           page,
@@ -181,23 +210,30 @@ export function InboxPage() {
         api.inboxStats(),
       ]);
       if (req !== listRequest.current) return;
-      setRecords(data.records);
-      setTotal(data.total);
-      setStats(st.data.stats);
-      if (selected && !data.records.some((x) => x._id === selected) && page === 1) {
-        // preserve selected if exists
-      }
+      setRecords(data.records || []);
+      setTotal(data.total || 0);
+      setStats(st.data.stats || null);
     } catch (e) {
       if (req === listRequest.current) toast.error(err(e));
     } finally {
-      if (req === listRequest.current) setLoading(false);
+      if (req === listRequest.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [page, q, status, filter, tagFilter, selected]);
+  }, [page, q, status, filter, tagFilter]);
 
   // Open Conversation
   const openConversation = useCallback(async (id) => {
+    if (!id) return;
     const req = ++detailRequest.current;
-    setSelected(id);
+    didAutoSelect.current = true;
+    setDetail(null);
+    setMessages([]);
+    setNotes([]);
+    setTasks([]);
+    setDraft('');
+    draftValue.current = '';
     try {
       const [{ data: d }, { data: m }] = await Promise.all([
         api.inboxConversation(id),
@@ -205,17 +241,20 @@ export function InboxPage() {
       ]);
       if (req !== detailRequest.current) return;
       setDetail(d);
-      setMessages(m.records);
+      setMessages(m.records || []);
       setNotes(d.notes || []);
       setTasks(d.tasks || []);
       setDraft(d.draft?.draftText || '');
       draftValue.current = d.draft?.draftText || '';
-      if (d.conversation.internalUnreadCount) await api.markReviewed(id);
+      if (d.conversation?.internalUnreadCount) await api.markReviewed(id);
       setRecords((prev) =>
         prev.map((c) => (c._id === id ? { ...c, internalUnreadCount: 0 } : c))
       );
     } catch (e) {
-      if (req === detailRequest.current) toast.error(err(e));
+      if (req === detailRequest.current) {
+        setSelected('');
+        toast.error(err(e));
+      }
     }
   }, []);
 
@@ -227,6 +266,7 @@ export function InboxPage() {
         q: quickReplySearch || undefined,
       });
       setQuickReplies(data.records || []);
+      setQuickReplyPresets(data.presets || []);
     } catch (e) {
       toast.error('Failed to load quick replies');
     }
@@ -240,11 +280,13 @@ export function InboxPage() {
         api.getRuleExecutionHistory(),
       ]);
       setRules(rData.records || []);
+      setRulePresets(rData.presets || []);
       setRuleHistory(hData.records || []);
     } catch (e) {
       toast.error('Failed to load auto-reply rules');
     }
-  }, []);
+  }, [currentWorkspace?._id]);
+
 
   useEffect(() => {
     loadList();
@@ -270,7 +312,23 @@ export function InboxPage() {
     if (selected) {
       openConversation(selected);
     }
+    return () => { detailRequest.current += 1; };
   }, [selected, openConversation]);
+
+  // Auto-select first conversation if none selected on initial load
+  useEffect(() => {
+    if (!didAutoSelect.current && !selected && records.length > 0) {
+      didAutoSelect.current = true;
+      setSelected(records[0]._id);
+    }
+  }, [selected, records]);
+
+  // Check if current selected contact is opted out or suppressed
+  const isSuppressedRecipient = useMemo(() => {
+    if (!detail?.contact) return false;
+    const c = detail.contact;
+    return c.whatsappConsentStatus === 'Opted Out' || c.isSuppressed === true;
+  }, [detail]);
 
   // Template Insertion into Draft
   const selectedTemplate = templates.find((t) => t._id === templateId);
@@ -280,18 +338,14 @@ export function InboxPage() {
     try {
       const { data } = await getTemplate(selectedTemplate._id);
       full = data.template || data;
-    } catch {}
+    } catch (e) {
+      toast.error(err(e));
+      return;
+    }
     const text =
       full.selectedVersion?.snapshot?.body || full.currentVersion?.snapshot?.body || full.body || '';
     const c = detail?.contact || {};
-    const vars = {
-      name: c.fullName || 'Valued Client',
-      first_name: (c.fullName || 'Client').trim().split(/\s+/)[0],
-      project: c.interestedService || c.businessCategory || 'our property',
-      city: c.location || 'Gurugram',
-      sender_name: user?.name || 'Property Advisor',
-    };
-    const rendered = text.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_m, k) => vars[k] || `{{${k}}}`);
+    const rendered = resolveContactVariables(text, c, { ...currentWorkspace, senderName: user?.name });
     setDraft((v) => {
       const next = v ? `${v}\n${rendered}` : rendered;
       draftValue.current = next;
@@ -304,33 +358,25 @@ export function InboxPage() {
   // Quick Reply Insertion into Draft
   const insertQuickReply = (qr) => {
     const c = detail?.contact || {};
-    const vars = {
-      name: c.fullName || 'Valued Client',
-      first_name: (c.fullName || 'Client').trim().split(/\s+/)[0],
-      project: c.interestedService || c.businessCategory || 'Prestige Park',
-      city: c.location || 'Gurugram',
-      property_type: c.industry || 'Apartment',
-      business_name: user?.businessName || 'M2W Luxury Realty',
-    };
-    const rendered = qr.messageText.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_m, k) => vars[k] || `{{${k}}}`);
+    const rendered = resolveContactVariables(qr.messageText, c, { ...currentWorkspace, senderName: user?.name });
     setDraft((v) => {
       const next = v ? `${v}\n${rendered}` : rendered;
       draftValue.current = next;
       return next;
     });
     setQrPickerOpen(false);
-    toast.success(`Inserted "${qr.name}"`);
+    toast.success(`Inserted "${qr.name}" into composer.`);
   };
 
   // Start new conversation record
-  const startConversation = async () => {
-    if (!newContact) return toast.error('Choose a contact first.');
+  const startConversation = async (contactIdToUse) => {
+    const cid = contactIdToUse || newContact;
+    if (!cid) return toast.error('Choose a contact first.');
     try {
-      const { data } = await api.createConversation({ contactId: newContact, source: 'manual' });
+      const { data } = await api.createConversation({ contactId: cid, source: 'manual' });
       setNewContact('');
       setSelected(data.conversation._id);
       await loadList();
-      openConversation(data.conversation._id);
       toast.success('Conversation record opened.');
     } catch (e) {
       toast.error(err(e));
@@ -339,6 +385,7 @@ export function InboxPage() {
 
   // Status Change
   const doStatus = async (next) => {
+    if (!selected) return;
     try {
       await api.updateConversationStatus(selected, next);
       toast.success(`Marked as ${next.toLowerCase()}.`);
@@ -392,9 +439,12 @@ export function InboxPage() {
     }
   };
 
-  // Send Mock Reply (MOCK simulation)
+  // Send Mock Reply (MOCK simulation with strict suppression safeguards)
   const sendMock = async () => {
     if (!draft.trim()) return toast.error('Type a message to send mock reply.');
+    if (isSuppressedRecipient) {
+      return toast.error('Outbound sending blocked: Contact has opted out of WhatsApp messaging.');
+    }
     try {
       await api.sendMockReply(selected, draft.trim());
       setDraft('');
@@ -555,16 +605,39 @@ export function InboxPage() {
     }
   };
 
-  // Test Match All Rules
+  // Test Match All Rules with Truthful Disabled-Rule Semantics
   const handleTestMatchAll = async () => {
     if (!testQueryText.trim()) return;
     try {
       const { data } = await api.testMatchAllRules(testQueryText.trim());
-      setTestMatchResult(data);
+      // Check if matched rule is currently disabled in our active rules list
+      if (data.matched && data.matchedRule) {
+        const found = rules.find((r) => r._id === data.matchedRule._id || r.name === data.matchedRule.name);
+        const isDisabled = found ? !found.enabled : data.matchedRule.enabled === false;
+        setTestMatchResult({
+          ...data,
+          isRuleDisabled: isDisabled,
+        });
+      } else {
+        setTestMatchResult(data);
+      }
     } catch (e) {
       toast.error(err(e));
     }
   };
+
+  // Summary counts for rules
+  const activeRulesCount = useMemo(() => {
+    return rules.filter((r) => r.enabled).length;
+  }, [rules]);
+
+  const disabledRulesCount = useMemo(() => {
+    return rules.filter((r) => !r.enabled).length;
+  }, [rules]);
+
+  const totalExecutionsCount = useMemo(() => {
+    return rules.reduce((acc, r) => acc + (r.executionCount || 0), 0);
+  }, [rules]);
 
   return (
     <div className="inbox-page">
@@ -572,89 +645,104 @@ export function InboxPage() {
       <PageHeader
         eyebrow="YOUR WORKSPACE · INBOX"
         title="Inbox & Auto-reply"
-        subtitle="Manage customer conversations, quick replies and message automation."
+        subtitle={industrySubtitle}
         actions={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <span
               className="status-badge"
               style={{
-                backgroundColor: 'var(--color-surface-subtle)',
-                color: 'var(--color-text-secondary)',
-                padding: '6px 12px',
+                backgroundColor: 'var(--ib-slate-100)',
+                color: 'var(--ib-slate-600)',
+                padding: '6px 14px',
                 fontSize: '12px',
-                border: '1px solid var(--color-border)',
+                borderRadius: '8px',
+                border: '1px solid var(--ib-slate-200)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontWeight: 500,
               }}
             >
-              <Radio size={13} color="var(--color-text-muted)" style={{ marginRight: '4px' }} />
+              <Radio size={13} color="var(--ib-slate-500)" />
               WhatsApp Disconnected (Mock Mode)
             </span>
-            <button className="outline-btn small" onClick={() => loadList()} title="Refresh inbox">
-              <RefreshCw size={14} /> Refresh
+            <button
+              className="outline-btn small"
+              onClick={() => loadList(true)}
+              title="Refresh inbox data"
+              disabled={refreshing}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px', padding: '0 12px' }}
+            >
+              <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+              {refreshing ? 'Refreshing…' : 'Refresh'}
             </button>
           </div>
         }
       />
 
       {/* Main Navigation Tabs: Conversations | Auto-reply Rules | Quick Replies */}
-      <div className="inbox-filter-tabs" style={{ marginBottom: '16px', borderRadius: '10px' }}>
+      <div className="inbox-main-tabs">
         <button
-          className={activeTab === 'conversations' ? 'active' : ''}
+          className={`inbox-main-tab-btn ${activeTab === 'conversations' ? 'active' : ''}`}
           onClick={() => setActiveTab('conversations')}
         >
-          <MessageCircle size={14} style={{ display: 'inline', marginRight: '6px' }} />
-          Conversations ({stats?.total || 0})
+          <MessageCircle size={15} />
+          <span>Conversations</span>
+          <span className="inbox-main-tab-badge">{stats?.total || total || records.length}</span>
         </button>
         <button
-          className={activeTab === 'rules' ? 'active' : ''}
+          className={`inbox-main-tab-btn ${activeTab === 'rules' ? 'active' : ''}`}
           onClick={() => setActiveTab('rules')}
         >
-          <Bot size={14} style={{ display: 'inline', marginRight: '6px' }} />
-          Auto-reply Rules ({stats?.activeRules || rules.filter((r) => r.enabled).length || 4} Active)
+          <Bot size={15} />
+          <span>Auto-reply Rules</span>
+          <span className="inbox-main-tab-badge">
+            {stats?.activeRules || activeRulesCount || 1} Active
+          </span>
         </button>
         <button
-          className={activeTab === 'quickreplies' ? 'active' : ''}
+          className={`inbox-main-tab-btn ${activeTab === 'quickreplies' ? 'active' : ''}`}
           onClick={() => setActiveTab('quickreplies')}
         >
-          <Zap size={14} style={{ display: 'inline', marginRight: '6px' }} />
-          Quick Replies ({quickReplies.length || stats?.quickReplies || 5})
+          <Zap size={15} />
+          <span>Quick Replies</span>
+          <span className="inbox-main-tab-badge">{quickReplies.length}</span>
         </button>
       </div>
 
-      {/* TAB 1: CONVERSATIONS (REBUILT 3-PANEL WORKSPACE) */}
+      {/* TAB 1: CONVERSATIONS (REBUILT 3-PANEL ENTERPRISE WORKSPACE) */}
       {activeTab === 'conversations' && (
-        <div className={`inbox-workspace ${!showContact ? 'hide-contact' : ''}`}>
-          {/* LEFT PANEL: Conversation List (310px) */}
+        <div className={`inbox-workspace ${!showContact ? 'hide-contact' : ''} ${selected ? 'has-selected' : ''}`}>
+          {/* LEFT PANEL: Conversation Navigator */}
           <div className="inbox-list-panel">
             <div className="inbox-list-heading">
               <div>
-                <h2>Chats</h2>
-                <small>{total} conversations</small>
+                <h2>
+                  <MessageSquare size={15} color="var(--ib-blue-600)" />
+                  Conversations
+                </h2>
+                <small>{total || records.length} total client threads</small>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <select
                   aria-label="Start conversation with contact"
                   value={newContact}
-                  onChange={(e) => setNewContact(e.target.value)}
-                  style={{
-                    height: '30px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '11.5px',
-                    maxWidth: '130px',
+                  onChange={(e) => {
+                    setNewContact(e.target.value);
+                    if (e.target.value) {
+                      startConversation(e.target.value);
+                    }
                   }}
+                  className="inbox-new-chat-select"
+                  title="Pick a contact to open a CRM conversation record"
                 >
-                  <option value="">+ New Chat (Internal Simulator)…</option>
+                  <option value="">+ New Chat</option>
                   {contacts.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.fullName}
                     </option>
                   ))}
                 </select>
-                {newContact && (
-                  <button className="primary-btn small" onClick={startConversation} style={{ height: '30px', padding: '0 8px' }}>
-                    Open
-                  </button>
-                )}
               </div>
             </div>
 
@@ -669,6 +757,16 @@ export function InboxPage() {
                   setPage(1);
                 }}
               />
+              {q && (
+                <button
+                  className="icon-btn small"
+                  onClick={() => setQ('')}
+                  style={{ position: 'absolute', right: '18px' }}
+                  title="Clear search"
+                >
+                  <X size={13} />
+                </button>
+              )}
             </div>
 
             {/* Quick Segment Tabs: All / Unread / Needs Attention */}
@@ -694,7 +792,7 @@ export function InboxPage() {
             <div className="inbox-more-filters-bar">
               <button
                 className="text-link"
-                style={{ fontSize: '11.5px' }}
+                style={{ fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 onClick={() => setMoreFiltersOpen((v) => !v)}
               >
                 <Filter size={11} /> {moreFiltersOpen ? 'Hide Filters' : 'More Filters'}
@@ -702,7 +800,7 @@ export function InboxPage() {
               {(status !== 'all' || tagFilter) && (
                 <button
                   className="text-link"
-                  style={{ fontSize: '11.5px', color: 'var(--color-danger)' }}
+                  style={{ fontSize: '11.5px', color: 'var(--ib-rose-600)' }}
                   onClick={() => {
                     setStatus('all');
                     setTagFilter('');
@@ -718,8 +816,8 @@ export function InboxPage() {
               <div
                 style={{
                   padding: '10px 14px',
-                  background: 'var(--color-surface-muted)',
-                  borderBottom: '1px solid var(--color-border)',
+                  background: 'var(--ib-slate-50)',
+                  borderBottom: '1px solid var(--ib-slate-200)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '8px',
@@ -729,11 +827,13 @@ export function InboxPage() {
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   style={{
-                    height: '28px',
+                    height: '30px',
                     borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
+                    border: '1px solid var(--ib-slate-200)',
                     fontSize: '11.5px',
                     background: '#fff',
+                    padding: '0 8px',
+                    color: 'var(--ib-slate-700)',
                   }}
                 >
                   <option value="all">All Statuses</option>
@@ -746,11 +846,11 @@ export function InboxPage() {
                 <input
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
-                  placeholder="Filter by tag (e.g. villa, plot)…"
+                  placeholder="Filter by tag (e.g. plot, premium)…"
                   style={{
-                    height: '28px',
+                    height: '30px',
                     borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
+                    border: '1px solid var(--ib-slate-200)',
                     fontSize: '11.5px',
                     padding: '0 8px',
                     background: '#fff',
@@ -762,14 +862,17 @@ export function InboxPage() {
             {/* Conversation Rows */}
             <div className="inbox-conversation-list">
               {loading ? (
-                <div style={{ padding: '24px', textAlign: 'center', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <div style={{ padding: '32px 20px', textAlign: 'center', fontSize: '12.5px', color: 'var(--ib-slate-400)' }}>
+                  <RefreshCw size={18} className="animate-spin" style={{ margin: '0 auto 8px' }} />
                   Loading conversations…
                 </div>
               ) : records.length === 0 ? (
-                <div style={{ padding: '36px 20px', textAlign: 'center' }}>
-                  <MessageCircle size={24} color="var(--color-text-muted)" style={{ margin: '0 auto 8px' }} />
-                  <strong style={{ fontSize: '13.5px', display: 'block' }}>No conversations found</strong>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+                  <MessageCircle size={26} color="var(--ib-slate-400)" style={{ margin: '0 auto 10px' }} />
+                  <strong style={{ fontSize: '14px', display: 'block', color: 'var(--ib-slate-800)' }}>
+                    No conversations found
+                  </strong>
+                  <span style={{ fontSize: '12px', color: 'var(--ib-slate-500)', marginTop: '4px', display: 'block' }}>
                     Pick a contact from the dropdown above to start a conversation record.
                   </span>
                 </div>
@@ -777,76 +880,106 @@ export function InboxPage() {
                 records.map((row) => {
                   const c = row.contactId || {};
                   const m = row.lastMessageId || {};
+                  const isSelected = selected === row._id;
+                  const isOptedOut = c.whatsappConsentStatus === 'Opted Out' || c.isSuppressed;
+
                   return (
                     <button
                       key={row._id}
-                      className={`inbox-conversation-row ${selected === row._id ? 'selected' : ''}`}
-                      onClick={() => openConversation(row._id)}
+                      className={`inbox-conversation-row ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setSelected(row._id)}
                     >
                       <div className="inbox-avatar">{initials(c.fullName)}</div>
                       <div className="inbox-row-copy">
                         <div className="inbox-row-top">
-                          <b>{c.fullName || 'Lead'}</b>
+                          <b>{c.fullName || 'Lead Contact'}</b>
                           <time>{when(row.lastActivityAt)}</time>
                         </div>
                         <div className="inbox-row-preview">
                           {m.messageBody || 'No messages logged yet'}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
                           <span
                             className="status-badge"
                             style={{
                               fontSize: '10px',
                               padding: '1px 6px',
+                              borderRadius: '4px',
                               backgroundColor:
                                 row.status === 'Needs Attention'
-                                  ? '#fef3c7'
-                                  : 'var(--color-surface-subtle)',
+                                  ? 'var(--ib-amber-50)'
+                                  : 'var(--ib-slate-100)',
                               color:
                                 row.status === 'Needs Attention'
-                                  ? '#92400e'
-                                  : 'var(--color-text-secondary)',
+                                  ? 'var(--ib-amber-600)'
+                                  : 'var(--ib-slate-600)',
+                              border: `1px solid ${
+                                row.status === 'Needs Attention'
+                                  ? 'var(--ib-amber-border)'
+                                  : 'var(--ib-slate-200)'
+                              }`,
                             }}
                           >
                             {row.status}
                           </span>
+
                           {row.automationStatus === 'PAUSED' && (
                             <span
                               style={{
                                 fontSize: '10px',
-                                padding: '1px 5px',
+                                padding: '1px 6px',
                                 borderRadius: '4px',
-                                background: '#fef3c7',
-                                color: '#b45309',
+                                background: 'var(--ib-amber-50)',
+                                color: 'var(--ib-amber-600)',
+                                border: '1px solid var(--ib-amber-border)',
                                 fontWeight: 600,
                               }}
                             >
                               Takeover
                             </span>
                           )}
+
+                          {isOptedOut && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                background: 'var(--ib-rose-50)',
+                                color: 'var(--ib-rose-600)',
+                                border: '1px solid var(--ib-rose-border)',
+                                fontWeight: 600,
+                              }}
+                            >
+                              Opted Out
+                            </span>
+                          )}
+
                           {row.source === 'test' && (
                             <span
                               style={{
                                 fontSize: '10px',
                                 padding: '1px 5px',
                                 borderRadius: '4px',
-                                background: '#e0e7ff',
-                                color: '#4338ca',
+                                background: 'var(--ib-blue-50)',
+                                color: 'var(--ib-blue-600)',
+                                border: '1px solid var(--ib-blue-border)',
                                 fontWeight: 600,
                               }}
                             >
                               TEST
                             </span>
                           )}
+
                           {row.internalUnreadCount > 0 && (
                             <span
                               style={{
                                 marginLeft: 'auto',
-                                background: 'var(--color-primary)',
+                                background: 'var(--ib-blue-600)',
                                 color: '#fff',
                                 fontSize: '10px',
                                 fontWeight: 700,
-                                padding: '1px 6px',
+                                padding: '1px 7px',
                                 borderRadius: '9999px',
                               }}
                             >
@@ -867,135 +1000,184 @@ export function InboxPage() {
             <div className="inbox-chat-panel">
               {/* Header */}
               <div className="inbox-chat-header">
-                <div className="inbox-avatar" style={{ width: '34px', height: '34px', fontSize: '13px' }}>
-                  {initials(detail.contact.fullName)}
-                </div>
-                <div className="inbox-chat-title">
-                  <b>{detail.contact.fullName}</b>
-                  <span>
-                    {detail.contact.phoneNumber} {detail.contact.location ? `· ${detail.contact.location}` : ''}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {/* Status Dropdown */}
-                  <select
-                    value={detail.conversation.status}
-                    onChange={(e) => doStatus(e.target.value)}
-                    style={{
-                      height: '32px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
+                {/* Row 1: Contact Identity (Left) & Core Status / Toggles (Right) */}
+                <div className="inbox-header-row-1">
+                  <div className="inbox-contact-identity">
+                    <button
+                      type="button"
+                      className="icon-btn inbox-mobile-back-btn"
+                      onClick={() => {
+                        setSelected(null);
+                        setDetail(null);
+                      }}
+                      aria-label="Back to conversations"
+                      title="Back to conversations"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                    <div className="inbox-avatar inbox-header-avatar">
+                      {initials(detail.contact.fullName)}
+                    </div>
+                    <div className="inbox-identity-info">
+                      <div className="inbox-contact-name" title={detail.contact.fullName}>
+                        {detail.contact.fullName}
+                      </div>
+                      <div className="inbox-contact-sub">
+                        <span className="inbox-contact-phone">{detail.contact.phoneNumber}</span>
+                        {(detail.contact.interestedService || detail.contact.location) && (
+                          <span className="inbox-contact-dot">·</span>
+                        )}
+                        {detail.contact.interestedService && (
+                          <span className="inbox-contact-interest" title={detail.contact.interestedService}>
+                            {detail.contact.interestedService}
+                          </span>
+                        )}
+                        {detail.contact.location && !detail.contact.interestedService && (
+                          <span className="inbox-contact-location" title={detail.contact.location}>
+                            {detail.contact.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-                  {/* Owner Takeover Button */}
-                  <button
-                    className="outline-btn small"
-                    onClick={toggleTakeover}
-                    title={
-                      detail.conversation.automationStatus === 'PAUSED'
-                        ? 'Click to Resume Auto-replies'
-                        : 'Click to Take Over Manually & Pause Auto-replies'
-                    }
-                    style={{
-                      backgroundColor:
-                        detail.conversation.automationStatus === 'PAUSED' ? '#fef3c7' : '#fff',
-                      color:
-                        detail.conversation.automationStatus === 'PAUSED' ? '#92400e' : 'inherit',
-                      borderColor:
-                        detail.conversation.automationStatus === 'PAUSED' ? '#fde68a' : 'var(--color-border)',
-                    }}
-                  >
-                    {detail.conversation.automationStatus === 'PAUSED' ? (
-                      <>
-                        <ShieldAlert size={14} color="#b45309" /> Manual Control
-                      </>
-                    ) : (
-                      <>
-                        <Bot size={14} color="var(--color-primary)" /> Auto-Reply Active
-                      </>
+                  <div className="inbox-header-controls-primary">
+                    {/* Status Dropdown */}
+                    <div className="inbox-status-wrap">
+                      <select
+                        value={detail.conversation.status}
+                        onChange={(e) => doStatus(e.target.value)}
+                        className="inbox-status-select"
+                        aria-label="Conversation status"
+                      >
+                        {STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Owner Takeover Button */}
+                    <button
+                      className="outline-btn small inbox-automation-btn"
+                      onClick={toggleTakeover}
+                      title={
+                        detail.conversation.automationStatus === 'PAUSED'
+                          ? 'Click to Resume Auto-replies'
+                          : 'Click to Take Over Manually & Pause Auto-replies'
+                      }
+                    >
+                      {detail.conversation.automationStatus === 'PAUSED' ? (
+                        <>
+                          <ShieldAlert size={14} color="var(--ib-amber-600)" />
+                          <span>Manual Control</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bot size={14} color="var(--ib-blue-600)" />
+                          <span>Auto-Reply Active</span>
+                        </>
+                      )}
+                    </button>
+
+                    {/* Toggle Right Contact Drawer */}
+                    <button
+                      className="icon-btn inbox-drawer-btn"
+                      title={showContact ? 'Hide contact profile' : 'Show contact profile'}
+                      aria-label={showContact ? 'Hide contact profile' : 'Show contact profile'}
+                      onClick={() => setShowContact((v) => !v)}
+                    >
+                      {showContact ? <PanelRightClose size={16} /> : <PanelRightOpen size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Row 2: Contextual Actions Toolbar (Never Collides with Identity) */}
+                <div className="inbox-header-row-2">
+                  <div className="inbox-toolbar-left">
+                    {/* Test Simulator Button */}
+                    <button
+                      className="outline-btn small inbox-simulate-btn"
+                      title="Simulate Inbound Buyer WhatsApp Event (Test Keyword Engine)"
+                      onClick={() => setSimulatorOpen(true)}
+                    >
+                      <Sparkles size={14} color="var(--ib-blue-600)" />
+                      <span>Simulate Inbound</span>
+                    </button>
+
+                    {/* Log Call / Outside Interaction */}
+                    <button
+                      className="outline-btn small inbox-log-btn"
+                      title="Log Outside Call or In-Person Interaction"
+                      aria-label="Log Outside Call or In-Person Interaction"
+                      onClick={() => setManualOpen((v) => !v)}
+                    >
+                      <Plus size={14} />
+                      <span>Log Call</span>
+                    </button>
+                  </div>
+
+                  <div className="inbox-toolbar-right">
+                    {detail.contact.whatsappConsentStatus && (
+                      <span
+                        className="inbox-consent-pill"
+                        title={`Recorded Consent: ${detail.contact.whatsappConsentStatus}`}
+                      >
+                        Consent: {detail.contact.whatsappConsentStatus}
+                      </span>
                     )}
-                  </button>
-
-                  {/* Test Simulator Button */}
-                  <button
-                    className="outline-btn small"
-                    title="Simulate Inbound Buyer WhatsApp Event (Test Keyword Engine)"
-                    onClick={() => setSimulatorOpen(true)}
-                  >
-                    <Sparkles size={14} color="var(--color-primary)" /> Simulate Inbound
-                  </button>
-
-                  {/* Log Call */}
-                  <button
-                    className="icon-btn"
-                    title="Log Outside Call or In-Person Interaction"
-                    aria-label="Log Outside Call or In-Person Interaction"
-                    onClick={() => setManualOpen((v) => !v)}
-                  >
-                    <Plus size={15} />
-                  </button>
-
-                  {/* Toggle Right Contact Drawer */}
-                  <button
-                    className="icon-btn"
-                    title={showContact ? 'Hide contact profile' : 'Show contact profile'}
-                    aria-label={showContact ? 'Hide contact profile' : 'Show contact profile'}
-                    onClick={() => setShowContact((v) => !v)}
-                  >
-                    {showContact ? <PanelRightClose size={15} /> : <PanelRightOpen size={15} />}
-                  </button>
+                  </div>
                 </div>
               </div>
 
               {/* Informational Mode & Takeover Banners */}
               {detail.conversation.automationStatus === 'PAUSED' && (
                 <div className="inbox-takeover-banner">
-                  <span>
-                    🛡️ <strong>Manual Control Active:</strong> Keyword auto-replies are paused for this conversation. You are in full manual control.
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldAlert size={15} />
+                    <strong>Manual Control Active:</strong> Keyword auto-replies are paused for this conversation. You are in full manual control.
                   </span>
-                  <button className="text-link" onClick={toggleTakeover} style={{ fontSize: '11.5px', color: '#92400e' }}>
+                  <button
+                    className="text-link"
+                    onClick={toggleTakeover}
+                    style={{ fontSize: '12px', color: 'var(--ib-amber-600)', fontWeight: 600 }}
+                  >
                     Resume Automation →
                   </button>
                 </div>
               )}
 
-              <div
-                style={{
-                  padding: '6px 16px',
-                  background: 'var(--color-surface-muted)',
-                  borderBottom: '1px solid var(--color-border-subtle)',
-                  fontSize: '11px',
-                  color: 'var(--color-text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <span>
-                  WhatsApp Cloud API Disconnected · Internal CRM simulation mode
-                </span>
-                <span>Audit Logged · Zero Meta Dispatch</span>
+              {/* Professional Spaced Mock Mode Information Banner */}
+              <div className="inbox-provider-banner">
+                <div className="inbox-banner-left">
+                  <span className="inbox-mock-tag">
+                    <Radio size={12} className="inbox-mock-pulse" /> Mock Mode
+                  </span>
+                  <span className="inbox-banner-text">
+                    WhatsApp Cloud API Disconnected · Internal CRM simulation mode
+                  </span>
+                </div>
+                <div className="inbox-banner-right">
+                  <span className="inbox-banner-tag">Audit Logged</span>
+                  <span className="inbox-banner-sep">·</span>
+                  <span className="inbox-banner-tag">No External Dispatch</span>
+                </div>
               </div>
 
               {/* Messages timeline */}
               <div className="inbox-message-scroll">
                 {messages.length === 0 ? (
-                  <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                    <MessageCircle size={28} style={{ margin: '0 auto 8px' }} />
-                    <strong style={{ display: 'block', fontSize: '14px', color: 'var(--color-text-primary)' }}>
-                      No messages in this conversation record
+                  <div className="inbox-empty-timeline">
+                    <div className="inbox-empty-icon-wrap">
+                      <MessageSquare size={24} />
+                    </div>
+                    <strong className="inbox-empty-title">
+                      No messages in this conversation yet.
                     </strong>
-                    <span style={{ fontSize: '12.5px' }}>
-                      Compose a draft below or click "Simulate Inbound" to test buyer keywords like BROCHURE, PRICE, or VISIT.
-                    </span>
+                    <p className="inbox-empty-desc">
+                      Use <strong>Simulate Inbound</strong> to test an incoming enquiry or compose a simulated reply below.
+                    </p>
                   </div>
                 ) : (
                   messages.map((m, i) => (
@@ -1004,13 +1186,15 @@ export function InboxPage() {
                         <div
                           style={{
                             alignSelf: 'center',
-                            padding: '3px 10px',
-                            background: 'var(--color-surface)',
-                            border: '1px solid var(--color-border)',
+                            padding: '3px 12px',
+                            background: '#FFFFFF',
+                            border: '1px solid var(--ib-slate-200)',
                             borderRadius: '9999px',
                             fontSize: '11px',
-                            color: 'var(--color-text-muted)',
-                            margin: '10px 0',
+                            fontWeight: 500,
+                            color: 'var(--ib-slate-500)',
+                            margin: '8px 0',
+                            boxShadow: '0 1px 2px rgba(11,18,32,0.04)',
                           }}
                         >
                           {dateLabel(m.occurredAt)}
@@ -1020,9 +1204,9 @@ export function InboxPage() {
                       {/* Internal Note vs Normal Message */}
                       {m.direction === 'internal' || m.messageSource === 'internal_note' ? (
                         <div className="inbox-note-bubble">
-                          <StickyNote size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                          <StickyNote size={13} style={{ display: 'inline', marginRight: '5px' }} />
                           <strong>Internal Note:</strong> {m.messageBody}
-                          <time style={{ display: 'block', fontSize: '10px', marginTop: '2px', opacity: 0.8 }}>
+                          <time style={{ display: 'block', fontSize: '10px', marginTop: '3px', opacity: 0.85 }}>
                             {when(m.occurredAt)}
                           </time>
                         </div>
@@ -1031,7 +1215,7 @@ export function InboxPage() {
                           {/* Campaign Traceability Chip */}
                           {(m.campaignName || m.campaignId) && (
                             <div className="inbox-campaign-chip">
-                              <Zap size={10} /> Campaign: {m.campaignName || 'Broadcast (Mock)'}
+                              <Zap size={11} /> Campaign: {m.campaignName || 'Broadcast (Mock)'}
                             </div>
                           )}
 
@@ -1066,31 +1250,51 @@ export function InboxPage() {
 
               {/* Draft Composer & Tools */}
               <div className="inbox-compose">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                {/* Suppression Alert for Opted-out recipients */}
+                {isSuppressedRecipient && (
+                  <div className="inbox-suppression-alert">
+                    <AlertTriangle size={18} color="var(--ib-rose-600)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <div>
+                      <strong style={{ display: 'block', color: 'var(--ib-rose-700)', fontWeight: 600 }}>
+                        Outbound Messaging Blocked
+                      </strong>
+                      <span>
+                        Contact has opted out via WhatsApp STOP simulation ({detail.contact.suppressionReason || 'WhatsApp STOP simulation (demo)'}). Outbound simulated messages are strictly prohibited. CRM notes and unsent drafts remain available.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="inbox-compose-header">
+                  <div className="inbox-compose-header-left">
+                    <span className="inbox-compose-label">
                       Composer
                     </span>
                     <button
+                      type="button"
                       className="outline-btn small"
                       onClick={() => setQrPickerOpen(true)}
-                      style={{ fontSize: '11px', height: '26px', padding: '0 8px' }}
+                      style={{
+                        fontSize: '11.5px',
+                        height: '28px',
+                        padding: '0 10px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        color: 'var(--ib-blue-600)',
+                        borderColor: 'var(--ib-blue-border)',
+                      }}
                     >
-                      <Zap size={12} color="var(--color-primary)" /> Quick Replies
+                      <Zap size={12} color="var(--ib-blue-600)" /> Quick Replies
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div className="inbox-compose-header-right">
                     <select
                       value={templateId}
                       onChange={(e) => setTemplateId(e.target.value)}
-                      style={{
-                        height: '26px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--color-border)',
-                        fontSize: '11.5px',
-                        maxWidth: '170px',
-                      }}
+                      className="inbox-template-select"
+                      aria-label="Insert template"
                     >
                       <option value="">Insert template…</option>
                       {templates.map((t) => (
@@ -1100,7 +1304,12 @@ export function InboxPage() {
                       ))}
                     </select>
                     {templateId && (
-                      <button className="outline-btn small" onClick={insertTemplate} style={{ height: '26px', padding: '0 8px' }}>
+                      <button
+                        type="button"
+                        className="outline-btn small"
+                        onClick={insertTemplate}
+                        style={{ height: '28px', padding: '0 10px', color: 'var(--ib-blue-600)' }}
+                      >
                         Insert
                       </button>
                     )}
@@ -1109,27 +1318,51 @@ export function InboxPage() {
 
                 <textarea
                   rows="3"
+                  className="inbox-compose-textarea"
                   value={draft}
                   onChange={(e) => {
                     draftValue.current = e.target.value;
                     setDraft(e.target.value);
                   }}
                   maxLength={10000}
-                  placeholder="Type a response or pick a quick reply (simulated mock send)…"
+                  placeholder={
+                    isSuppressedRecipient
+                      ? "Contact is opted out. You may save an internal CRM draft, but outbound sending is blocked."
+                      : "Type a response or pick a quick reply (simulated mock send)…"
+                  }
                 />
 
                 <div className="inbox-compose-footer">
-                  <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
+                  <span className="inbox-char-count">
                     {draft.length} characters · Draft & Mock Send Only
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button className="outline-btn small" onClick={copy} disabled={!draft}>
+                  <div className="inbox-compose-actions">
+                    <button type="button" className="outline-btn small" onClick={copy} disabled={!draft} style={{ height: '32px' }}>
                       <Copy size={13} /> Copy
                     </button>
-                    <button className="outline-btn small" onClick={save} disabled={saving}>
+                    <button type="button" className="outline-btn small" onClick={save} disabled={saving} style={{ height: '32px' }}>
                       Save Draft
                     </button>
-                    <button className="primary-btn small" onClick={sendMock} disabled={!draft.trim()} title="Send simulated mock reply (Meta WhatsApp API disconnected)">
+                    <button
+                      type="button"
+                      className="primary-btn small"
+                      onClick={sendMock}
+                      disabled={!draft.trim() || isSuppressedRecipient}
+                      title={
+                        isSuppressedRecipient
+                          ? 'Outbound sending blocked: Contact has opted out.'
+                          : !draft.trim()
+                          ? 'Type a message to send mock reply'
+                          : 'Send simulated mock reply (WhatsApp API disconnected)'
+                      }
+                      style={{
+                        height: '32px',
+                        padding: '0 12px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
                       <Send size={13} /> Send Mock Reply
                     </button>
                   </div>
@@ -1150,23 +1383,24 @@ export function InboxPage() {
             >
               <div
                 style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: 'var(--color-surface-muted)',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '14px',
+                  background: 'var(--ib-blue-50)',
                   display: 'grid',
                   placeItems: 'center',
-                  color: 'var(--color-text-muted)',
-                  marginBottom: '12px',
+                  color: 'var(--ib-blue-600)',
+                  marginBottom: '14px',
+                  border: '1px solid var(--ib-blue-border)',
                 }}
               >
-                <MessageCircle size={26} />
+                <MessageCircle size={28} />
               </div>
-              <strong style={{ fontSize: '16px', color: 'var(--color-text-primary)' }}>
+              <strong style={{ fontSize: '16px', color: 'var(--ib-slate-900)' }}>
                 Select a conversation
               </strong>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '320px', margin: '4px 0 0' }}>
-                Choose a client from the left list to review property messages, draft quick replies, or simulate buyer events.
+              <p style={{ fontSize: '13px', color: 'var(--ib-slate-500)', maxWidth: '340px', margin: '6px 0 0', lineHeight: 1.45 }}>
+                Choose a client from the left list to review customer messages, draft quick replies, or test mock automation.
               </p>
             </div>
           )}
@@ -1176,67 +1410,92 @@ export function InboxPage() {
             <aside className="inbox-contact-panel">
               <div className="inbox-contact-heading">
                 <h3>Contact & Enquiry</h3>
-                <Link to={`/contacts?contact=${detail.contact._id}`} className="text-link" style={{ fontSize: '12px' }}>
-                  Full Profile →
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Link
+                    to={`/contacts?contact=${detail.contact._id}`}
+                    className="text-link"
+                    style={{ fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                  >
+                    Full Profile <ExternalLink size={11} />
+                  </Link>
+                  <button
+                    type="button"
+                    className="icon-btn inbox-contact-close-btn"
+                    onClick={() => setShowContact(false)}
+                    aria-label="Close Contact Panel"
+                    title="Close"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
               </div>
 
               {/* Profile Card */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  padding: '12px',
-                  background: 'var(--color-surface-muted)',
-                  borderRadius: '10px',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
+              <div className="inbox-contact-card">
                 <div>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Name</small>
-                  <strong style={{ fontSize: '13.5px' }}>{detail.contact.fullName}</strong>
+                  <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Name</small>
+                  <strong style={{ fontSize: '13.5px', color: 'var(--ib-slate-900)' }}>{detail.contact.fullName}</strong>
                 </div>
                 <div>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>WhatsApp Number</small>
-                  <span style={{ fontSize: '13px' }}>{detail.contact.phoneNumber}</span>
+                  <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>WhatsApp Number</small>
+                  <span style={{ fontSize: '13px', color: 'var(--ib-slate-800)' }}>{detail.contact.phoneNumber}</span>
                 </div>
                 <div>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>City / Location</small>
-                  <span style={{ fontSize: '13px' }}>{detail.contact.location || '—'}</span>
+                  <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>City / Location</small>
+                  <span style={{ fontSize: '13px', color: 'var(--ib-slate-800)' }}>{detail.contact.location || '—'}</span>
                 </div>
                 <div>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Property Interest</small>
-                  <span style={{ fontSize: '13px' }}>
-                    {detail.contact.interestedService || detail.contact.businessCategory || 'General Inquiry'}
+                  <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {industryConfig.terminology.interestFieldLabel}
+                  </small>
+                  <span style={{ fontSize: '13px', color: 'var(--ib-slate-800)' }}>
+                    {detail.contact.productServiceInterest || detail.contact.industryData?.productServiceInterest || detail.contact.industryData?.serviceInterest || detail.contact.industryData?.serviceCategory || detail.contact.industryData?.foodInterest || detail.contact.industryData?.destination || detail.contact.interestedPropertyType || detail.contact.interestedService || detail.contact.industryData?.membershipInterest || detail.contact.industryData?.membershipPlan || detail.contact.industryData?.vehicleModel || detail.contact.businessCategory || 'Not recorded'}
                   </span>
                 </div>
+                {industryConfig.contactFields.filter(field => !['fullName', 'phoneNumber', 'email', 'city', 'leadSource', 'leadStatus', 'whatsappConsentStatus', 'notes'].includes(field.key)).map(field => {
+                  const value = detail.contact.industryData?.[field.key] ?? detail.contact[field.key];
+                  if (value === undefined || value === null || value === '') return null;
+                  return <div key={field.key}>
+                    <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block' }}>{field.label}</small>
+                    <span style={{ fontSize: '13px', color: 'var(--ib-slate-800)' }}>{Array.isArray(value) ? value.join(', ') : field.type === 'date' ? new Date(value).toLocaleDateString() : String(value)}</span>
+                  </div>;
+                })}
                 <div>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>Consent Status</small>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                  <small style={{ fontSize: '10.5px', color: 'var(--ib-slate-400)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Consent Status</small>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
                     <span
                       className="status-badge"
                       style={{
-                        fontSize: '10.5px',
+                        fontSize: '11px',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
                         backgroundColor:
                           detail.contact.whatsappConsentStatus === 'Opted In'
-                            ? '#d1fae5'
+                            ? 'var(--ib-emerald-50)'
                             : detail.contact.whatsappConsentStatus === 'Opted Out'
-                            ? '#fee2e2'
-                            : '#fef3c7',
+                            ? 'var(--ib-rose-50)'
+                            : 'var(--ib-amber-50)',
                         color:
                           detail.contact.whatsappConsentStatus === 'Opted In'
-                            ? '#065f46'
+                            ? 'var(--ib-emerald-700)'
                             : detail.contact.whatsappConsentStatus === 'Opted Out'
-                            ? '#991b1b'
-                            : '#92400e',
+                            ? 'var(--ib-rose-700)'
+                            : 'var(--ib-amber-600)',
+                        border: `1px solid ${
+                          detail.contact.whatsappConsentStatus === 'Opted In'
+                            ? 'var(--ib-emerald-border)'
+                            : detail.contact.whatsappConsentStatus === 'Opted Out'
+                            ? 'var(--ib-rose-border)'
+                            : 'var(--ib-amber-border)'
+                        }`,
+                        fontWeight: 600,
                       }}
                     >
                       {detail.contact.whatsappConsentStatus || 'Unknown'}
                     </span>
                     {detail.contact.isSuppressed && (
-                      <span style={{ fontSize: '10px', color: 'var(--color-danger)', fontWeight: 600 }}>
-                        (Suppressed: {detail.contact.suppressionReason || 'DNC'})
+                      <span style={{ fontSize: '11px', color: 'var(--ib-rose-600)', fontWeight: 600 }}>
+                        (Suppressed: {detail.contact.suppressionReason || 'WhatsApp STOP simulation (demo)'})
                       </span>
                     )}
                   </div>
@@ -1246,7 +1505,7 @@ export function InboxPage() {
               {/* Campaign History Traceability */}
               {detail.campaignHistory?.length > 0 && (
                 <div>
-                  <strong style={{ fontSize: '13px', display: 'block', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '13px', display: 'block', marginBottom: '8px', color: 'var(--ib-slate-800)' }}>
                     Campaign History ({detail.campaignHistory.length})
                   </strong>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1254,16 +1513,16 @@ export function InboxPage() {
                       <div
                         key={idx}
                         style={{
-                          padding: '8px 10px',
+                          padding: '8px 12px',
                           background: '#fff',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '6px',
-                          fontSize: '11.5px',
+                          border: '1px solid var(--ib-slate-200)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
                         }}
                       >
-                        <div style={{ fontWeight: 600 }}>{item.campaign.name}</div>
-                        <div style={{ color: 'var(--color-text-muted)', fontSize: '10.5px' }}>
-                          Status: {item.job?.status || 'Scheduled'} · Mock Mode
+                        <div style={{ fontWeight: 600, color: 'var(--ib-slate-900)' }}>{item.campaign.name}</div>
+                        <div style={{ color: 'var(--ib-slate-500)', fontSize: '11px', marginTop: '2px' }}>
+                          Status: <span style={{ fontWeight: 500 }}>{item.job?.status || 'Scheduled'}</span> · Mock Mode
                         </div>
                       </div>
                     ))}
@@ -1274,7 +1533,7 @@ export function InboxPage() {
               {/* Follow-up tasks */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ fontSize: '13px' }}>Follow-ups ({tasks.length})</strong>
+                  <strong style={{ fontSize: '13px', color: 'var(--ib-slate-800)' }}>Follow-ups ({tasks.length})</strong>
                   <button className="text-link" onClick={() => setShowFollowup((v) => !v)} style={{ fontSize: '11.5px' }}>
                     + New
                   </button>
@@ -1286,22 +1545,23 @@ export function InboxPage() {
                       flexDirection: 'column',
                       gap: '6px',
                       padding: '10px',
-                      background: 'var(--color-surface-muted)',
+                      background: 'var(--ib-slate-50)',
                       borderRadius: '8px',
                       marginBottom: '10px',
+                      border: '1px solid var(--ib-slate-200)',
                     }}
                   >
                     <input
                       value={taskTitle}
                       onChange={(e) => setTaskTitle(e.target.value)}
                       placeholder="e.g. Call back regarding pricing"
-                      style={{ height: '30px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '12px', padding: '0 8px' }}
+                      style={{ height: '30px', borderRadius: '6px', border: '1px solid var(--ib-slate-200)', fontSize: '12px', padding: '0 8px' }}
                     />
                     <input
                       type="datetime-local"
                       value={taskDue}
                       onChange={(e) => setTaskDue(e.target.value)}
-                      style={{ height: '30px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '12px', padding: '0 8px' }}
+                      style={{ height: '30px', borderRadius: '6px', border: '1px solid var(--ib-slate-200)', fontSize: '12px', padding: '0 8px' }}
                     />
                     <button className="primary-btn small" onClick={addTask} style={{ height: '30px' }}>
                       Schedule Task
@@ -1319,46 +1579,76 @@ export function InboxPage() {
                           justifyContent: 'space-between',
                           padding: '8px 10px',
                           background: '#fff',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: '6px',
+                          border: '1px solid var(--ib-slate-200)',
+                          borderRadius: '8px',
                           fontSize: '12px',
                         }}
                       >
                         <div>
-                          <b>{t.title}</b>
-                          <div style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>{when(t.dueAt)}</div>
+                          <b style={{ color: 'var(--ib-slate-800)' }}>{t.title}</b>
+                          <div style={{ color: 'var(--ib-slate-400)', fontSize: '10.5px' }}>{when(t.dueAt)}</div>
                         </div>
-                        <span className="status-badge" style={{ fontSize: '10.5px' }}>
+                        <span
+                          className="status-badge"
+                          style={{
+                            fontSize: '10.5px',
+                            backgroundColor: t.status === 'Completed' ? 'var(--ib-emerald-50)' : 'var(--ib-slate-100)',
+                            color: t.status === 'Completed' ? 'var(--ib-emerald-700)' : 'var(--ib-slate-600)',
+                          }}
+                        >
                           {t.status}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>No follow-ups scheduled</span>
+                  <span style={{ fontSize: '12px', color: 'var(--ib-slate-400)' }}>No follow-ups scheduled</span>
                 )}
               </div>
 
               {/* Internal Notes Section */}
               <div>
-                <strong style={{ fontSize: '13px', display: 'block', marginBottom: '8px' }}>Internal Notes</strong>
+                <strong style={{ fontSize: '13px', display: 'block', marginBottom: '8px', color: 'var(--ib-slate-800)' }}>
+                  Internal Notes
+                </strong>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <textarea
                     rows="2"
                     value={noteText}
                     onChange={(e) => setNoteText(e.target.value)}
-                    placeholder="Add a private note about buyer requirements…"
-                    style={{ border: '1px solid var(--color-border)', borderRadius: '6px', padding: '8px', fontSize: '12px' }}
+                    placeholder="Add a private note about client requirements…"
+                    style={{
+                      border: '1px solid var(--ib-slate-200)',
+                      borderRadius: '6px',
+                      padding: '8px',
+                      fontSize: '12px',
+                      color: 'var(--ib-slate-800)',
+                      background: '#fff',
+                    }}
                   />
-                  <button className="outline-btn small" onClick={addNote} disabled={!noteText.trim()} style={{ alignSelf: 'flex-start' }}>
+                  <button
+                    className="outline-btn small"
+                    onClick={addNote}
+                    disabled={!noteText.trim()}
+                    style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
                     <StickyNote size={13} /> Save note
                   </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
                   {notes.map((n) => (
-                    <div key={n._id} style={{ padding: '8px 10px', background: '#fff', border: '1px solid var(--color-border)', borderRadius: '6px', fontSize: '12px' }}>
-                      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{n.content}</p>
-                      <time style={{ fontSize: '10px', color: 'var(--color-text-muted)', display: 'block', marginTop: '4px' }}>
+                    <div
+                      key={n._id}
+                      style={{
+                        padding: '8px 10px',
+                        background: '#fff',
+                        border: '1px solid var(--ib-slate-200)',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <p style={{ margin: 0, whiteSpace: 'pre-wrap', color: 'var(--ib-slate-700)' }}>{n.content}</p>
+                      <time style={{ fontSize: '10px', color: 'var(--ib-slate-400)', display: 'block', marginTop: '4px' }}>
                         {when(n.createdAt)}
                       </time>
                     </div>
@@ -1371,14 +1661,27 @@ export function InboxPage() {
       )}
 
       {/* TAB 2: AUTO-REPLY RULES */}
+      {activeTab === 'rules' && rulePresets.length > 0 && (
+        <details className="panel" style={{ padding: '16px', marginBottom: '14px' }}>
+          <summary>Review industry starter rules ({rulePresets.length})</summary>
+          <p>Definitions are unsaved. Existing saved content and enabled states are preserved.</p>
+          {rulePresets.map(p => <p key={p.key || p.presetId}><strong>{p.title || p.displayName}</strong><br />{p.text || p.suggestedResponse}</p>)}
+          <button className="outline-btn small" disabled={installingStarters} onClick={async () => {
+            setInstallingStarters(true);
+            try { await api.installStarterRules(); await loadRules(); toast.success('Starter rules saved disabled.'); }
+            catch (e) { toast.error(err(e)); }
+            finally { setInstallingStarters(false); }
+          }}>Save missing starter rules</button>
+        </details>
+      )}
       {activeTab === 'rules' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Top Bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Keyword Automation Rules</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '2px 0 0' }}>
-                Deterministic keyword auto-replies for real estate buyer inquiries with STOP opt-out compliance.
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ib-slate-900)' }}>Keyword Automation Rules</h2>
+              <p style={{ fontSize: '13px', color: 'var(--ib-slate-500)', margin: '2px 0 0' }}>
+                Deterministic keyword auto-replies for client inquiries with STOP opt-out compliance.
               </p>
             </div>
             <button
@@ -1392,35 +1695,78 @@ export function InboxPage() {
                 setRulePriority(10);
                 setRuleModalOpen(true);
               }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px', padding: '0 14px' }}
             >
               <Plus size={14} /> Create Keyword Rule
             </button>
           </div>
 
+          {/* Rules Summary Strip */}
+          <div className="inbox-rules-summary-strip">
+            <div className="inbox-rules-summary-card">
+              <span className="inbox-rules-summary-label">Total Rules</span>
+              <span className="inbox-rules-summary-val">{rules.length}</span>
+            </div>
+            <div className="inbox-rules-summary-card">
+              <span className="inbox-rules-summary-label">Active Rules</span>
+              <span className="inbox-rules-summary-val" style={{ color: 'var(--ib-blue-600)' }}>
+                {activeRulesCount}
+              </span>
+            </div>
+            <div className="inbox-rules-summary-card">
+              <span className="inbox-rules-summary-label">Disabled Rules</span>
+              <span className="inbox-rules-summary-val" style={{ color: 'var(--ib-slate-400)' }}>
+                {disabledRulesCount}
+              </span>
+            </div>
+            <div className="inbox-rules-summary-card">
+              <span className="inbox-rules-summary-label">Historical Executions</span>
+              <span className="inbox-rules-summary-val">{totalExecutionsCount}</span>
+            </div>
+          </div>
+
           {/* Interactive Rule Match Tester */}
           <div className="inbox-simulator-box">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={16} color="var(--color-primary)" />
-              <strong style={{ fontSize: '14px' }}>Interactive Rule Match Tester</strong>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} color="var(--ib-blue-600)" />
+                <strong style={{ fontSize: '14px', color: 'var(--ib-slate-900)' }}>Interactive Rule Match Tester</strong>
+              </div>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ib-slate-400)', marginRight: '2px' }}>Test sample:</span>
+                {rulePresets.slice(0, 3).map(p => (
+                  <button key={p.presetId} className="inbox-tester-preset-btn" onClick={() => setTestQueryText(p.triggerKeywords[0])}>{p.triggerKeywords[0]}</button>
+                ))}
+                <button className="inbox-tester-preset-btn stop" onClick={() => setTestQueryText('STOP')}>
+                  STOP (Opt-out)
+                </button>
+              </div>
             </div>
-            <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', margin: 0 }}>
-              Test how the rule engine will evaluate incoming WhatsApp messages across your active rules.
+
+            <p style={{ fontSize: '12.5px', color: 'var(--ib-slate-500)', margin: 0 }}>
+              Test how the rule engine will evaluate incoming customer messages against your rule set without sending live messages.
             </p>
+
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <input
                 value={testQueryText}
                 onChange={(e) => setTestQueryText(e.target.value)}
-                placeholder="Enter sample message text (e.g. 'Can you send the BROCHURE?' or 'STOP')…"
+                placeholder="Enter a message or STOP…"
                 style={{
                   flex: 1,
-                  height: '36px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--color-border)',
+                  height: '38px',
+                  borderRadius: '8px',
+                  border: '1px solid var(--ib-slate-200)',
                   padding: '0 12px',
                   fontSize: '13px',
+                  color: 'var(--ib-slate-900)',
                 }}
               />
-              <button className="primary-btn small" onClick={handleTestMatchAll} style={{ height: '36px' }}>
+              <button
+                className="primary-btn small"
+                onClick={handleTestMatchAll}
+                style={{ height: '38px', padding: '0 16px' }}
+              >
                 Test Match
               </button>
             </div>
@@ -1428,30 +1774,50 @@ export function InboxPage() {
             {testMatchResult && (
               <div
                 style={{
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                  backgroundColor: testMatchResult.matched ? '#f0fdf4' : '#fef2f2',
-                  border: `1px solid ${testMatchResult.matched ? '#bbf7d0' : '#fecaca'}`,
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  backgroundColor: testMatchResult.isRuleDisabled
+                    ? 'var(--ib-amber-50)'
+                    : testMatchResult.matched
+                    ? 'var(--ib-emerald-50)'
+                    : 'var(--ib-rose-50)',
+                  border: `1px solid ${
+                    testMatchResult.isRuleDisabled
+                      ? 'var(--ib-amber-border)'
+                      : testMatchResult.matched
+                      ? 'var(--ib-emerald-border)'
+                      : 'var(--ib-rose-border)'
+                  }`,
                   fontSize: '12.5px',
+                  lineHeight: 1.5,
                 }}
               >
-                {testMatchResult.matched ? (
+                {testMatchResult.isRuleDisabled ? (
                   <div>
-                    <strong style={{ color: '#166534' }}>
-                      ✓ Matched Rule: {testMatchResult.matchedRule?.name}
+                    <strong style={{ color: 'var(--ib-amber-600)', display: 'block' }}>
+                      ⚠️ Keyword matches rule "{testMatchResult.matchedRule?.name}", but this rule is currently DISABLED.
                     </strong>
-                    <div style={{ marginTop: '4px', color: '#14532d' }}>
-                      Trigger: <code>{testMatchResult.matchedRule?.matchedKeyword}</code> · Priority: {testMatchResult.matchedRule?.priority} · Action: <code>{testMatchResult.matchedRule?.actionType}</code>
+                    <div style={{ marginTop: '4px', color: 'var(--ib-slate-700)' }}>
+                      In live message processing, this rule will NOT execute. Inbound message would remain in the queue for manual operator review.
+                    </div>
+                  </div>
+                ) : testMatchResult.matched ? (
+                  <div>
+                    <strong style={{ color: 'var(--ib-emerald-700)', display: 'block' }}>
+                      ✓ Matched Active Rule: {testMatchResult.matchedRule?.name}
+                    </strong>
+                    <div style={{ marginTop: '4px', color: 'var(--ib-slate-700)' }}>
+                      Trigger: <code className="inbox-keyword-chip">{testMatchResult.matchedRule?.matchedKeyword}</code> · Priority: {testMatchResult.matchedRule?.priority} · Action: <code>{testMatchResult.matchedRule?.actionType}</code>
                     </div>
                     {testMatchResult.matchedRule?.responseMessage && (
-                      <div style={{ marginTop: '6px', fontStyle: 'italic', color: '#374151' }}>
+                      <div className="inbox-rule-response-preview" style={{ marginTop: '8px' }}>
                         "{testMatchResult.matchedRule?.responseMessage}"
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div style={{ color: '#991b1b' }}>
-                    ✕ No keyword rule matched this message. Conversation will remain for manual review.
+                  <div style={{ color: 'var(--ib-rose-700)' }}>
+                    ✕ No keyword rule matched this message. Inbound event would require manual operator review.
                   </div>
                 )}
               </div>
@@ -1460,151 +1826,187 @@ export function InboxPage() {
 
           {/* Rules Grid */}
           <div className="inbox-rule-grid">
-            {rules.map((rule) => (
-              <div key={rule._id} className={`inbox-rule-card ${!rule.enabled ? 'disabled' : ''}`}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ fontSize: '15px', color: 'var(--color-text-primary)' }}>
-                      {rule.name}
-                    </strong>
-                    <span
-                      className="status-badge"
-                      style={{
-                        fontSize: '10.5px',
-                        backgroundColor: rule.priority === 1 ? '#fee2e2' : 'var(--color-surface-subtle)',
-                        color: rule.priority === 1 ? '#991b1b' : 'var(--color-text-muted)',
-                      }}
-                    >
-                      Priority {rule.priority}
-                    </span>
+            {rules.map((rule) => {
+              const isProtectedStop = rule.isProtected || rule.actionType === 'RECORD_OPT_OUT';
+
+              return (
+                <div
+                  key={rule._id}
+                  className={`inbox-rule-card ${!rule.enabled ? 'disabled' : ''} ${
+                    isProtectedStop ? 'protected-rule' : ''
+                  }`}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <strong style={{ fontSize: '15px', color: 'var(--ib-slate-900)' }}>
+                        {rule.name}
+                      </strong>
+                      <span
+                        className="status-badge"
+                        style={{
+                          fontSize: '10.5px',
+                          backgroundColor: isProtectedStop ? 'var(--ib-amber-50)' : 'var(--ib-slate-100)',
+                          color: isProtectedStop ? 'var(--ib-amber-600)' : 'var(--ib-slate-600)',
+                          border: `1px solid ${isProtectedStop ? 'var(--ib-amber-border)' : 'var(--ib-slate-200)'}`,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Priority {rule.priority}
+                      </span>
+                      {isProtectedStop && (
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            background: 'var(--ib-rose-50)',
+                            color: 'var(--ib-rose-600)',
+                            border: '1px solid var(--ib-rose-border)',
+                            fontWeight: 600,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px',
+                          }}
+                        >
+                          <Lock size={10} /> Protected Compliance
+                        </span>
+                      )}
+                    </div>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: isProtectedStop ? 'not-allowed' : 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={rule.enabled}
+                        disabled={isProtectedStop}
+                        onChange={async (e) => {
+                          if (isProtectedStop) return;
+                          if (e.target.checked) await api.activateAutoReplyRule(rule._id);
+                          else await api.deactivateAutoReplyRule(rule._id);
+                          loadRules();
+                          toast.success(`${rule.name} ${e.target.checked ? 'activated' : 'deactivated'}`);
+                        }}
+                      />
+                      <span style={{ fontWeight: 600, color: rule.enabled ? 'var(--ib-blue-600)' : 'var(--ib-slate-400)' }}>
+                        {rule.enabled ? 'Active' : 'Disabled'}
+                      </span>
+                    </label>
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={rule.enabled}
-                      onChange={async (e) => {
-                        if (e.target.checked) await api.activateAutoReplyRule(rule._id);
-                        else await api.deactivateAutoReplyRule(rule._id);
-                        loadRules();
-                        toast.success(`${rule.name} ${e.target.checked ? 'activated' : 'deactivated'}`);
-                      }}
-                    />
-                    {rule.enabled ? 'Active' : 'Disabled'}
-                  </label>
-                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Trigger Keyword:</span>
-                  <code style={{ fontSize: '12px', padding: '2px 6px', background: 'var(--color-surface-muted)', borderRadius: '4px', fontWeight: 600 }}>
-                    {rule.triggerKeyword}
-                  </code>
-                  {rule.synonyms?.map((s) => (
-                    <code key={s} style={{ fontSize: '11px', padding: '2px 5px', background: 'var(--color-surface-subtle)', borderRadius: '4px' }}>
-                      {s}
-                    </code>
-                  ))}
-                </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--ib-slate-400)' }}>Keywords:</span>
+                    <span className="inbox-keyword-chip">
+                      {rule.triggerKeyword}
+                    </span>
+                    {rule.synonyms?.map((s) => (
+                      <span key={s} className="inbox-keyword-chip">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
 
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  Action: <strong>{rule.actionType}</strong> · Match: <strong>{rule.matchType}</strong>
-                </div>
+                  <div style={{ fontSize: '12px', color: 'var(--ib-slate-600)' }}>
+                    Action: <strong>{rule.actionType}</strong> · Match: <strong>{rule.matchType}</strong>
+                  </div>
 
-                {rule.responseMessage && (
+                  {rule.responseMessage && (
+                    <div className="inbox-rule-response-preview">
+                      "{rule.responseMessage}"
+                    </div>
+                  )}
+
                   <div
                     style={{
-                      padding: '10px',
-                      background: 'var(--color-surface-muted)',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      lineHeight: 1.45,
-                      border: '1px solid var(--color-border-subtle)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginTop: 'auto',
+                      paddingTop: '10px',
+                      borderTop: '1px solid var(--ib-slate-100)',
+                      fontSize: '11.5px',
+                      color: 'var(--ib-slate-500)',
                     }}
                   >
-                    "{rule.responseMessage}"
-                  </div>
-                )}
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 'auto',
-                    paddingTop: '8px',
-                    borderTop: '1px solid var(--color-border-subtle)',
-                    fontSize: '11px',
-                    color: 'var(--color-text-muted)',
-                  }}
-                >
-                  <span>Executed {rule.executionCount || 0} times</span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      className="icon-btn small"
-                      onClick={() => {
-                        setRuleEditing(rule);
-                        setRuleName(rule.name);
-                        setRuleKeyword(rule.triggerKeyword);
-                        setRuleSynonyms(rule.synonyms?.join(', ') || '');
-                        setRuleMatchType(rule.matchType);
-                        setRuleActionType(rule.actionType);
-                        setRuleResponse(rule.responseMessage || '');
-                        setRulePriority(rule.priority);
-                        setRuleModalOpen(true);
-                      }}
-                      title="Edit rule"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    {rule.priority !== 1 && (
+                    <span>Executed {rule.executionCount || 0} times</span>
+                    <div style={{ display: 'flex', gap: '6px' }}>
                       <button
                         className="icon-btn small"
-                        onClick={async () => {
-                          if (confirm(`Archive ${rule.name}?`)) {
-                            await api.deleteAutoReplyRule(rule._id);
-                            loadRules();
-                            toast.success('Rule archived');
-                          }
+                        onClick={() => {
+                          setRuleEditing(rule);
+                          setRuleName(rule.name);
+                          setRuleKeyword(rule.triggerKeyword);
+                          setRuleSynonyms(rule.synonyms?.join(', ') || '');
+                          setRuleMatchType(rule.matchType);
+                          setRuleActionType(rule.actionType);
+                          setRuleResponse(rule.responseMessage || '');
+                          setRulePriority(rule.priority);
+                          setRuleModalOpen(true);
                         }}
-                        title="Delete rule"
+                        title="Edit rule"
                       >
-                        <Trash2 size={13} />
+                        <Edit2 size={13} />
                       </button>
-                    )}
+                      {!isProtectedStop && (
+                        <button
+                          className="icon-btn small"
+                          onClick={async () => {
+                            if (confirm(`Archive ${rule.name}?`)) {
+                              await api.deleteAutoReplyRule(rule._id);
+                              loadRules();
+                              toast.success('Rule archived');
+                            }
+                          }}
+                          title="Delete rule"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Recent Execution History Table */}
           {ruleHistory.length > 0 && (
-            <div style={{ marginTop: '16px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '10px' }}>
+            <div style={{ marginTop: '12px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '10px', color: 'var(--ib-slate-900)' }}>
                 Recent Auto-reply Audit History
               </h3>
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
+              <div style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                   <thead>
-                    <tr style={{ background: 'var(--color-surface-muted)', borderBottom: '1px solid var(--color-border)' }}>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Rule</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Trigger Keyword</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Action Taken</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Mode</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Status</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left' }}>Timestamp</th>
+                    <tr style={{ background: 'var(--ib-slate-50)', borderBottom: '1px solid var(--ib-slate-200)' }}>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Rule</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Trigger Keyword</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Action Taken</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Mode</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Status</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left', color: 'var(--ib-slate-700)', fontWeight: 600 }}>Timestamp</th>
                     </tr>
                   </thead>
                   <tbody>
                     {ruleHistory.slice(0, 10).map((h) => (
-                      <tr key={h._id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        <td style={{ padding: '8px 12px', fontWeight: 600 }}>{h.ruleName || 'Auto Rule'}</td>
-                        <td style={{ padding: '8px 12px' }}><code>{h.matchedKeyword || '—'}</code></td>
-                        <td style={{ padding: '8px 12px' }}>{h.actionType}</td>
-                        <td style={{ padding: '8px 12px' }}>{h.executionMode}</td>
-                        <td style={{ padding: '8px 12px' }}>
-                          <span className="status-badge" style={{ fontSize: '10px' }}>{h.status}</span>
+                      <tr key={h._id} style={{ borderBottom: '1px solid var(--ib-slate-100)' }}>
+                        <td style={{ padding: '9px 14px', fontWeight: 600, color: 'var(--ib-slate-800)' }}>{h.ruleName || 'Auto Rule'}</td>
+                        <td style={{ padding: '9px 14px' }}>
+                          <code className="inbox-keyword-chip">{h.matchedKeyword || '—'}</code>
                         </td>
-                        <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>{when(h.createdAt)}</td>
+                        <td style={{ padding: '9px 14px', color: 'var(--ib-slate-700)' }}>{h.actionType}</td>
+                        <td style={{ padding: '9px 14px', color: 'var(--ib-slate-600)' }}>{h.executionMode}</td>
+                        <td style={{ padding: '9px 14px' }}>
+                          <span
+                            className="status-badge"
+                            style={{
+                              fontSize: '10.5px',
+                              backgroundColor: h.status === 'SUCCESS' ? 'var(--ib-emerald-50)' : 'var(--ib-slate-100)',
+                              color: h.status === 'SUCCESS' ? 'var(--ib-emerald-700)' : 'var(--ib-slate-600)',
+                            }}
+                          >
+                            {h.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '9px 14px', color: 'var(--ib-slate-400)' }}>{when(h.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1615,15 +2017,28 @@ export function InboxPage() {
         </div>
       )}
 
+      {activeTab === 'quickreplies' && quickReplyPresets.length > 0 && (
+        <details className="panel" style={{ padding: '16px', marginBottom: '14px' }}>
+          <summary>Review industry starter replies ({quickReplyPresets.length})</summary>
+          <p>Definitions are unsaved. Existing saved content and enabled states are preserved.</p>
+          {quickReplyPresets.map(p => <p key={p.key || p.presetId}><strong>{p.title || p.displayName}</strong><br />{p.text || p.suggestedResponse}</p>)}
+          <button className="outline-btn small" disabled={installingStarters} onClick={async () => {
+            setInstallingStarters(true);
+            try { await api.installStarterQuickReplies(); await loadQuickReplies(); toast.success('Starter replies saved.'); }
+            catch (e) { toast.error(err(e)); }
+            finally { setInstallingStarters(false); }
+          }}>Save missing starter replies</button>
+        </details>
+      )}
       {/* TAB 3: QUICK REPLIES */}
       {activeTab === 'quickreplies' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Top Bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Quick Reply Library</h2>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '2px 0 0' }}>
-                Reusable text snippets for property inquiries with live CRM token interpolation.
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ib-slate-900)' }}>Quick Reply Library</h2>
+              <p style={{ fontSize: '13px', color: 'var(--ib-slate-500)', margin: '2px 0 0' }}>
+                Save and reuse frequently sent responses with live variable token interpolation.
               </p>
             </div>
             <button
@@ -1636,27 +2051,40 @@ export function InboxPage() {
                 setQrDescription('');
                 setQuickReplyModalOpen(true);
               }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px', padding: '0 14px' }}
             >
               <Plus size={14} /> New Quick Reply
             </button>
           </div>
 
-          {/* Filters & Search */}
+          {/* Filters & Search Toolbar */}
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div className="inbox-search" style={{ width: '280px', padding: '0', border: 'none' }}>
+            <div className="inbox-search" style={{ width: '280px', padding: '0', border: 'none', background: 'transparent' }}>
               <Search size={14} />
               <input
                 placeholder="Search quick replies…"
                 value={quickReplySearch}
                 onChange={(e) => setQuickReplySearch(e.target.value)}
               />
+              {quickReplySearch && (
+                <button
+                  className="icon-btn small"
+                  onClick={() => setQuickReplySearch('')}
+                  style={{ position: 'absolute', right: '10px' }}
+                  title="Clear search"
+                >
+                  <X size={13} />
+                </button>
+              )}
             </div>
-            <div className="inbox-filter-tabs" style={{ borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-              {['all', 'Brochure', 'Pricing', 'Site Visit', 'Location', 'General'].map((cat) => (
+
+            <div className="inbox-filter-tabs" style={{ borderRadius: '8px', border: '1px solid var(--ib-slate-200)', background: '#fff' }}>
+              {qrCategories.map((cat) => (
                 <button
                   key={cat}
                   className={quickReplyCategory === cat ? 'active' : ''}
                   onClick={() => setQuickReplyCategory(cat)}
+                  style={{ padding: '5px 12px' }}
                 >
                   {cat === 'all' ? 'All' : cat}
                 </button>
@@ -1666,122 +2094,146 @@ export function InboxPage() {
 
           {/* Quick Replies Cards Grid */}
           <div className="inbox-quick-reply-grid">
-            {quickReplies.map((qr) => (
-              <div key={qr._id} className="inbox-quick-reply-card">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong style={{ fontSize: '14.5px', color: 'var(--color-text-primary)' }}>
-                    {qr.name}
-                  </strong>
-                  <span className="status-badge" style={{ fontSize: '10.5px' }}>
-                    {qr.category}
-                  </span>
-                </div>
+            {quickReplies.map((qr) => {
+              const usedVars = extractUsedVariables(qr.messageText);
+              const isExpanded = !!expandedQr[qr._id];
 
-                {qr.description && (
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>
-                    {qr.description}
-                  </p>
-                )}
-
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    background: 'var(--color-surface-muted)',
-                    borderRadius: '8px',
-                    fontSize: '12.5px',
-                    lineHeight: 1.45,
-                    border: '1px solid var(--color-border-subtle)',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
-                  {qr.messageText}
-                </div>
-
-                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                  {(qr.supportedVariables || ['name', 'project', 'city']).map((v) => (
+              return (
+                <div key={qr._id} className="inbox-quick-reply-card">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--ib-slate-900)' }}>
+                      {qr.name}
+                    </strong>
                     <span
-                      key={v}
+                      className="status-badge"
                       style={{
-                        fontSize: '10.5px',
-                        padding: '1px 6px',
-                        background: 'var(--color-surface-subtle)',
-                        borderRadius: '4px',
-                        color: 'var(--color-text-muted)',
+                        fontSize: '11px',
+                        backgroundColor: 'var(--ib-blue-50)',
+                        color: 'var(--ib-blue-600)',
+                        border: '1px solid var(--ib-blue-border)',
+                        fontWeight: 600,
                       }}
                     >
-                      {`{{${v}}}`}
+                      {qr.category}
                     </span>
-                  ))}
-                </div>
+                  </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 'auto',
-                    paddingTop: '8px',
-                    borderTop: '1px solid var(--color-border-subtle)',
-                  }}
-                >
-                  <button
-                    className="outline-btn small"
-                    onClick={() => {
-                      if (selected) {
+                  {qr.description && (
+                    <p style={{ fontSize: '12px', color: 'var(--ib-slate-500)', margin: 0 }}>
+                      {qr.description}
+                    </p>
+                  )}
+
+                  <div
+                    className="inbox-qr-body-box"
+                    style={{
+                      maxHeight: isExpanded ? 'none' : '110px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    {qr.messageText}
+                  </div>
+
+                  {qr.messageText?.length > 140 && (
+                    <button
+                      className="text-link"
+                      onClick={() => setExpandedQr((prev) => ({ ...prev, [qr._id]: !prev[qr._id] }))}
+                      style={{ fontSize: '11.5px', alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp size={12} /> Show less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown size={12} /> Show full text
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Variables Token Summary (Only display actual tokens used in body) */}
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {usedVars.length > 0 ? (
+                      usedVars.map((v) => (
+                        <span key={v} className="inbox-variable-chip">
+                          {`{{${v}}}`}
+                        </span>
+                      ))
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--ib-slate-400)', fontStyle: 'italic' }}>
+                        Static reply (no variable tokens)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginTop: 'auto',
+                      paddingTop: '10px',
+                      borderTop: '1px solid var(--ib-slate-100)',
+                    }}
+                  >
+                    <button
+                      className="outline-btn small electric"
+                      onClick={() => {
                         insertQuickReply(qr);
                         setActiveTab('conversations');
-                      } else {
-                        toast('Select a conversation first to insert.');
-                        setActiveTab('conversations');
-                      }
-                    }}
-                    style={{ fontSize: '11.5px' }}
-                  >
-                    Insert in Chat
-                  </button>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      className="icon-btn small"
-                      onClick={async () => {
-                        await api.duplicateQuickReply(qr._id);
-                        loadQuickReplies();
-                        toast.success('Quick reply duplicated');
                       }}
-                      title="Duplicate"
+                      style={{ fontSize: '11.5px', height: '30px', padding: '0 12px' }}
+                      title="Insert this quick reply into composer"
                     >
-                      <Copy size={13} />
+                      Insert in Chat
                     </button>
-                    <button
-                      className="icon-btn small"
-                      onClick={() => {
-                        setQrEditing(qr);
-                        setQrName(qr.name);
-                        setQrCategory(qr.category);
-                        setQrText(qr.messageText);
-                        setQrDescription(qr.description || '');
-                        setQuickReplyModalOpen(true);
-                      }}
-                      title="Edit"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      className="icon-btn small"
-                      onClick={async () => {
-                        if (confirm(`Delete "${qr.name}"?`)) {
-                          await api.deleteQuickReply(qr._id);
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        className="icon-btn small"
+                        onClick={async () => {
+                          await api.duplicateQuickReply(qr._id);
                           loadQuickReplies();
-                          toast.success('Quick reply removed');
-                        }
-                      }}
-                      title="Delete"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                          toast.success('Quick reply duplicated');
+                        }}
+                        title="Duplicate"
+                      >
+                        <Copy size={13} />
+                      </button>
+                      <button
+                        className="icon-btn small"
+                        onClick={() => {
+                          setQrEditing(qr);
+                          setQrName(qr.name);
+                          setQrCategory(qr.category);
+                          setQrText(qr.messageText);
+                          setQrDescription(qr.description || '');
+                          setQuickReplyModalOpen(true);
+                        }}
+                        title="Edit"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button
+                        className="icon-btn small"
+                        onClick={async () => {
+                          if (confirm(`Delete "${qr.name}"?`)) {
+                            await api.deleteQuickReply(qr._id);
+                            loadQuickReplies();
+                            toast.success('Quick reply removed');
+                          }
+                        }}
+                        title="Delete"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -1804,20 +2256,23 @@ export function InboxPage() {
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '4px',
-                    padding: '10px 12px',
+                    gap: '5px',
+                    padding: '10px 14px',
                     background: '#fff',
-                    border: '1px solid var(--color-border)',
+                    border: '1px solid var(--ib-slate-200)',
                     borderRadius: '8px',
                     textAlign: 'left',
                     cursor: 'pointer',
+                    transition: 'all 0.15s ease',
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--ib-blue-600)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--ib-slate-200)')}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <b style={{ fontSize: '13px' }}>{qr.name}</b>
-                    <span className="status-badge" style={{ fontSize: '10px' }}>{qr.category}</span>
+                    <b style={{ fontSize: '13px', color: 'var(--ib-slate-900)' }}>{qr.name}</b>
+                    <span className="status-badge" style={{ fontSize: '10.5px' }}>{qr.category}</span>
                   </div>
-                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+                  <span style={{ fontSize: '12px', color: 'var(--ib-slate-600)', lineHeight: 1.45 }}>
                     {qr.messageText}
                   </span>
                 </button>
@@ -1830,61 +2285,64 @@ export function InboxPage() {
       {/* SYNTHETIC INBOUND TEST SIMULATOR MODAL */}
       {simulatorOpen && (
         <div className="modal-scrim" onClick={() => setSimulatorOpen(false)}>
-          <div className="contact-modal" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="contact-modal" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
             <div className="contact-modal-head">
               <h2>Simulate Inbound Buyer Message</h2>
               <button className="icon-btn modal-close" onClick={() => setSimulatorOpen(false)}>
                 <X size={16} />
               </button>
             </div>
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', lineHeight: 1.45 }}>
+            <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--ib-slate-600)', lineHeight: 1.45 }}>
                 Simulate a real WhatsApp inbound customer event from <strong>{detail?.contact.fullName}</strong> to test rule execution, auto-replies, and opt-out processing in <code>MOCK</code> mode.
               </div>
 
               {/* Sample Preset Buttons */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <button
-                  className="outline-btn small"
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
+                  className="inbox-tester-preset-btn"
                   onClick={() => setTestInboundText('Can you send me the BROCHURE?')}
                 >
                   BROCHURE
                 </button>
                 <button
-                  className="outline-btn small"
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
+                  className="inbox-tester-preset-btn"
                   onClick={() => setTestInboundText('What is the unit PRICE?')}
                 >
                   PRICE
                 </button>
                 <button
-                  className="outline-btn small"
-                  style={{ fontSize: '11px', padding: '3px 8px' }}
+                  className="inbox-tester-preset-btn"
                   onClick={() => setTestInboundText('I want to schedule a site VISIT this Saturday')}
                 >
                   VISIT
                 </button>
                 <button
-                  className="outline-btn small"
-                  style={{ fontSize: '11px', padding: '3px 8px', color: 'var(--color-danger)' }}
+                  className="inbox-tester-preset-btn stop"
                   onClick={() => setTestInboundText('STOP')}
                 >
                   STOP (Opt-out)
                 </button>
               </div>
 
-              <label className="field">
+              <label className="field" style={{ margin: '4px 0 0' }}>
                 Inbound Message Text
                 <textarea
                   rows="3"
                   value={testInboundText}
                   onChange={(e) => setTestInboundText(e.target.value)}
                   placeholder="e.g. Can you share the latest price list?"
+                  style={{
+                    border: '1px solid var(--ib-slate-200)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    color: 'var(--ib-slate-900)',
+                  }}
                 />
               </label>
 
-              <button className="primary-btn small" onClick={simulateInbound} style={{ marginTop: '8px' }}>
+              <button className="primary-btn small" onClick={simulateInbound} style={{ marginTop: '8px', height: '36px' }}>
                 Simulate Event & Run Engine
               </button>
             </div>
@@ -1895,43 +2353,55 @@ export function InboxPage() {
       {/* QUICK REPLY MODAL (CREATE / EDIT) */}
       {quickReplyModalOpen && (
         <div className="modal-scrim" onClick={() => setQuickReplyModalOpen(false)}>
-          <div className="contact-modal" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="contact-modal" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
             <div className="contact-modal-head">
               <h2>{qrEditing ? 'Edit Quick Reply' : 'New Quick Reply'}</h2>
               <button className="icon-btn modal-close" onClick={() => setQuickReplyModalOpen(false)}>
                 <X size={16} />
               </button>
             </div>
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label className="field">
                 Title / Name
-                <input value={qrName} onChange={(e) => setQrName(e.target.value)} placeholder="e.g. Brochure & Master Plan" />
+                <input
+                  value={qrName}
+                  onChange={(e) => setQrName(e.target.value)}
+                  placeholder={qrPlaceholder}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                />
               </label>
               <label className="field">
                 Category
-                <select value={qrCategory} onChange={(e) => setQrCategory(e.target.value)}>
-                  <option>Brochure</option>
-                  <option>Pricing</option>
-                  <option>Site Visit</option>
-                  <option>Location</option>
-                  <option>General</option>
-                  <option>Follow-up</option>
+                <select
+                  value={qrCategory}
+                  onChange={(e) => setQrCategory(e.target.value)}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                >
+                  {qrCategories.filter((c) => c !== 'all').map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </label>
               <label className="field">
-                Message Content (Supports {'{{first_name}}'}, {'{{project}}'}, {'{{city}}'})
+                Message Content (Supports {qrVariableHints})
                 <textarea
                   rows="4"
                   value={qrText}
                   onChange={(e) => setQrText(e.target.value)}
-                  placeholder="Hi {{first_name}}, here are the details for {{project}}…"
+                  placeholder={`Hi {{customer_name}}, thank you for reaching out to {{business_name}}…`}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '8px 10px', fontSize: '13px' }}
                 />
               </label>
               <label className="field">
                 Internal Description (Optional)
-                <input value={qrDescription} onChange={(e) => setQrDescription(e.target.value)} placeholder="Usage notes for operator" />
+                <input
+                  value={qrDescription}
+                  onChange={(e) => setQrDescription(e.target.value)}
+                  placeholder="Usage notes for operator"
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                />
               </label>
-              <button className="primary-btn small" onClick={saveQuickReply} style={{ marginTop: '8px' }}>
+              <button className="primary-btn small" onClick={saveQuickReply} style={{ marginTop: '8px', height: '36px' }}>
                 Save Quick Reply
               </button>
             </div>
@@ -1942,26 +2412,40 @@ export function InboxPage() {
       {/* AUTO-REPLY RULE MODAL (CREATE / EDIT) */}
       {ruleModalOpen && (
         <div className="modal-scrim" onClick={() => setRuleModalOpen(false)}>
-          <div className="contact-modal" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="contact-modal" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
             <div className="contact-modal-head">
               <h2>{ruleEditing ? 'Edit Keyword Rule' : 'New Keyword Rule'}</h2>
               <button className="icon-btn modal-close" onClick={() => setRuleModalOpen(false)}>
                 <X size={16} />
               </button>
             </div>
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label className="field">
                 Rule Name
-                <input value={ruleName} onChange={(e) => setRuleName(e.target.value)} placeholder="e.g. Pricing Inquiry" />
+                <input
+                  value={ruleName}
+                  onChange={(e) => setRuleName(e.target.value)}
+                  placeholder="e.g. Pricing Inquiry"
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                />
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <label className="field">
                   Trigger Keyword
-                  <input value={ruleKeyword} onChange={(e) => setRuleKeyword(e.target.value)} placeholder="e.g. PRICE" />
+                  <input
+                    value={ruleKeyword}
+                    onChange={(e) => setRuleKeyword(e.target.value)}
+                    placeholder="e.g. PRICE"
+                    style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                  />
                 </label>
                 <label className="field">
                   Match Type
-                  <select value={ruleMatchType} onChange={(e) => setRuleMatchType(e.target.value)}>
+                  <select
+                    value={ruleMatchType}
+                    onChange={(e) => setRuleMatchType(e.target.value)}
+                    style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                  >
                     <option value="WHOLE_WORD">Whole Word</option>
                     <option value="EXACT_MATCH">Exact Match</option>
                     <option value="CONTAINS">Contains</option>
@@ -1970,11 +2454,20 @@ export function InboxPage() {
               </div>
               <label className="field">
                 Synonyms / Alternate Keywords (Comma separated)
-                <input value={ruleSynonyms} onChange={(e) => setRuleSynonyms(e.target.value)} placeholder="PRICING, COST, RATE, QUOTE" />
+                <input
+                  value={ruleSynonyms}
+                  onChange={(e) => setRuleSynonyms(e.target.value)}
+                  placeholder="PRICING, COST, RATE, QUOTE"
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                />
               </label>
               <label className="field">
                 Action Type
-                <select value={ruleActionType} onChange={(e) => setRuleActionType(e.target.value)}>
+                <select
+                  value={ruleActionType}
+                  onChange={(e) => setRuleActionType(e.target.value)}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                >
                   <option value="RUN_MOCK_REPLY">Send Mock Reply</option>
                   <option value="MARK_NEEDS_ATTENTION">Mark Needs Attention</option>
                   <option value="CREATE_INTERNAL_NOTE">Create Internal Note</option>
@@ -1989,13 +2482,21 @@ export function InboxPage() {
                   value={ruleResponse}
                   onChange={(e) => setRuleResponse(e.target.value)}
                   placeholder="Response message sent back to client…"
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '8px 10px', fontSize: '13px' }}
                 />
               </label>
               <label className="field">
                 Priority (Lower = Higher Evaluation Precedence)
-                <input type="number" min="1" max="100" value={rulePriority} onChange={(e) => setRulePriority(e.target.value)} />
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={rulePriority}
+                  onChange={(e) => setRulePriority(e.target.value)}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                />
               </label>
-              <button className="primary-btn small" onClick={saveRule} style={{ marginTop: '8px' }}>
+              <button className="primary-btn small" onClick={saveRule} style={{ marginTop: '8px', height: '36px' }}>
                 Save Keyword Rule
               </button>
             </div>
@@ -2006,17 +2507,21 @@ export function InboxPage() {
       {/* LOG OUTSIDE INTERACTION MODAL */}
       {manualOpen && detail && (
         <div className="modal-scrim" onClick={() => setManualOpen(false)}>
-          <div className="contact-modal" style={{ maxWidth: '440px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="contact-modal" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
             <div className="contact-modal-head">
               <h2>Log Outside Interaction</h2>
               <button className="icon-btn modal-close" onClick={() => setManualOpen(false)}>
                 <X size={16} />
               </button>
             </div>
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label className="field">
                 Interaction Type
-                <select value={manualType} onChange={(e) => setManualType(e.target.value)}>
+                <select
+                  value={manualType}
+                  onChange={(e) => setManualType(e.target.value)}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                >
                   <option>Phone Call</option>
                   <option>In-Person Meeting</option>
                   <option>Site Visit</option>
@@ -2027,7 +2532,11 @@ export function InboxPage() {
               </label>
               <label className="field">
                 Direction
-                <select value={manualDirection} onChange={(e) => setManualDirection(e.target.value)}>
+                <select
+                  value={manualDirection}
+                  onChange={(e) => setManualDirection(e.target.value)}
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '7px 10px', fontSize: '13px' }}
+                >
                   <option value="outbound">Outbound (We contacted client)</option>
                   <option value="inbound">Inbound (Client contacted us)</option>
                 </select>
@@ -2039,9 +2548,10 @@ export function InboxPage() {
                   value={manualText}
                   onChange={(e) => setManualText(e.target.value)}
                   placeholder="Discussed unit 402, pricing and payment milestones…"
+                  style={{ border: '1px solid var(--ib-slate-200)', borderRadius: '6px', padding: '8px 10px', fontSize: '13px' }}
                 />
               </label>
-              <button className="primary-btn small" onClick={logCommunication} style={{ marginTop: '8px' }}>
+              <button className="primary-btn small" onClick={logCommunication} style={{ marginTop: '8px', height: '36px' }}>
                 Save in CRM History
               </button>
             </div>
@@ -2082,21 +2592,21 @@ export function FollowUpsPage() {
         <div className="stat-card">
           <div className="stat-head">
             <span>Pending Follow-ups</span>
-            <Clock3 size={15} color="var(--color-warning)" />
+            <Clock3 size={15} color="var(--ib-amber-500)" />
           </div>
           <div className="stat-value">{records.filter((t) => t.status === 'Pending').length}</div>
         </div>
         <div className="stat-card">
           <div className="stat-head">
             <span>In Progress</span>
-            <Clock3 size={15} color="var(--color-info)" />
+            <Clock3 size={15} color="var(--ib-blue-500)" />
           </div>
           <div className="stat-value">{records.filter((t) => t.status === 'In Progress').length}</div>
         </div>
         <div className="stat-card">
           <div className="stat-head">
             <span>Completed</span>
-            <Check size={15} color="var(--color-success)" />
+            <Check size={15} color="var(--ib-emerald-600)" />
           </div>
           <div className="stat-value">{records.filter((t) => t.status === 'Completed').length}</div>
         </div>
@@ -2109,10 +2619,10 @@ export function FollowUpsPage() {
             alignItems: 'center',
             gap: '10px',
             padding: '12px 16px',
-            borderBottom: '1px solid var(--color-border-subtle)',
+            borderBottom: '1px solid var(--ib-slate-200)',
           }}
         >
-          <Search size={14} color="var(--color-text-muted)" />
+          <Search size={14} color="var(--ib-slate-400)" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -2122,7 +2632,7 @@ export function FollowUpsPage() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '12px' }}
+            style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--ib-slate-200)', fontSize: '12px', padding: '0 8px' }}
           >
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
@@ -2133,7 +2643,7 @@ export function FollowUpsPage() {
 
         <div style={{ padding: '8px 16px' }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--ib-slate-400)' }}>
               No follow-up tasks in this view.
             </div>
           ) : (
@@ -2145,12 +2655,12 @@ export function FollowUpsPage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '12px 0',
-                  borderBottom: '1px solid var(--color-border-subtle)',
+                  borderBottom: '1px solid var(--ib-slate-100)',
                 }}
               >
                 <div>
-                  <strong style={{ fontSize: '13.5px', color: 'var(--color-text-primary)' }}>{t.title}</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                  <strong style={{ fontSize: '13.5px', color: 'var(--ib-slate-900)' }}>{t.title}</strong>
+                  <div style={{ fontSize: '12px', color: 'var(--ib-slate-400)' }}>
                     Due: {when(t.dueAt)} · Priority: {t.priority}
                   </div>
                 </div>

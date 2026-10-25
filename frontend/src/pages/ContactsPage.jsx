@@ -63,6 +63,8 @@ import { listContactGroups, deleteContactGroup } from '../services/contactGroups
 import { listImports, downloadImportErrors, retryImport, downloadTemplate } from '../services/imports';
 import { listMessages } from '../services/messages';
 import api from '../services/api';
+import '../contacts.css';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 const STATUSES = [
   'New',
@@ -78,23 +80,6 @@ const STATUSES = [
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 const CONSENTS = ['Unknown', 'Opted In', 'Opted Out'];
 
-const PROPERTY_TYPES = [
-  'Residential Plots',
-  'Apartments',
-  'Farmhouses',
-  'Villas',
-  'Commercial Property',
-  'Residential Houses',
-  'Land',
-  '2 BHK Apartment',
-  '3 BHK Apartment',
-  '4 BHK Luxury Flat',
-  'Penthouse',
-  'Studio Apartment',
-  'Retail Shop',
-  'Commercial Office',
-  'Other'
-];
 
 const blankFilters = {
   leadStatus: '',
@@ -274,7 +259,7 @@ function ConsentPanel({ contact, onUpdated }) {
         {status === 'Opted In' && (
           <>
             <div className="consent-explainer">
-              Only mark opted in when you have genuine affirmative consent for real estate communication.
+              Only mark opted in when you have genuine affirmative consent for WhatsApp business communication.
             </div>
             <label className="field">
               Consent Source <b>*</b>
@@ -282,7 +267,7 @@ function ConsentPanel({ contact, onUpdated }) {
             </label>
             <label className="field">
               Consent Purpose <b>*</b>
-              <input required value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Property brochures and site visit updates" />
+              <input required value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Service updates and appointment information" />
             </label>
             <label className="field">
               Date & Time Captured <b>*</b>
@@ -290,11 +275,11 @@ function ConsentPanel({ contact, onUpdated }) {
             </label>
             <label className="field">
               Evidence Reference <b>*</b>
-              <input required value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Form ID, CRM lead ID, or signed site visit slip" />
+              <input required value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Form ID, CRM lead ID, or confirmation receipt" />
             </label>
             <label className="consent-check" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
               <input type="checkbox" checked={affirmed} onChange={(e) => setAffirmed(e.target.checked)} />
-              I confirm the buyer affirmatively opted in.
+              I confirm the customer affirmatively opted in.
             </label>
           </>
         )}
@@ -313,7 +298,7 @@ function ConsentPanel({ contact, onUpdated }) {
             <div className="consent-record" key={record._id}>
               <div>
                 <span className={`consent-badge consent-${consentClass(record.status)}`}>{record.status}</span>
-                <small>{record.consentPurpose || 'General real estate updates'}</small>
+                <small>{record.consentPurpose || 'General updates'}</small>
               </div>
               <time>{formatDateTime(record.recordedAt)}</time>
               <p>
@@ -333,6 +318,10 @@ function ConsentPanel({ contact, onUpdated }) {
    ========================================================================== */
 function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefresh }) {
   const navigate = useNavigate();
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const industryKey = industryConfig.industryKey;
+  const STATUSES = industryConfig.leadStatuses;
+  const indConfig = industryConfig.ui.contacts;
   const [note, setNote] = useState(contact.notes || '');
   const [saving, setSaving] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -390,7 +379,7 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
       <aside className="contact-drawer" role="dialog" aria-modal="true" aria-label={`${contact.fullName} profile`}>
         <header className="drawer-head">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span className="page-header-eyebrow">PROPERTY ENQUIRY PROFILE</span>
+            <span className="page-header-eyebrow">{indConfig.profileEyebrow}</span>
             <button className="icon-btn modal-close" onClick={onClose} aria-label="Close profile">
               <X size={18} />
             </button>
@@ -399,7 +388,7 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
             <div className="contact-avatar large">{initials(contact.fullName)}</div>
             <div>
               <h2>{contact.fullName}</h2>
-              <p>{contact.interestedPropertyType || contact.interestedService || 'Property Prospect'}</p>
+              <p>{contact.productServiceInterest || contact.industryData?.productServiceInterest || contact.interestedPropertyType || contact.interestedService || contact.industryData?.serviceInterest || contact.industryData?.membershipPlan || industryConfig.terminology.leadLabel}</p>
               <div className="profile-badges">
                 <span className={`status-badge ${statusClass(contact.leadStatus)}`}>{contact.leadStatus}</span>
                 <span className={`priority-badge ${priorityClass(contact.priority)}`}>
@@ -447,7 +436,7 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
           {/* SECTION 1: REAL ESTATE DETAILS */}
           <section className="detail-section">
             <h3>
-              <Building2 size={15} /> Property Requirements
+              <Building2 size={15} /> {indConfig.requirementsTitle}
             </h3>
             <div className="detail-grid">
               <div>
@@ -467,28 +456,24 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
                 <b>{contact.state || '—'}</b>
               </div>
               <div>
-                <small>Property Type</small>
-                <b>{contact.interestedPropertyType || contact.interestedService || '—'}</b>
+                <small>{indConfig.interestColumnLabel}</small>
+                <b>{contact.interestedPropertyType || contact.interestedService || contact.industryData?.serviceInterest || contact.industryData?.membershipInterest || contact.industryData?.membershipPlan || contact.industryData?.vehicleType || '—'}</b>
               </div>
               <div>
-                <small>Project / Community</small>
-                <b>{contact.interestedProject || contact.businessCategory || '—'}</b>
+                <small>{indConfig.projectColumnLabel}</small>
+                <b>{contact.interestedProject || contact.industryData?.branchName || contact.industryData?.fitnessProgram || contact.industryData?.vehicleModel || '—'}</b>
               </div>
-              <div>
-                <small>Preferred Area</small>
-                <b>{contact.preferredLocation || '—'}</b>
-              </div>
-              <div>
-                <small>Budget Range</small>
-                <b>{contact.budgetRange || (contact.estimatedDealValue ? `₹${Number(contact.estimatedDealValue).toLocaleString()}` : '—')}</b>
-              </div>
+              {industryConfig.contactFields.filter(f => !['fullName', 'phoneNumber', 'email', 'city', 'leadSource', 'leadStatus', 'whatsappConsentStatus', 'notes'].includes(f.key)).map(field => {
+                const value = contact.industryData?.[field.key] ?? contact[field.key];
+                return <div key={field.key}><small>{field.label}</small><b>{value === undefined || value === null || value === '' ? '—' : Array.isArray(value) ? value.join(', ') : field.type === 'date' ? formatDate(value) : String(value)}</b></div>;
+              })}
               <div>
                 <small>Lead Source</small>
-                <b>{contact.leadSource || 'Direct'}</b>
+                <b>{contact.leadSource || '—'}</b>
               </div>
               <div>
                 <small>Preferred Contact Time</small>
-                <b>{contact.preferredContactTime || 'Anytime'}</b>
+                <b>{contact.preferredContactTime || '—'}</b>
               </div>
             </div>
 
@@ -585,7 +570,7 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
                 <MessageSquareText size={15} /> WhatsApp Message History
               </h3>
-              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-primary)', fontWeight: 600, border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', background: 'var(--cp-ice)', color: 'var(--cp-blue)', fontWeight: 600, border: '1px solid #BFDBFE' }}>
                 MOCK SIMULATION
               </span>
             </div>
@@ -697,6 +682,21 @@ function ContactProfile({ contact, activities, groups, onClose, onEdit, onRefres
 export default function ContactsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const industryKey = industryConfig.industryKey;
+  const STATUSES = industryConfig.leadStatuses;
+  const indConfig = industryConfig.ui.contacts;
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    phone: true,
+    city: true,
+    interest: true,
+    project: true,
+    status: true,
+    priority: true,
+    consent: true
+  });
+  const [columnsMenuOpen, setColumnsMenuOpen] = useState(false);
 
   // Active Workspace Tab: 'contacts' | 'groups' | 'audiences' | 'imports'
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'contacts');
@@ -1005,6 +1005,29 @@ export default function ContactsPage() {
 
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => value !== blankFilters[key]).length;
 
+  const clearFilterKey = (key) => {
+    if (key === 'search') {
+      setSearchInput('');
+      setSearch('');
+    } else {
+      setFilters((prev) => ({ ...prev, [key]: blankFilters[key] }));
+    }
+    setPage(1);
+  };
+
+  const handleKpiClick = (consentVal) => {
+    setActiveTab('contacts');
+    if (!consentVal) {
+      setFilters((prev) => ({ ...prev, whatsappConsentStatus: '' }));
+    } else {
+      setFilters((prev) => ({
+        ...prev,
+        whatsappConsentStatus: prev.whatsappConsentStatus === consentVal ? '' : consentVal
+      }));
+    }
+    setPage(1);
+  };
+
   // 4 compact statistics from backend truth
   const totalContactsCount = stats?.totalContacts ?? 0;
   const optedInCount = stats?.eligibleWhatsAppContacts ?? 0;
@@ -1012,42 +1035,42 @@ export default function ContactsPage() {
   const unknownConsentCount = stats?.unknownConsentContacts ?? 0;
 
   return (
-    <div className="contacts-page">
+    <div className="contacts-page cp-page">
       {/* SECTION A: PAGE HEADER & PRIMARY ACTIONS */}
       <PageHeader
         eyebrow="YOUR WORKSPACE · CONTACTS & AUDIENCE"
         title="Contacts & Audiences"
-        subtitle="Manage customer enquiries, organize property groups, and build verified campaign audiences."
+        subtitle={indConfig.subtitle}
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <button className="primary-btn small" onClick={() => setEditor(null)}>
+            <button className="cp-btn primary small" onClick={() => setEditor(null)}>
               <Plus size={15} /> Add Contact
             </button>
 
-            <button className="outline-btn small" onClick={() => setImportModalOpen(true)} title="Import Excel / CSV spreadsheet">
+            <button className="cp-btn small" onClick={() => setImportModalOpen(true)} title="Import Excel / CSV spreadsheet">
               <FileSpreadsheet size={14} /> Import Excel / CSV
             </button>
 
             <div style={{ position: 'relative' }}>
-              <button className="outline-btn small" onClick={() => { setExportOpen((v) => !v); setMoreActionsOpen(false); }}>
+              <button className="cp-btn small" onClick={() => { setExportOpen((v) => !v); setMoreActionsOpen(false); }}>
                 <Download size={14} /> Export <ChevronDown size={12} />
               </button>
               {exportOpen && (
-                <div className="export-menu">
-                  <button onClick={() => doExport('csv')}>Export Filtered CSV</button>
-                  <button onClick={() => doExport('xlsx')}>Export Filtered Excel</button>
-                  <button onClick={() => doExport('csv', undefined, { archived: 'all' })}>
+                <div className="cp-dropdown">
+                  <button onClick={() => { setExportOpen(false); doExport('csv'); }}>Export Filtered CSV</button>
+                  <button onClick={() => { setExportOpen(false); doExport('xlsx'); }}>Export Filtered Excel</button>
+                  <button onClick={() => { setExportOpen(false); doExport('csv', undefined, { archived: 'all' }); }}>
                     Export All Contacts CSV
                   </button>
-                  <button onClick={() => doExport('xlsx', undefined, { archived: 'all' })}>
+                  <button onClick={() => { setExportOpen(false); doExport('xlsx', undefined, { archived: 'all' }); }}>
                     Export All Contacts Excel
                   </button>
                   {selected.length > 0 && (
                     <>
-                      <button onClick={() => doExport('csv', selected)}>
+                      <button onClick={() => { setExportOpen(false); doExport('csv', selected); }}>
                         Export Selected CSV ({selected.length})
                       </button>
-                      <button onClick={() => doExport('xlsx', selected)}>
+                      <button onClick={() => { setExportOpen(false); doExport('xlsx', selected); }}>
                         Export Selected Excel ({selected.length})
                       </button>
                     </>
@@ -1057,29 +1080,29 @@ export default function ContactsPage() {
             </div>
 
             <div style={{ position: 'relative' }}>
-              <button className="outline-btn small" onClick={() => { setMoreActionsOpen((v) => !v); setExportOpen(false); }}>
+              <button className="cp-btn small" onClick={() => { setMoreActionsOpen((v) => !v); setExportOpen(false); }}>
                 More Actions <ChevronDown size={12} />
               </button>
               {moreActionsOpen && (
-                <div className="export-menu" style={{ minWidth: '190px' }}>
+                <div className="cp-dropdown" style={{ minWidth: '190px' }}>
                   <button onClick={() => { setMoreActionsOpen(false); downloadTemplate(); }}>
-                    <ArrowDownToLine size={13} style={{ marginRight: '6px' }} /> Sample Excel Template
+                    <ArrowDownToLine size={13} /> Sample Excel Template
                   </button>
                   <button onClick={() => { setMoreActionsOpen(false); setTagModalOpen(true); }}>
-                    <Tag size={13} style={{ marginRight: '6px' }} /> Manage Tags
+                    <Tag size={13} /> Manage Tags
                   </button>
                   <button onClick={() => { setMoreActionsOpen(false); setGroupEditing(null); setGroupModalOpen(true); }}>
-                    <Layers size={13} style={{ marginRight: '6px' }} /> Manage Groups
+                    <Layers size={13} /> Manage Groups
                   </button>
                   <button onClick={() => { setMoreActionsOpen(false); setSegmentEditing(null); setSegmentModalOpen(true); }}>
-                    <Filter size={13} style={{ marginRight: '6px' }} /> Saved Segments
+                    <Filter size={13} /> Saved Segments
                   </button>
                 </div>
               )}
             </div>
 
             <button
-              className="icon-btn"
+              className="cp-btn small icon-only"
               onClick={() => {
                 loadList();
                 loadStats();
@@ -1094,650 +1117,820 @@ export default function ContactsPage() {
         }
       />
 
-      {/* SECTION B: COMPACT CONTACT STATISTICS */}
-      <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-head">
-            <span>Total Contacts</span>
-            <ContactRound size={16} className="text-muted" />
-          </div>
-          <div className="stat-value">{loading ? '—' : totalContactsCount.toLocaleString()}</div>
-          <div className="stat-foot">Real estate client database</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-head">
-            <span>Verified Opted-In</span>
-            <ShieldCheck size={16} color="var(--color-success)" />
-          </div>
-          <div className="stat-value" style={{ color: 'var(--color-success)' }}>
-            {loading ? '—' : optedInCount.toLocaleString()}
-          </div>
-          <div className="stat-foot">Affirmative evidence on file</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-head">
-            <span>Opted Out</span>
-            <ShieldAlert size={16} color="var(--color-danger)" />
-          </div>
-          <div className="stat-value" style={{ color: 'var(--color-danger)' }}>
-            {loading ? '—' : optedOutCount.toLocaleString()}
-          </div>
-          <div className="stat-foot">Excluded from broadcasts</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-head">
-            <span>Consent Unknown</span>
-            <Clock3 size={16} color="var(--color-warning)" />
-          </div>
-          <div className="stat-value" style={{ color: 'var(--color-warning)' }}>
-            {loading ? '—' : unknownConsentCount.toLocaleString()}
-          </div>
-          <div className="stat-foot">Requires affirmative consent</div>
-        </div>
-      </div>
-
-      {/* WORKSPACE NAVIGATION TABS: All Contacts | Groups | Saved Audiences | Import History */}
-      <div className="contacts-workspace-tabs">
-        <button
-          type="button"
-          className={`contacts-tab-btn ${activeTab === 'contacts' ? 'active' : ''}`}
-          onClick={() => switchTab('contacts')}
+      {/* SECTION B: FOUR COMPACT CONTACT KPI CARDS */}
+      <div className="cp-kpi-grid">
+        <div
+          className={`cp-kpi-card ${filters.whatsappConsentStatus === '' && activeTab === 'contacts' ? 'active' : ''}`}
+          onClick={() => handleKpiClick('')}
+          title="Click to view all contacts"
         >
-          <ContactRound size={15} />
-          All Contacts
-          <span className="contacts-tab-count">{totalContactsCount}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`contacts-tab-btn ${activeTab === 'groups' ? 'active' : ''}`}
-          onClick={() => switchTab('groups')}
-        >
-          <Layers size={15} />
-          Contact Groups
-          <span className="contacts-tab-count">{groups.length}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`contacts-tab-btn ${activeTab === 'audiences' ? 'active' : ''}`}
-          onClick={() => switchTab('audiences')}
-        >
-          <Filter size={15} />
-          Saved Audiences (Segments)
-          <span className="contacts-tab-count">{segments.length}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`contacts-tab-btn ${activeTab === 'imports' ? 'active' : ''}`}
-          onClick={() => switchTab('imports')}
-        >
-          <History size={15} />
-          Import History
-          <span className="contacts-tab-count">{importHistory.length}</span>
-        </button>
-      </div>
-
-      {/* TAB 1: ALL CONTACTS WORKSPACE */}
-      {activeTab === 'contacts' && (
-        <section className="panel" style={{ marginBottom: '24px' }}>
-          {/* SECTION C: SEARCH AND MAIN FILTERS */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px 16px',
-              flexWrap: 'wrap',
-              borderBottom: '1px solid var(--color-border-subtle)'
-            }}
-          >
-            {/* Search Input */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flex: '1',
-                minWidth: '220px',
-                background: 'var(--color-surface-muted)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '8px',
-                padding: '0 10px',
-                height: '36px'
-              }}
-            >
-              <Search size={15} color="var(--color-text-muted)" />
-              <input
-                style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px' }}
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search name, phone, city, project, tags…"
-                aria-label="Search contacts"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => setSearchInput('')}
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-muted)' }}
-                >
-                  <X size={13} />
-                </button>
-              )}
+          <div className="cp-kpi-head">
+            <span className="cp-kpi-label">Total Contacts</span>
+            <div className="cp-kpi-icon" style={{ color: 'var(--cp-blue)' }}>
+              <ContactRound size={17} />
             </div>
+          </div>
+          <div className="cp-kpi-value">{loading ? '—' : totalContactsCount.toLocaleString()}</div>
+          <div className="cp-kpi-foot">{indConfig.databaseFoot}</div>
+        </div>
 
-            {/* Quick Filters */}
-            <select
-              value={filters.whatsappConsentStatus}
-              onChange={(e) => setFilter('whatsappConsentStatus', e.target.value)}
-              style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff', outline: 'none' }}
-            >
-              <option value="">All Consent</option>
-              {CONSENTS.map((v) => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
+        <div
+          className={`cp-kpi-card opted-in ${filters.whatsappConsentStatus === 'Opted In' && activeTab === 'contacts' ? 'active' : ''}`}
+          onClick={() => handleKpiClick('Opted In')}
+          title="Click to filter verified opted-in contacts"
+        >
+          <div className="cp-kpi-head">
+            <span className="cp-kpi-label">Verified Opted-In</span>
+            <div className="cp-kpi-icon">
+              <ShieldCheck size={17} />
+            </div>
+          </div>
+          <div className="cp-kpi-value">{loading ? '—' : optedInCount.toLocaleString()}</div>
+          <div className="cp-kpi-foot">Affirmative evidence on file</div>
+        </div>
 
-            <select
-              value={filters.interestedPropertyType}
-              onChange={(e) => setFilter('interestedPropertyType', e.target.value)}
-              style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff', outline: 'none' }}
-            >
-              <option value="">All Property Types</option>
-              {PROPERTY_TYPES.map((v) => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
+        <div
+          className={`cp-kpi-card opted-out ${filters.whatsappConsentStatus === 'Opted Out' && activeTab === 'contacts' ? 'active' : ''}`}
+          onClick={() => handleKpiClick('Opted Out')}
+          title="Click to filter opted-out contacts"
+        >
+          <div className="cp-kpi-head">
+            <span className="cp-kpi-label">Opted Out</span>
+            <div className="cp-kpi-icon">
+              <ShieldAlert size={17} />
+            </div>
+          </div>
+          <div className="cp-kpi-value">{loading ? '—' : optedOutCount.toLocaleString()}</div>
+          <div className="cp-kpi-foot">Excluded from broadcasts</div>
+        </div>
 
-            <select
-              value={filters.leadStatus}
-              onChange={(e) => setFilter('leadStatus', e.target.value)}
-              style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff', outline: 'none' }}
-            >
-              <option value="">All Lead Statuses</option>
-              {STATUSES.map((v) => (
-                <option key={v} value={v}>{v}</option>
-              ))}
-            </select>
+        <div
+          className={`cp-kpi-card unknown ${filters.whatsappConsentStatus === 'Unknown' && activeTab === 'contacts' ? 'active' : ''}`}
+          onClick={() => handleKpiClick('Unknown')}
+          title="Click to filter unknown consent contacts"
+        >
+          <div className="cp-kpi-head">
+            <span className="cp-kpi-label">Consent Unknown</span>
+            <div className="cp-kpi-icon">
+              <Clock3 size={17} />
+            </div>
+          </div>
+          <div className="cp-kpi-value">{loading ? '—' : unknownConsentCount.toLocaleString()}</div>
+          <div className="cp-kpi-foot">Requires affirmative consent</div>
+        </div>
+      </div>
 
-            {groups.length > 0 && (
+      {/* SECTION C: MAIN CONTACTS MANAGEMENT WORKSPACE */}
+      <div className="cp-workspace-card">
+        {/* WORKSPACE NAVIGATION TABS */}
+        <div className="cp-tabs-bar">
+          <button
+            type="button"
+            className={`cp-tab-btn ${activeTab === 'contacts' ? 'active' : ''}`}
+            onClick={() => switchTab('contacts')}
+          >
+            <ContactRound size={15} />
+            All Contacts
+            <span className="cp-tab-count">{totalContactsCount}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cp-tab-btn ${activeTab === 'groups' ? 'active' : ''}`}
+            onClick={() => switchTab('groups')}
+          >
+            <Layers size={15} />
+            Contact Groups
+            <span className="cp-tab-count">{groups.length}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cp-tab-btn ${activeTab === 'audiences' ? 'active' : ''}`}
+            onClick={() => switchTab('audiences')}
+          >
+            <Filter size={15} />
+            Saved Audiences (Segments)
+            <span className="cp-tab-count">{segments.length}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`cp-tab-btn ${activeTab === 'imports' ? 'active' : ''}`}
+            onClick={() => switchTab('imports')}
+          >
+            <History size={15} />
+            Import History
+            <span className="cp-tab-count">{importHistory.length}</span>
+          </button>
+        </div>
+
+        {/* TAB 1: ALL CONTACTS */}
+        {activeTab === 'contacts' && (
+          <>
+            {/* UNIFIED SEARCH & FILTER TOOLBAR */}
+            <div className="cp-toolbar">
+              {/* Search Input */}
+              <div className="cp-search-wrap">
+                <Search size={15} color="var(--cp-muted)" />
+                <input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search name, phone, city, project, tags…"
+                  aria-label="Search contacts"
+                />
+                {searchInput && (
+                  <button
+                    className="cp-search-clear"
+                    onClick={() => { setSearchInput(''); setSearch(''); }}
+                    aria-label="Clear search"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* Consent Filter */}
               <select
-                value={filters.group}
-                onChange={(e) => setFilter('group', e.target.value)}
-                style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff', outline: 'none' }}
+                className="cp-select"
+                value={filters.whatsappConsentStatus}
+                onChange={(e) => setFilter('whatsappConsentStatus', e.target.value)}
+                aria-label="Filter by WhatsApp Consent"
               >
-                <option value="">All Groups</option>
-                {groups.map((g) => (
-                  <option key={g._id} value={g._id}>{g.name}</option>
+                <option value="">All Consent</option>
+                {CONSENTS.map((v) => (
+                  <option key={v} value={v}>{v}</option>
                 ))}
               </select>
-            )}
 
-            <button
-              className={`outline-btn small ${moreFiltersOpen ? 'active' : ''}`}
-              onClick={() => setMoreFiltersOpen((v) => !v)}
-              style={{ height: '36px' }}
-            >
-              <Filter size={13} /> More Filters {activeFilterCount > 0 && `(${activeFilterCount})`}{' '}
-              <ChevronDown size={12} />
-            </button>
-
-            {activeFilterCount > 0 && (
-              <button className="text-link" onClick={resetFilters} style={{ fontSize: '12px' }}>
-                Reset Filters
-              </button>
-            )}
-
-            {selected.length > 0 && (
-              <button
-                className="primary-btn small"
-                onClick={() => setBulkOpen((v) => !v)}
-                style={{ marginLeft: 'auto', height: '36px' }}
-              >
-                <MoreHorizontal size={14} /> Bulk Actions ({selected.length})
-              </button>
-            )}
-          </div>
-
-          {/* More Filters Drawer / Popover */}
-          {moreFiltersOpen && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-                gap: '12px',
-                padding: '14px 16px',
-                background: 'var(--color-surface-muted)',
-                borderBottom: '1px solid var(--color-border)'
-              }}
-            >
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>City / Location</span>
-                <input
-                  value={filters.city}
-                  onChange={(e) => setFilter('city', e.target.value)}
-                  placeholder="e.g. Gurugram, Delhi"
-                />
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Project / Community</span>
-                <input
-                  value={filters.interestedProject}
-                  onChange={(e) => setFilter('interestedProject', e.target.value)}
-                  placeholder="e.g. DLF Privana"
-                />
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Priority</span>
-                <select value={filters.priority} onChange={(e) => setFilter('priority', e.target.value)}>
-                  <option value="">All Priorities</option>
-                  {PRIORITIES.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Tag</span>
-                <input
-                  value={filters.tag}
-                  onChange={(e) => setFilter('tag', e.target.value)}
-                  placeholder="e.g. Plot Enquiry, NRI"
-                />
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Lead Source</span>
-                <input
-                  value={filters.source}
-                  onChange={(e) => setFilter('source', e.target.value)}
-                  placeholder="e.g. Website, 99acres"
-                />
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Suppression Status</span>
-                <select value={filters.isSuppressed} onChange={(e) => setFilter('isSuppressed', e.target.value)}>
-                  <option value="">All Records</option>
-                  <option value="false">Active Only (Non-Suppressed)</option>
-                  <option value="true">Do Not Contact (Suppressed)</option>
-                </select>
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Archive Status</span>
-                <select value={filters.archived} onChange={(e) => setFilter('archived', e.target.value)}>
-                  <option value="false">Active Only</option>
-                  <option value="true">Archived Only</option>
-                  <option value="all">All Records</option>
-                </select>
-              </label>
-
-              <label className="field">
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Data Classification</span>
-                <select value={filters.isDemo} onChange={(e) => setFilter('isDemo', e.target.value)}>
-                  <option value="">All Contacts</option>
-                  <option value="false">Genuine Customers Only</option>
-                  <option value="true">Demo Fixtures Only</option>
-                </select>
-              </label>
-            </div>
-          )}
-
-          {/* SECTION E: BULK ACTION TOOLBAR */}
-          {bulkOpen && selected.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px 16px',
-                background: 'var(--color-primary-soft)',
-                borderBottom: '1px solid var(--color-primary-border)',
-                flexWrap: 'wrap'
-              }}
-            >
-              <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--color-primary)' }}>
-                {selected.length} contact(s) selected
-              </span>
-
+              {/* Dynamic Industry Filter */}
               <select
-                value={bulkAction}
-                onChange={(e) => {
-                  setBulkAction(e.target.value);
-                  setBulkValue(
-                    e.target.value === 'status'
-                      ? 'New'
-                      : e.target.value === 'priority'
-                      ? 'Medium'
-                      : e.target.value === 'addToGroup' && groups.length
-                      ? groups[0]._id
-                      : ''
-                  );
-                }}
-                style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', padding: '0 8px', fontSize: '12px' }}
+                className="cp-select"
+                value={filters.interestedPropertyType}
+                onChange={(e) => setFilter('interestedPropertyType', e.target.value)}
+                aria-label={indConfig.interestFilterLabel}
               >
-                <option value="status">Change Lead Status</option>
-                <option value="priority">Change Priority</option>
-                <option value="addTags">Add Tags</option>
-                <option value="removeTags">Remove Tags</option>
-                {groups.length > 0 && <option value="addToGroup">Add to Group</option>}
-                {groups.length > 0 && <option value="removeFromGroup">Remove from Group</option>}
-                <option value="suppress">Mark Do Not Contact (Suppress)</option>
-                <option value="unsuppress">Remove Suppression</option>
-                <option value="archive">Archive Contacts</option>
-                <option value="restore">Restore Contacts</option>
-                <option value="delete">Move to Deleted</option>
+                <option value="">{indConfig.interestFilterLabel}</option>
+                {indConfig.interestOptions.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
               </select>
 
-              {bulkAction === 'status' && (
-                <select
-                  value={bulkValue}
-                  onChange={(e) => setBulkValue(e.target.value)}
-                  style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', padding: '0 8px', fontSize: '12px' }}
-                >
-                  {STATUSES.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              )}
+              {/* Lead Status Filter */}
+              <select
+                className="cp-select"
+                value={filters.leadStatus}
+                onChange={(e) => setFilter('leadStatus', e.target.value)}
+                aria-label="Filter by Lead Status"
+              >
+                <option value="">All Lead Statuses</option>
+                {STATUSES.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
 
-              {bulkAction === 'priority' && (
+              {/* Groups Filter */}
+              {groups.length > 0 && (
                 <select
-                  value={bulkValue}
-                  onChange={(e) => setBulkValue(e.target.value)}
-                  style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', padding: '0 8px', fontSize: '12px' }}
+                  className="cp-select"
+                  value={filters.group}
+                  onChange={(e) => setFilter('group', e.target.value)}
+                  aria-label="Filter by Group"
                 >
-                  {PRIORITIES.map((v) => (
-                    <option key={v} value={v}>{v}</option>
-                  ))}
-                </select>
-              )}
-
-              {['addTags', 'removeTags'].includes(bulkAction) && (
-                <input
-                  value={bulkValue}
-                  onChange={(e) => setBulkValue(e.target.value)}
-                  placeholder="tag one, tag two"
-                  style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', padding: '0 8px', fontSize: '12px' }}
-                />
-              )}
-
-              {['addToGroup', 'removeFromGroup'].includes(bulkAction) && (
-                <select
-                  value={bulkValue}
-                  onChange={(e) => setBulkValue(e.target.value)}
-                  style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', padding: '0 8px', fontSize: '12px' }}
-                >
+                  <option value="">All Groups</option>
                   {groups.map((g) => (
                     <option key={g._id} value={g._id}>{g.name}</option>
                   ))}
                 </select>
               )}
 
-              <button className="primary-btn small" onClick={performBulk} style={{ height: '32px' }}>
-                Apply
+              {/* More Filters Button */}
+              <button
+                type="button"
+                className={`cp-btn small ${moreFiltersOpen ? 'primary' : ''}`}
+                onClick={() => setMoreFiltersOpen((v) => !v)}
+              >
+                <Filter size={13} /> More Filters {activeFilterCount > 0 && `(${activeFilterCount})`} <ChevronDown size={12} />
               </button>
 
-              <button className="outline-btn small" onClick={() => setSelected([])} style={{ height: '32px' }}>
-                Cancel Selection
-              </button>
+              {/* Column Visibility Toggle */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="cp-btn small"
+                  onClick={() => setColumnsMenuOpen((v) => !v)}
+                  title="Toggle visible columns"
+                >
+                  Columns <ChevronDown size={12} />
+                </button>
+                {columnsMenuOpen && (
+                  <div className="cp-dropdown" style={{ minWidth: '180px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.phone}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, phone: e.target.checked }))}
+                      />
+                      Phone / WhatsApp
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.city}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, city: e.target.checked }))}
+                      />
+                      City / Location
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.interest}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, interest: e.target.checked }))}
+                      />
+                      {indConfig.interestColumnLabel}
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.project}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, project: e.target.checked }))}
+                      />
+                      {indConfig.projectColumnLabel}
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.status}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, status: e.target.checked }))}
+                      />
+                      Lead Status
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.priority}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, priority: e.target.checked }))}
+                      />
+                      Priority
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={visibleColumns.consent}
+                        onChange={(e) => setVisibleColumns((c) => ({ ...c, consent: e.target.checked }))}
+                      />
+                      WhatsApp Consent
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Bulk Toggle Button */}
+              {selected.length > 0 && (
+                <button
+                  type="button"
+                  className="cp-btn primary small"
+                  onClick={() => setBulkOpen((v) => !v)}
+                  style={{ marginLeft: 'auto' }}
+                >
+                  <MoreHorizontal size={14} /> Bulk Actions ({selected.length})
+                </button>
+              )}
             </div>
-          )}
 
-          {/* SECTION D: CONTACT TABLE */}
-          <div className="table-wrap" style={{ border: 'none', borderRadius: '0' }}>
-            <table className="contacts-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '40px', textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedOnPage}
-                      onChange={toggleAll}
-                      aria-label="Select all contacts on this page"
-                    />
-                  </th>
-                  <th>
-                    <button
-                      onClick={() => requestSort('fullName')}
-                      style={{ border: 'none', background: 'transparent', font: 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                    >
-                      Contact <ChevronsUpDown size={12} />
-                    </button>
-                  </th>
-                  <th>Phone / WhatsApp</th>
-                  <th>City / Location</th>
-                  <th>Property Interest</th>
-                  <th>Project / Community</th>
-                  <th>Lead Status</th>
-                  <th>Priority</th>
-                  <th>WhatsApp Consent</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 6 }, (_, index) => (
-                    <tr key={`skeleton-${index}`} className="skeleton-row">
-                      {Array.from({ length: 10 }, (_, i) => (
-                        <td key={i}>
-                          <div style={{ height: '14px', background: 'var(--color-surface-subtle)', borderRadius: '4px' }} />
+            {/* ACTIVE FILTER SUMMARY CHIPS */}
+            {(Boolean(search) || activeFilterCount > 0) && (
+              <div className="cp-chips-bar">
+                {search && (
+                  <span className="cp-chip">
+                    Search: "{search}"
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('search')}>×</button>
+                  </span>
+                )}
+                {filters.whatsappConsentStatus && (
+                  <span className="cp-chip">
+                    Consent: {filters.whatsappConsentStatus}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('whatsappConsentStatus')}>×</button>
+                  </span>
+                )}
+                {filters.interestedPropertyType && (
+                  <span className="cp-chip">
+                    {indConfig.interestColumnLabel}: {filters.interestedPropertyType}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('interestedPropertyType')}>×</button>
+                  </span>
+                )}
+                {filters.leadStatus && (
+                  <span className="cp-chip">
+                    Status: {filters.leadStatus}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('leadStatus')}>×</button>
+                  </span>
+                )}
+                {filters.group && (
+                  <span className="cp-chip">
+                    Group: {groups.find((g) => g._id === filters.group)?.name || 'Selected'}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('group')}>×</button>
+                  </span>
+                )}
+                {filters.city && (
+                  <span className="cp-chip">
+                    City: {filters.city}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('city')}>×</button>
+                  </span>
+                )}
+                {filters.interestedProject && (
+                  <span className="cp-chip">
+                    {indConfig.projectColumnLabel}: {filters.interestedProject}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('interestedProject')}>×</button>
+                  </span>
+                )}
+                {filters.priority && (
+                  <span className="cp-chip">
+                    Priority: {filters.priority}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('priority')}>×</button>
+                  </span>
+                )}
+                {filters.tag && (
+                  <span className="cp-chip">
+                    Tag: {filters.tag}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('tag')}>×</button>
+                  </span>
+                )}
+                {filters.source && (
+                  <span className="cp-chip">
+                    Source: {filters.source}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('source')}>×</button>
+                  </span>
+                )}
+                {filters.isSuppressed && (
+                  <span className="cp-chip">
+                    {filters.isSuppressed === 'true' ? 'Suppressed Only' : 'Active Only'}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('isSuppressed')}>×</button>
+                  </span>
+                )}
+                {filters.archived !== 'false' && (
+                  <span className="cp-chip">
+                    {filters.archived === 'true' ? 'Archived Only' : 'All (Including Archived)'}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('archived')}>×</button>
+                  </span>
+                )}
+                {filters.isDemo && (
+                  <span className="cp-chip">
+                    {filters.isDemo === 'true' ? 'Demo Fixtures' : 'Genuine Contacts'}
+                    <button className="cp-chip-remove" onClick={() => clearFilterKey('isDemo')}>×</button>
+                  </span>
+                )}
+                <button type="button" className="cp-chip-clear-all" onClick={resetFilters}>
+                  Clear all filters
+                </button>
+              </div>
+            )}
+
+            {/* MORE FILTERS POPOVER */}
+            {moreFiltersOpen && (
+              <div className="cp-more-filters-panel">
+                <label>
+                  <span>City / Location</span>
+                  <input
+                    value={filters.city}
+                    onChange={(e) => setFilter('city', e.target.value)}
+                    placeholder="e.g. Gurugram, Delhi"
+                  />
+                </label>
+                <label>
+                  <span>{indConfig.projectColumnLabel}</span>
+                  <input
+                    value={filters.interestedProject}
+                    onChange={(e) => setFilter('interestedProject', e.target.value)}
+                    placeholder="e.g. DLF Privana"
+                  />
+                </label>
+                <label>
+                  <span>Priority</span>
+                  <select value={filters.priority} onChange={(e) => setFilter('priority', e.target.value)}>
+                    <option value="">All Priorities</option>
+                    {PRIORITIES.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Tag</span>
+                  <input
+                    value={filters.tag}
+                    onChange={(e) => setFilter('tag', e.target.value)}
+                    placeholder="e.g. NRI, Premium"
+                  />
+                </label>
+                <label>
+                  <span>Lead Source</span>
+                  <input
+                    value={filters.source}
+                    onChange={(e) => setFilter('source', e.target.value)}
+                    placeholder="e.g. Website, Referral"
+                  />
+                </label>
+                <label>
+                  <span>Suppression Status</span>
+                  <select value={filters.isSuppressed} onChange={(e) => setFilter('isSuppressed', e.target.value)}>
+                    <option value="">All Records</option>
+                    <option value="false">Active Only (Non-Suppressed)</option>
+                    <option value="true">Do Not Contact (Suppressed)</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Archive Status</span>
+                  <select value={filters.archived} onChange={(e) => setFilter('archived', e.target.value)}>
+                    <option value="false">Active Only</option>
+                    <option value="true">Archived Only</option>
+                    <option value="all">All Records</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Data Classification</span>
+                  <select value={filters.isDemo} onChange={(e) => setFilter('isDemo', e.target.value)}>
+                    <option value="">All Contacts</option>
+                    <option value="false">Genuine Customers Only</option>
+                    <option value="true">Demo Fixtures Only</option>
+                  </select>
+                </label>
+              </div>
+            )}
+
+            {/* CONTEXTUAL BULK ACTIONS BAR */}
+            {bulkOpen && selected.length > 0 && (
+              <div className="cp-bulk-bar">
+                <span className="cp-bulk-count">
+                  {selected.length} contact(s) selected
+                </span>
+                <select
+                  value={bulkAction}
+                  onChange={(e) => {
+                    setBulkAction(e.target.value);
+                    setBulkValue(
+                      e.target.value === 'status'
+                        ? 'New'
+                        : e.target.value === 'priority'
+                        ? 'Medium'
+                        : e.target.value === 'addToGroup' && groups.length
+                        ? groups[0]._id
+                        : ''
+                    );
+                  }}
+                  className="cp-select"
+                  style={{ height: '32px', fontSize: '12px' }}
+                >
+                  <option value="status">Change Lead Status</option>
+                  <option value="priority">Change Priority</option>
+                  {groups.length > 0 && <option value="addToGroup">Add to Group</option>}
+                  {groups.length > 0 && <option value="removeFromGroup">Remove from Group</option>}
+                  <option value="addTags">Add Tags</option>
+                  <option value="removeTags">Remove Tags</option>
+                  <option value="archive">Archive Selected</option>
+                  <option value="restore">Restore Selected</option>
+                  <option value="delete">Delete Selected</option>
+                </select>
+
+                {bulkAction === 'status' && (
+                  <select
+                    value={bulkValue}
+                    onChange={(e) => setBulkValue(e.target.value)}
+                    className="cp-select"
+                    style={{ height: '32px', fontSize: '12px' }}
+                  >
+                    {STATUSES.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                )}
+
+                {bulkAction === 'priority' && (
+                  <select
+                    value={bulkValue}
+                    onChange={(e) => setBulkValue(e.target.value)}
+                    className="cp-select"
+                    style={{ height: '32px', fontSize: '12px' }}
+                  >
+                    {PRIORITIES.map((v) => (
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                )}
+
+                {['addTags', 'removeTags'].includes(bulkAction) && (
+                  <input
+                    value={bulkValue}
+                    onChange={(e) => setBulkValue(e.target.value)}
+                    placeholder="tag one, tag two"
+                    style={{ height: '32px', borderRadius: '6px', border: '1px solid var(--cp-border)', padding: '0 8px', fontSize: '12px' }}
+                  />
+                )}
+
+                {['addToGroup', 'removeFromGroup'].includes(bulkAction) && (
+                  <select
+                    value={bulkValue}
+                    onChange={(e) => setBulkValue(e.target.value)}
+                    className="cp-select"
+                    style={{ height: '32px', fontSize: '12px' }}
+                  >
+                    {groups.map((g) => (
+                      <option key={g._id} value={g._id}>{g.name}</option>
+                    ))}
+                  </select>
+                )}
+
+                <button className="cp-btn primary small" onClick={performBulk} style={{ height: '32px' }}>
+                  Apply
+                </button>
+                <button className="cp-btn small" onClick={() => setSelected([])} style={{ height: '32px' }}>
+                  Cancel Selection
+                </button>
+              </div>
+            )}
+
+            {/* SECTION D: PINNED STICKY DATA TABLE */}
+            <div className="cp-table-wrap">
+              <table className="cp-table contacts-table">
+                <thead>
+                  <tr>
+                    <th className="col-sticky-check">
+                      <input
+                        type="checkbox"
+                        checked={selectedOnPage}
+                        onChange={toggleAll}
+                        aria-label="Select all contacts on this page"
+                      />
+                    </th>
+                    <th className="col-sticky-contact">
+                      <button
+                        onClick={() => requestSort('fullName')}
+                        style={{ border: 'none', background: 'transparent', font: 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'inherit' }}
+                      >
+                        Contact <ChevronsUpDown size={12} />
+                      </button>
+                    </th>
+                    {visibleColumns.phone && <th>Phone / WhatsApp</th>}
+                    {visibleColumns.city && <th>City / Location</th>}
+                    {visibleColumns.interest && <th>{indConfig.interestColumnLabel}</th>}
+                    {visibleColumns.project && <th>{indConfig.projectColumnLabel}</th>}
+                    {visibleColumns.status && <th>Lead Status</th>}
+                    {visibleColumns.priority && <th>Priority</th>}
+                    {visibleColumns.consent && <th>WhatsApp Consent</th>}
+                    <th style={{ textAlign: 'right', paddingRight: '16px' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 5 }, (_, index) => (
+                      <tr key={`skeleton-${index}`} className="skeleton-row">
+                        <td className="col-sticky-check">
+                          <div style={{ height: '14px', width: '14px', background: 'var(--cp-border)', borderRadius: '3px', margin: '0 auto' }} />
                         </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : error ? (
-                  <tr>
-                    <td colSpan="10">
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px', textAlign: 'center' }}>
-                        <CircleAlert size={24} color="var(--color-danger)" style={{ marginBottom: '8px' }} />
-                        <strong style={{ fontSize: '14px' }}>Could not load contacts</strong>
-                        <p style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', margin: '4px 0 12px' }}>{error}</p>
-                        <button className="outline-btn small" onClick={loadList}>
-                          Try Again
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ) : records.length === 0 ? (
-                  <tr>
-                    <td colSpan="10">
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px', textAlign: 'center' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--color-surface-muted)', display: 'grid', placeItems: 'center', color: 'var(--color-text-muted)', marginBottom: '12px' }}>
-                          <ContactRound size={24} />
-                        </div>
-                        <strong style={{ fontSize: '15px', color: 'var(--color-text-primary)' }}>
-                          {search || activeFilterCount ? 'No matching contacts found' : 'No contacts yet'}
-                        </strong>
-                        <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', maxWidth: '340px', margin: '4px 0 16px' }}>
-                          {search || activeFilterCount
-                            ? 'Try adjusting your search terms or clearing active filters.'
-                            : 'Import your Excel property enquiry sheet or add your first customer manually.'}
-                        </p>
-                        {search || activeFilterCount ? (
-                          <button className="outline-btn small" onClick={resetFilters}>
-                            Reset All Filters
+                        <td className="col-sticky-contact">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--cp-border)' }} />
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ height: '12px', width: '90px', background: 'var(--cp-border)', borderRadius: '3px' }} />
+                              <div style={{ height: '10px', width: '130px', background: 'var(--cp-border)', borderRadius: '3px' }} />
+                            </div>
+                          </div>
+                        </td>
+                        {visibleColumns.phone && <td><div style={{ height: '12px', width: '100px', background: 'var(--cp-border)', borderRadius: '3px' }} /></td>}
+                        {visibleColumns.city && <td><div style={{ height: '12px', width: '70px', background: 'var(--cp-border)', borderRadius: '3px' }} /></td>}
+                        {visibleColumns.interest && <td><div style={{ height: '12px', width: '100px', background: 'var(--cp-border)', borderRadius: '3px' }} /></td>}
+                        {visibleColumns.project && <td><div style={{ height: '12px', width: '90px', background: 'var(--cp-border)', borderRadius: '3px' }} /></td>}
+                        {visibleColumns.status && <td><div style={{ height: '18px', width: '65px', background: 'var(--cp-border)', borderRadius: '4px' }} /></td>}
+                        {visibleColumns.priority && <td><div style={{ height: '12px', width: '50px', background: 'var(--cp-border)', borderRadius: '3px' }} /></td>}
+                        {visibleColumns.consent && <td><div style={{ height: '18px', width: '80px', background: 'var(--cp-border)', borderRadius: '4px' }} /></td>}
+                        <td><div style={{ height: '14px', width: '70px', background: 'var(--cp-border)', borderRadius: '3px', marginLeft: 'auto' }} /></td>
+                      </tr>
+                    ))
+                  ) : error ? (
+                    <tr>
+                      <td colSpan={10}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px', textAlign: 'center' }}>
+                          <CircleAlert size={24} color="var(--cp-danger)" style={{ marginBottom: '8px' }} />
+                          <strong style={{ fontSize: '14px' }}>Could not load contacts</strong>
+                          <p style={{ fontSize: '12.5px', color: 'var(--cp-muted)', margin: '4px 0 12px' }}>{error}</p>
+                          <button className="cp-btn small" onClick={loadList}>
+                            Try Again
                           </button>
-                        ) : (
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button className="outline-btn small" onClick={() => setImportModalOpen(true)}>
-                              <FileSpreadsheet size={14} /> Import Excel / CSV
+                        </div>
+                      </td>
+                    </tr>
+                  ) : records.length === 0 ? (
+                    <tr>
+                      <td colSpan={10}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 16px', textAlign: 'center' }}>
+                          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--cp-cloud)', display: 'grid', placeItems: 'center', color: 'var(--cp-muted)', marginBottom: '12px' }}>
+                            <ContactRound size={24} />
+                          </div>
+                          <strong style={{ fontSize: '15px', color: 'var(--cp-navy)' }}>
+                            {search || activeFilterCount ? 'No matching contacts found' : 'No contacts yet'}
+                          </strong>
+                          <p style={{ fontSize: '13px', color: 'var(--cp-muted)', maxWidth: '360px', margin: '4px 0 16px' }}>
+                            {search || activeFilterCount
+                              ? 'Try adjusting your search terms or clearing active filters.'
+                              : indConfig.emptyImportHint}
+                          </p>
+                          {search || activeFilterCount ? (
+                            <button className="cp-btn small" onClick={resetFilters}>
+                              Reset All Filters
                             </button>
-                            <button className="primary-btn small" onClick={() => setEditor(null)}>
-                              <Plus size={14} /> Add Contact
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  records.map((contact) => (
-                    <tr
-                      key={contact._id}
-                      className={`${selected.includes(contact._id) ? 'is-selected' : ''} ${contact.isArchived ? 'is-archived' : ''}`}
-                    >
-                      <td style={{ textAlign: 'center' }}>
-                        <input
-                          type="checkbox"
-                          checked={selected.includes(contact._id)}
-                          onChange={() => toggleOne(contact._id)}
-                          aria-label={`Select ${contact.fullName}`}
-                        />
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => openProfile(contact._id)}
-                          style={{ border: 'none', background: 'transparent', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: 0 }}
-                        >
-                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', display: 'grid', placeItems: 'center', fontSize: '12px', fontWeight: 700 }}>
-                            {initials(contact.fullName)}
-                          </div>
-                          <div>
-                            <strong style={{ fontSize: '13.5px', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {contact.fullName}
-                              {(contact.isDemo || contact.customFields?.isDemo || contact.tags?.includes('demo')) && (
-                                <span className="neutral-chip" style={{ fontSize: '9.5px', padding: '1px 5px', background: '#F1F5F9', color: '#64748B', fontWeight: 600 }}>
-                                  DEMO
-                                </span>
-                              )}
-                            </strong>
-                            <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
-                              {contact.email || 'No email'}
-                            </span>
-                          </div>
-                        </button>
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '13px', color: 'var(--color-text-primary)' }}>{contact.phoneNumber}</span>
-                        {contact.alternatePhone && (
-                          <small style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                            Alt: {contact.alternatePhone}
-                          </small>
-                        )}
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                          {contact.city || contact.location || '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                          {contact.interestedPropertyType || contact.interestedService || '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                          {contact.interestedProject || contact.businessCategory || '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${statusClass(contact.leadStatus)}`}>{contact.leadStatus}</span>
-                      </td>
-                      <td>
-                        <span className={`priority-badge ${priorityClass(contact.priority)}`}>
-                          <i /> {contact.priority}
-                        </span>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <span className={`consent-badge consent-${consentClass(contact.whatsappConsentStatus)}`}>
-                            {contact.whatsappConsentStatus}
-                          </span>
-                          {contact.isSuppressed && (
-                            <span style={{ fontSize: '10px', color: 'var(--color-danger)', fontWeight: 600 }}>
-                              Suppressed
-                            </span>
+                          ) : (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button className="cp-btn small" onClick={() => setImportModalOpen(true)}>
+                                <FileSpreadsheet size={14} /> Import Excel / CSV
+                              </button>
+                              <button className="cp-btn primary small" onClick={() => setEditor(null)}>
+                                <Plus size={14} /> Add Contact
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <button className="icon-btn" title="View Details" onClick={() => openProfile(contact._id)}>
-                            <Eye size={14} />
-                          </button>
-                          <button
-                            className="icon-btn"
-                            title="Preview Message in Templates"
-                            onClick={() => navigate(`/templates?contact=${encodeURIComponent(contact._id)}`)}
-                          >
-                            <MessageSquareText size={14} />
-                          </button>
-                          <button className="icon-btn" title="Edit Contact" onClick={() => setEditor(contact)}>
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            className="icon-btn"
-                            title={contact.isArchived ? 'Restore' : 'Archive'}
-                            onClick={() => quickAction(contact.isArchived ? 'restore' : 'archive', contact)}
-                          >
-                            <Archive size={14} />
-                          </button>
-                          <button className="icon-btn text-danger" title="Delete" onClick={() => quickAction('delete', contact)}>
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* TABLE FOOTER / PAGINATION */}
-          <footer className="contacts-footer">
-            <span>
-              Showing <b>{total === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}</b> of{' '}
-              <b>{total}</b> contacts
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                Rows per page
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
-                  }}
-                  style={{ height: '28px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '12px' }}
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </label>
-              <button
-                className="outline-btn small"
-                disabled={page <= 1 || loading}
-                onClick={() => setPage((p) => p - 1)}
-                style={{ width: '30px', padding: 0 }}
-              >
-                <ArrowLeft size={13} />
-              </button>
-              <span style={{ fontSize: '12px', minWidth: '36px', textAlign: 'center' }}>
-                {page} / {Math.max(1, Math.ceil(total / pageSize))}
-              </span>
-              <button
-                className="outline-btn small"
-                disabled={page >= Math.ceil(total / pageSize) || loading}
-                onClick={() => setPage((p) => p + 1)}
-                style={{ width: '30px', padding: 0 }}
-              >
-                <ArrowRight size={13} />
-              </button>
+                  ) : (
+                    records.map((contact) => (
+                      <tr
+                        key={contact._id}
+                        className={`${selected.includes(contact._id) ? 'is-selected' : ''} ${contact.isArchived ? 'is-archived' : ''}`}
+                      >
+                        <td className="col-sticky-check">
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(contact._id)}
+                            onChange={() => toggleOne(contact._id)}
+                            aria-label={`Select ${contact.fullName}`}
+                          />
+                        </td>
+                        <td className="col-sticky-contact">
+                          <button
+                            type="button"
+                            className="cp-identity-btn"
+                            onClick={() => openProfile(contact._id)}
+                            title="View Contact Details"
+                          >
+                            <div className="cp-avatar">
+                              {initials(contact.fullName)}
+                            </div>
+                            <div className="cp-identity-info">
+                              <span className="cp-identity-name">
+                                {contact.fullName}
+                                {(contact.isDemo || contact.customFields?.isDemo || contact.tags?.includes('demo')) && (
+                                  <span className="cp-demo-tag">DEMO</span>
+                                )}
+                              </span>
+                              <span className="cp-identity-email" title={contact.email || ''}>
+                                {contact.email || 'No email'}
+                              </span>
+                            </div>
+                          </button>
+                        </td>
+                        {visibleColumns.phone && (
+                          <td>
+                            <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--cp-text)' }}>{contact.phoneNumber}</span>
+                            {contact.alternatePhone && (
+                              <small style={{ display: 'block', fontSize: '11px', color: 'var(--cp-muted)' }}>
+                                Alt: {contact.alternatePhone}
+                              </small>
+                            )}
+                          </td>
+                        )}
+                        {visibleColumns.city && (
+                          <td>
+                            <span style={{ fontSize: '13px', color: 'var(--cp-muted)' }}>
+                              {contact.city || contact.location || '—'}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.interest && (
+                          <td>
+                            <span style={{ fontSize: '13px', color: 'var(--cp-text)' }}>
+                              {contact.productServiceInterest || contact.industryData?.productServiceInterest || contact.interestedPropertyType || contact.interestedService || contact.industryData?.serviceInterest || contact.industryData?.membershipInterest || contact.industryData?.membershipPlan || '—'}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.project && (
+                          <td>
+                            <span style={{ fontSize: '13px', color: 'var(--cp-muted)' }}>
+                              {contact.interestedProject || contact.companyName || contact.industryData?.companyName || contact.industryData?.serviceCategory || contact.industryData?.branchName || contact.industryData?.fitnessProgram || '—'}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.status && (
+                          <td>
+                            <span className={`cp-status-badge cp-status-${statusClass(contact.leadStatus)}`}>
+                              {contact.leadStatus}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.priority && (
+                          <td>
+                            <span className={`cp-priority-badge cp-priority-${priorityClass(contact.priority)}`}>
+                              {contact.priority}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.consent && (
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                              <span className={`cp-consent-badge cp-consent-${consentClass(contact.whatsappConsentStatus)}`}>
+                                {contact.whatsappConsentStatus === 'Opted In' && <Check size={12} />}
+                                {contact.whatsappConsentStatus === 'Opted Out' && <Ban size={12} />}
+                                {contact.whatsappConsentStatus === 'Unknown' && <Clock3 size={12} />}
+                                {contact.whatsappConsentStatus}
+                              </span>
+                              {contact.isSuppressed && (
+                                <span className="cp-suppressed-tag">
+                                  <ShieldAlert size={10} /> Suppressed
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                        <td style={{ textAlign: 'right', paddingRight: '12px' }}>
+                          <div className="cp-actions-row" style={{ justifyContent: 'flex-end' }}>
+                            <button className="cp-action-btn" title="View Details" onClick={() => openProfile(contact._id)}>
+                              <Eye size={14} />
+                            </button>
+                            <button
+                              className="cp-action-btn"
+                              title="Preview Message in Templates"
+                              onClick={() => navigate(`/templates?contact=${encodeURIComponent(contact._id)}`)}
+                            >
+                              <MessageSquareText size={14} />
+                            </button>
+                            <button className="cp-action-btn" title="Edit Contact" onClick={() => setEditor(contact)}>
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              className="cp-action-btn"
+                              title={contact.isArchived ? 'Restore' : 'Archive'}
+                              onClick={() => quickAction(contact.isArchived ? 'restore' : 'archive', contact)}
+                            >
+                              <Archive size={14} />
+                            </button>
+                            <button className="cp-action-btn danger" title="Delete" onClick={() => quickAction('delete', contact)}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </footer>
-        </section>
-      )}
 
+            {/* TABLE FOOTER / PAGINATION */}
+            <footer className="cp-footer">
+              <span>
+                Showing <b>{total === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}</b> of{' '}
+                <b>{total}</b> contacts
+              </span>
+              <div className="cp-page-controls">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                  Rows per page
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="cp-select"
+                    style={{ height: '30px', padding: '0 6px', fontSize: '12px' }}
+                  >
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                </label>
+                <button
+                  className="cp-btn small icon-only"
+                  disabled={page <= 1 || loading}
+                  onClick={() => setPage((p) => p - 1)}
+                  style={{ width: '30px', height: '30px', minHeight: '30px' }}
+                  aria-label="Previous Page"
+                >
+                  <ArrowLeft size={13} />
+                </button>
+                <span style={{ fontSize: '12px', minWidth: '36px', textAlign: 'center', fontWeight: 600, color: 'var(--cp-text)' }}>
+                  {page} / {Math.max(1, Math.ceil(total / pageSize))}
+                </span>
+                <button
+                  className="cp-btn small icon-only"
+                  disabled={page >= Math.ceil(total / pageSize) || loading}
+                  onClick={() => setPage((p) => p + 1)}
+                  style={{ width: '30px', height: '30px', minHeight: '30px' }}
+                  aria-label="Next Page"
+                >
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+            </footer>
+          </>
+        )}
       {/* TAB 2: CONTACT GROUPS */}
       {activeTab === 'groups' && (
         <section className="panel" style={{ padding: '20px' }}>
@@ -1749,7 +1942,7 @@ export default function ContactsPage() {
               </p>
             </div>
             <button
-              className="primary-btn small"
+              className="cp-btn primary small"
               onClick={() => {
                 setGroupEditing(null);
                 setGroupModalOpen(true);
@@ -1771,7 +1964,7 @@ export default function ContactsPage() {
                 Create reusable groups like "Gurugram Enquiries" or "Farmhouse Buyers" to organize broadcasts.
               </p>
               <button
-                className="primary-btn small"
+                className="cp-btn primary small"
                 onClick={() => {
                   setGroupEditing(null);
                   setGroupModalOpen(true);
@@ -1862,7 +2055,7 @@ export default function ContactsPage() {
               </p>
             </div>
             <button
-              className="primary-btn small"
+              className="cp-btn primary small"
               onClick={() => {
                 setSegmentEditing(null);
                 setSegmentModalOpen(true);
@@ -1884,7 +2077,7 @@ export default function ContactsPage() {
                 Build dynamic rule-based audiences such as "Gurugram Plot Enquiries with Budget &gt; ₹2 Cr" for automated campaigns.
               </p>
               <button
-                className="primary-btn small"
+                className="cp-btn primary small"
                 onClick={() => {
                   setSegmentEditing(null);
                   setSegmentModalOpen(true);
@@ -1992,10 +2185,10 @@ export default function ContactsPage() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="outline-btn small" onClick={loadImportHistory}>
+              <button className="cp-btn small" onClick={loadImportHistory}>
                 <RefreshCw size={13} /> Refresh
               </button>
-              <button className="primary-btn small" onClick={() => setImportModalOpen(true)}>
+              <button className="cp-btn primary small" onClick={() => setImportModalOpen(true)}>
                 <FileSpreadsheet size={14} /> Import Another File
               </button>
             </div>
@@ -2012,7 +2205,7 @@ export default function ContactsPage() {
               <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 16px' }}>
                 Upload your first contact sheet to populate your database with phone normalization and duplicate checks.
               </p>
-              <button className="primary-btn small" onClick={() => setImportModalOpen(true)}>
+              <button className="cp-btn primary small" onClick={() => setImportModalOpen(true)}>
                 <FileSpreadsheet size={14} /> Start Contact Import
               </button>
             </div>
@@ -2040,7 +2233,7 @@ export default function ContactsPage() {
                       <td style={{ padding: '10px 14px', color: 'var(--color-text-secondary)' }}>{job.originalFilename}</td>
                       <td style={{ padding: '10px 14px', color: 'var(--color-text-muted)' }}>{formatDate(job.createdAt)}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600 }}>{job.totalRows}</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--color-primary)', fontWeight: 600 }}>{job.createdCount}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--cp-blue)', fontWeight: 600 }}>{job.createdCount}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--color-info)' }}>{job.updatedCount}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', color: 'var(--color-warning)' }}>{job.skippedCount}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', color: job.failedCount > 0 ? 'var(--color-danger)' : 'var(--color-text-muted)' }}>{job.failedCount}</td>
@@ -2071,7 +2264,7 @@ export default function ContactsPage() {
                           )}
                           {job.status === 'Completed With Errors' && job.failedCount > 0 && (
                             <button
-                              className="outline-btn small"
+                              className="cp-btn small"
                               style={{ fontSize: '11px', height: '26px' }}
                               onClick={async () => {
                                 try {
@@ -2096,6 +2289,8 @@ export default function ContactsPage() {
           )}
         </section>
       )}
+
+      </div>
 
       {/* MODALS */}
       {editor !== undefined && (

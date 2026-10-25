@@ -1,0 +1,92 @@
+[
+ {
+  "id": "second same-industry account provisioned",
+  "ok": true,
+  "note": "ws=6add851920c93b7d1bda5c47"
+ },
+ {
+  "id": "A and B have distinct workspaces",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "B starts with zero contacts (no fabricated data, no A data)",
+  "ok": true,
+  "note": "total=0"
+ },
+ {
+  "id": "B template list contains none of A templates",
+  "ok": true,
+  "note": "A=17 B=15"
+ },
+ {
+  "id": "B cannot read A contact via B workspace",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "B cannot read A contact via A workspace header (forged)",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "B cannot patch A contact",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "B cannot read A campaign",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "B cannot read A conversation",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "B cannot read A campaign execution",
+  "ok": true,
+  "note": "status 404"
+ },
+ {
+  "id": "same phone allowed in a different business workspace",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "duplicate phone inside same workspace rejected",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "duplicate signup email rejected",
+  "ok": true,
+  "note": "status 409"
+ },
+ {
+  "id": "cancelled campaign no longer carries scheduled state",
+  "ok": true,
+  "note": "status=Cancelled mockSchedule={\"startAt\":\"2026-10-26T04:27:05.177Z\",\"timezone\":\"Asia/Kolkata\",\"status\":\"cancelled\",\"createdAt\":\"2026-10-25T04:27:05.185Z\"}"
+ },
+ {
+  "id": "logout",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "old token rejected after logout",
+  "ok": true,
+  "note": "status 401"
+ },
+ {
+  "id": "login again",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "data present after logout/login",
+  "ok": true,
+  "note": "contacts=7"
+ }
+]

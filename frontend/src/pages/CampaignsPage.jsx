@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Archive, ArrowLeft, ArrowRight, Ban, Boxes, Calendar, Check, ChevronDown, CircleAlert, Clock3, Copy, Download, Eye, FileText, Filter, ListChecks, LoaderCircle, MessageSquareText, Play, Plus, RefreshCw, RotateCcw, Search, ShieldAlert, ShieldCheck, Sparkles, Trash2, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
@@ -11,13 +11,15 @@ import { listTemplates, getTemplateVersions } from '../services/templates';
 import { listContactGroups } from '../services/contactGroups';
 import { retryMessage, cancelMessage, getCampaignMessages, getCampaignQueueStatus } from '../services/messages';
 import * as api from '../services/campaigns';
+import { useWorkspace } from '../context/WorkspaceContext';
+import '../campaigns.css';
 
 const BLANK = {
   name: '',
   description: '',
   goal: '',
   customGoal: '',
-  category: 'Real Estate',
+  category: '',
   subcategory: '',
   service: '',
   location: '',
@@ -28,43 +30,7 @@ const BLANK = {
   executionMode: 'MOCK'
 };
 
-const GOALS = [
-  'Property Launch Announcement',
-  'Price & Inventory Update',
-  'Plot & Land Investment Update',
-  'Luxury Apartment Showcase',
-  'Follow-up on Property Enquiries',
-  'Site Visit Invitation',
-  'Festive / Special Booking Offer',
-  'Commercial Property Showcase',
-  'NRI Property Investment Briefing',
-  'Other'
-];
-
-const CATEGORIES = [
-  'Real Estate',
-  'Residential Plots',
-  'Luxury Villas',
-  'Apartments / Flats',
-  'Commercial Retail',
-  'Commercial Office',
-  'Farmhouses',
-  'Penthouse Collection',
-  'Construction',
-  'Other'
-];
-
-const STATUSES = [
-  'Draft',
-  'Ready',
-  'Scheduled',
-  'Running',
-  'Paused',
-  'Completed',
-  'Failed',
-  'Cancelled',
-  'Archived'
-];
+const STATUSES = ['Draft', 'Ready', 'Scheduled', 'Running', 'Paused', 'Completed', 'Failed', 'Cancelled', 'Archived'];
 
 const error = e => e.response?.data?.message || e.message || 'Something went wrong.';
 const date = v => (v ? new Date(v).toLocaleDateString() : '—');
@@ -152,60 +118,128 @@ function Status({ value }) {
   );
 }
 
-function CampaignStats({ stats }) {
+function CampaignStats({ stats, currentStatus, onStatusSelect }) {
   const primary = [
-    ['Total Campaigns', stats?.totalCampaigns ?? 0, 'var(--color-primary)'],
-    ['Scheduled', stats?.scheduledMockCampaigns ?? 0, 'var(--color-info)'],
-    ['Running', stats?.runningMockCampaigns ?? 0, 'var(--color-warning)'],
-    ['Completed', stats?.completedMockCampaigns ?? 0, 'var(--color-success)']
+    {
+      label: 'Total Campaigns',
+      value: stats?.totalCampaigns ?? 0,
+      sub: 'Campaigns in this workspace',
+      icon: Boxes,
+      color: '#2563EB',
+      bg: '#EFF6FF'
+    },
+    {
+      label: 'Scheduled',
+      value: stats?.scheduledMockCampaigns ?? 0,
+      sub: 'Upcoming scheduled runs',
+      icon: Calendar,
+      color: '#2563EB',
+      bg: '#EFF6FF'
+    },
+    {
+      label: 'Running',
+      value: stats?.runningMockCampaigns ?? 0,
+      sub: 'Active background executions',
+      icon: Clock3,
+      color: '#D97706',
+      bg: '#FFFBEB'
+    },
+    {
+      label: 'Completed',
+      displayTitle: 'Completed Mock Runs',
+      value: stats?.completedMockCampaigns ?? 0,
+      sub: 'Simulated executions completed',
+      icon: Check,
+      color: '#16A34A',
+      bg: '#F0FDF4'
+    }
   ];
+
   return (
     <div style={{ marginBottom: '20px' }}>
-      <div className="stat-grid" style={{ marginBottom: '12px' }}>
-        {primary.map(([label, value, color]) => (
-          <div className="stat-card" key={label} style={{ padding: '16px 18px' }}>
-            <div className="stat-head">
-              <span>{label}</span>
-              <Boxes size={15} style={{ color }} />
+      <div className="cp-kpi-grid">
+        {primary.map(card => {
+          const Icon = card.icon;
+          return (
+            <div className="cp-kpi-card" key={card.label}>
+              <div className="cp-kpi-head">
+                <div className="cp-kpi-label-group">
+                  <span className="cp-kpi-label">{card.displayTitle || card.label}</span>
+                  <span className="cp-kpi-sub">{card.sub}</span>
+                </div>
+                <div className="cp-kpi-icon-wrap" style={{ color: card.color, backgroundColor: card.bg }}>
+                  <Icon size={16} />
+                </div>
+              </div>
+              <div className="cp-kpi-value">
+                {Number(card.value).toLocaleString()}
+              </div>
             </div>
-            <div className="stat-value" style={{ fontSize: '26px' }}>
-              {Number(value).toLocaleString()}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          flexWrap: 'wrap',
-          padding: '8px 14px',
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '10px',
-          fontSize: '12px'
-        }}
-      >
-        <span style={{ fontWeight: 600, color: 'var(--color-text-muted)' }}>Status Breakdown:</span>
-        <span className="status-badge" style={{ backgroundColor: 'var(--color-surface-subtle)', color: 'var(--color-text-secondary)' }}>
-          Drafts: {stats?.draftCampaigns ?? 0}
-        </span>
-        <span className="status-badge" style={{ backgroundColor: '#fef9c3', color: '#a16207' }}>
-          Paused: {stats?.pausedMockCampaigns ?? 0}
-        </span>
-        <span className="status-badge" style={{ backgroundColor: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
-          Failed: {stats?.failedMockCampaigns ?? 0}
-        </span>
-        <span className="status-badge" style={{ backgroundColor: 'var(--color-surface-subtle)', color: 'var(--color-text-muted)' }}>
-          Cancelled: {stats?.cancelledMockCampaigns ?? 0}
-        </span>
-        <span className="status-badge" style={{ backgroundColor: 'var(--color-warning-soft)', color: 'var(--color-warning)' }}>
-          Needs Attention: {stats?.requiringAttention ?? 0}
-        </span>
-        <span style={{ marginLeft: 'auto', color: 'var(--color-text-muted)', fontSize: '11.5px' }}>
-          Audience Snapshot: {Number(stats?.totalSelectedContacts ?? 0).toLocaleString()} contacts
-        </span>
+
+      <div className="cp-status-chip-row">
+        <span className="cp-status-chip-title">Status Breakdown:</span>
+        <button
+          type="button"
+          className={`cp-status-chip cp-status-chip-draft ${currentStatus === 'Draft' ? 'active' : ''}`}
+          onClick={() => onStatusSelect?.(currentStatus === 'Draft' ? '' : 'Draft')}
+          title="Filter by Draft campaigns"
+        >
+          <span className="cp-status-chip-dot" />
+          Drafts: <b>{stats?.draftCampaigns ?? 0}</b>
+        </button>
+        <button
+          type="button"
+          className={`cp-status-chip cp-status-chip-paused ${currentStatus === 'Paused' ? 'active' : ''}`}
+          onClick={() => onStatusSelect?.(currentStatus === 'Paused' ? '' : 'Paused')}
+          title="Filter by Paused simulations"
+        >
+          <span className="cp-status-chip-dot" />
+          Paused: <b>{stats?.pausedMockCampaigns ?? 0}</b>
+        </button>
+        <button
+          type="button"
+          className={`cp-status-chip cp-status-chip-failed ${currentStatus === 'Failed' ? 'active' : ''}`}
+          onClick={() => onStatusSelect?.(currentStatus === 'Failed' ? '' : 'Failed')}
+          title="Filter by Failed mock executions"
+        >
+          <span className="cp-status-chip-dot" />
+          Failed: <b>{stats?.failedMockCampaigns ?? 0}</b>
+        </button>
+        <button
+          type="button"
+          className={`cp-status-chip cp-status-chip-cancelled ${currentStatus === 'Cancelled' ? 'active' : ''}`}
+          onClick={() => onStatusSelect?.(currentStatus === 'Cancelled' ? '' : 'Cancelled')}
+          title="Filter by Cancelled campaigns"
+        >
+          <span className="cp-status-chip-dot" />
+          Cancelled: <b>{stats?.cancelledMockCampaigns ?? 0}</b>
+        </button>
+        <button
+          type="button"
+          className={`cp-status-chip cp-status-chip-warning ${currentStatus === 'Needs Attention' ? 'active' : ''}`}
+          onClick={() => onStatusSelect?.(currentStatus === 'Needs Attention' ? '' : 'Needs Attention')}
+          title="Filter by Campaigns requiring attention"
+        >
+          <span className="cp-status-chip-dot" />
+          Needs Attention: <b>{stats?.requiringAttention ?? 0}</b>
+        </button>
+        {currentStatus && (
+          <button
+            type="button"
+            className="cp-status-chip-clear"
+            onClick={() => onStatusSelect?.('')}
+            title="Clear active status filter"
+          >
+            <X size={12} /> Clear Filter
+          </button>
+        )}
+        <div className="cp-status-chip-audience" title="Aggregated unique contacts across campaigns in this workspace">
+          <Users size={13} />
+          <span>Audience Snapshot: <b>{Number(stats?.totalSelectedContacts ?? 0).toLocaleString()}</b> contacts</span>
+        </div>
       </div>
     </div>
   );
@@ -213,6 +247,9 @@ function CampaignStats({ stats }) {
 
 export function CampaignsPage() {
   const navigate = useNavigate();
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const [starters, setStarters] = useState([]);
+  useEffect(() => { let active = true; api.getStarterDrafts().then(({ data }) => { if (active) setStarters(data.records || []); }).catch(e => toast.error(error(e))); return () => { active = false; }; }, [currentWorkspace?._id]);
   const [records, setRecords] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -223,6 +260,10 @@ export function CampaignsPage() {
   const [total, setTotal] = useState(0);
   const [sort, setSort] = useState('updatedAt');
   const [direction, setDirection] = useState('desc');
+
+  const categoryPlaceholder = industryConfig.terminology.categoryLabel || 'Category';
+
+  const industryCategories = industryConfig.ui.campaigns.categories;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -320,37 +361,45 @@ export function CampaignsPage() {
 
   return (
     <div className="campaign-page">
+      {starters.length > 0 && <details className="panel" style={{ padding: '16px', marginBottom: '16px' }}>
+        <summary>{industryConfig.industryName} starter drafts ({starters.length}) · Unsaved</summary>
+        {starters.map(s => <div key={s.campaignId} style={{ marginTop: '12px' }}>
+          <strong>{s.campaignName || s.name}</strong><p>{s.description}</p>
+          <button className="outline-btn small" onClick={() => navigate(`/campaigns/new?starter=${encodeURIComponent(s.campaignId)}`)}>Use starter draft</button>
+        </div>)}
+      </details>}
       <PageHeader
-        eyebrow="YOUR WORKSPACE · CAMPAIGNS"
+        eyebrow={`${(currentWorkspace?.name || 'YOUR WORKSPACE').toUpperCase()} · CAMPAIGNS`}
         title="Campaigns"
-        subtitle="Create, schedule and monitor personalized WhatsApp campaigns."
+        subtitle="Create, schedule and monitor personalized messaging campaigns."
         actions={
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="outline-btn small" onClick={() => load()} title="Refresh list">
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="outline-btn small" onClick={() => load()} title="Refresh campaign list">
               <RefreshCw size={14} /> Refresh
             </button>
             <button
-              className="outline-btn small"
+              className={`outline-btn small ${status === 'Scheduled' ? 'active-filter-btn' : ''}`}
               onClick={() => {
-                setStatus('Scheduled');
+                setStatus(prev => (prev === 'Scheduled' ? '' : 'Scheduled'));
                 setPage(1);
               }}
+              title="Filter scheduled campaigns"
             >
               <Clock3 size={14} /> View Scheduled
             </button>
-            <Link className="primary-btn small" to="/campaigns/new">
+            <Link className="primary-btn small cp-btn-primary" to="/campaigns/new">
               <Plus size={15} /> New Campaign
             </Link>
           </div>
         }
       />
-      <CampaignStats stats={stats} />
-      <section className="panel">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderBottom: '1px solid var(--color-border-subtle)', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1', minWidth: '220px', background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0 10px', height: '36px' }}>
-            <Search size={14} color="var(--color-text-muted)" />
+      <CampaignStats stats={stats} currentStatus={status} onStatusSelect={s => { setStatus(s); setPage(1); }} />
+      <section className="panel cp-management-surface">
+        <div className="cp-toolbar">
+          <div className="cp-search-wrap">
+            <Search size={14} className="cp-search-icon" />
             <input
-              style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px' }}
+              className="cp-search-input"
               value={search}
               onChange={e => {
                 setPage(1);
@@ -358,53 +407,148 @@ export function CampaignsPage() {
               }}
               placeholder="Search campaigns by name, goal or service…"
             />
+            {search && (
+              <button
+                type="button"
+                className="cp-search-clear"
+                onClick={() => {
+                  setSearch('');
+                  setPage(1);
+                }}
+                title="Clear search"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
-          <select
-            value={status}
-            onChange={e => {
-              setPage(1);
-              setStatus(e.target.value);
-            }}
-            style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff' }}
-          >
-            <option value="">All Statuses</option>
-            {STATUSES.map(s => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <input
-            list="campaign-categories"
-            value={category}
-            onChange={e => {
-              setPage(1);
-              setCategory(e.target.value);
-            }}
-            placeholder="Property Project / Category"
-            style={{ height: '36px', borderRadius: '8px', border: '1px solid var(--color-border)', padding: '0 10px', fontSize: '12.5px', background: '#fff', width: '180px' }}
-          />
-          <datalist id="campaign-categories">
-            {CATEGORIES.map(x => (
-              <option key={x} value={x} />
-            ))}
-          </datalist>
-          <button
-            className="outline-btn small"
-            onClick={() => {
-              setSort(sort === 'updatedAt' ? 'createdAt' : 'updatedAt');
-              setDirection(d => (d === 'asc' ? 'desc' : 'asc'));
-            }}
-            style={{ height: '36px' }}
-          >
-            <Filter size={13} /> Sort: {sort === 'updatedAt' ? 'Modified' : 'Created'} <ChevronDown size={12} />
-          </button>
+
+          <div className="cp-filter-group">
+            <select
+              className="cp-select"
+              value={status}
+              onChange={e => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+              title="Filter by campaign status"
+            >
+              <option value="">All Statuses</option>
+              {STATUSES.map(s => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+
+            <div className="cp-category-filter-wrap">
+              <input
+                list="campaign-categories"
+                className="cp-category-input"
+                value={category}
+                onChange={e => {
+                  setPage(1);
+                  setCategory(e.target.value);
+                }}
+                placeholder={categoryPlaceholder}
+                title={categoryPlaceholder}
+              />
+              <datalist id="campaign-categories">
+                {industryCategories.map(x => (
+                  <option key={x} value={x} />
+                ))}
+              </datalist>
+              {category && (
+                <button
+                  type="button"
+                  className="cp-category-clear"
+                  onClick={() => {
+                    setCategory('');
+                    setPage(1);
+                  }}
+                  title="Clear category filter"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className={`cp-sort-btn ${sort !== 'updatedAt' || direction !== 'desc' ? 'active' : ''}`}
+              onClick={() => {
+                if (sort === 'updatedAt' && direction === 'desc') {
+                  setSort('name');
+                  setDirection('asc');
+                } else if (sort === 'name') {
+                  setSort('createdAt');
+                  setDirection('desc');
+                } else {
+                  setSort('updatedAt');
+                  setDirection('desc');
+                }
+              }}
+              title="Toggle sort field"
+            >
+              <Filter size={13} />
+              <span>Sort: {sort === 'name' ? 'Name (A-Z)' : sort === 'createdAt' ? 'Newest Created' : 'Recently Updated'}</span>
+              <ChevronDown size={12} />
+            </button>
+          </div>
         </div>
-        <div className="table-wrap" style={{ border: 'none', borderRadius: '0' }}>
-          <table className="campaign-table">
+
+        {/* Active Filters Bar */}
+        {(search || status || category || sort !== 'updatedAt' || direction !== 'desc') && (
+          <div className="cp-active-filters-bar">
+            <span className="cp-active-filters-label">Active filters:</span>
+            {search && (
+              <span className="cp-filter-tag">
+                Query: “{search}”
+                <button type="button" onClick={() => { setSearch(''); setPage(1); }}><X size={11} /></button>
+              </span>
+            )}
+            {status && (
+              <span className="cp-filter-tag">
+                Status: {status}
+                <button type="button" onClick={() => { setStatus(''); setPage(1); }}><X size={11} /></button>
+              </span>
+            )}
+            {category && (
+              <span className="cp-filter-tag">
+                Category: {category}
+                <button type="button" onClick={() => { setCategory(''); setPage(1); }}><X size={11} /></button>
+              </span>
+            )}
+            {sort !== 'updatedAt' && (
+              <span className="cp-filter-tag">
+                Sort: {sort === 'name' ? 'Name' : 'Created'}
+                <button type="button" onClick={() => { setSort('updatedAt'); setDirection('desc'); }}><X size={11} /></button>
+              </span>
+            )}
+            <button
+              type="button"
+              className="cp-clear-all-filters"
+              onClick={() => {
+                setSearch('');
+                setStatus('');
+                setCategory('');
+                setSort('updatedAt');
+                setDirection('desc');
+                setPage(1);
+              }}
+            >
+              Reset all
+            </button>
+            <span className="cp-filtered-count-badge">
+              {total} {total === 1 ? 'campaign' : 'campaigns'} found
+            </span>
+          </div>
+        )}
+
+        <div className="table-wrap cp-table-wrap">
+          <table className="campaign-table cp-table">
             <thead>
               <tr>
-                <th>Campaign Name</th>
+                <th style={{ minWidth: '220px' }}>Campaign Name</th>
                 <th>Type</th>
                 <th>Selected Template</th>
                 <th>Audience Summary</th>
@@ -413,167 +557,236 @@ export function CampaignsPage() {
                 <th>Scheduled / Run</th>
                 <th>Mode</th>
                 <th>Last Updated</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'right', paddingRight: '16px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                Array.from({ length: 5 }, (_, i) => (
+                Array.from({ length: 4 }, (_, i) => (
                   <tr key={i} className="campaign-skeleton-row">
                     <td colSpan="10">
-                      <div style={{ height: '14px', background: 'var(--color-surface-subtle)', borderRadius: '4px' }} />
+                      <div className="cp-skeleton-bar" />
                     </td>
                   </tr>
                 ))
               ) : records.length === 0 ? (
                 <tr>
                   <td colSpan="10">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '36px 16px', textAlign: 'center' }}>
-                      <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'var(--color-surface-muted)', display: 'grid', placeItems: 'center', color: 'var(--color-text-muted)', marginBottom: '10px' }}>
+                    <div className="cp-empty-state">
+                      <div className="cp-empty-icon">
                         <ListChecks size={22} />
                       </div>
-                      <strong style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>
+                      <strong className="cp-empty-title">
                         {search || status || category ? 'No campaigns match these filters' : 'No campaigns planned yet'}
                       </strong>
-                      <p style={{ fontSize: '12.5px', color: 'var(--color-text-secondary)', maxWidth: '360px', margin: '4px 0 14px' }}>
+                      <p className="cp-empty-desc">
                         {search || status || category
-                          ? 'Try adjusting your search query, property category, or status filter.'
+                          ? 'Try adjusting your search query, category, or status filter.'
                           : 'Create a campaign draft to target contacts, select approved templates, and launch mock simulations.'}
                       </p>
-                      {!search && !status && !category && (
-                        <Link className="primary-btn small" to="/campaigns/new">
+                      {!search && !status && !category ? (
+                        <Link className="primary-btn small cp-btn-primary" to="/campaigns/new">
                           <Plus size={14} /> Create campaign
                         </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          className="outline-btn small"
+                          onClick={() => {
+                            setSearch('');
+                            setStatus('');
+                            setCategory('');
+                            setPage(1);
+                          }}
+                        >
+                          Clear all filters
+                        </button>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
-                records.map(c => (
-                  <tr key={c._id}>
-                    <td>
-                      <Link to={`/campaigns/${c._id}`} style={{ fontWeight: 600, color: 'var(--color-text-primary)', display: 'block' }}>
-                        {c.name}
-                        {c.goal && (
-                          <small style={{ display: 'block', color: 'var(--color-text-muted)', fontWeight: 400, fontSize: '11.5px' }}>
-                            {c.customGoal || c.goal}
-                          </small>
-                        )}
-                      </Link>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '11.5px', padding: '2px 7px', borderRadius: '4px', background: 'var(--color-surface-muted)', color: 'var(--color-text-secondary)', textTransform: 'capitalize' }}>
-                        {c.campaignType || 'one-time'}
-                      </span>
-                    </td>
-                    <td>
-                      {c.template?.name ? (
-                        <span>
-                          <b>{c.template.name}</b>
-                          <small style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '11px' }}>
-                            v{c.template.currentVersionNumber || 1} · {c.template.language?.toUpperCase()}
-                          </small>
+                records.map(c => {
+                  const totalAudience = c.audienceCounts?.total ?? 0;
+                  const eligibleAudience = c.audienceCounts?.eligible ?? totalAudience;
+                  const excludedAudience = c.audienceCounts?.excluded ?? Math.max(0, totalAudience - eligibleAudience);
+
+                  return (
+                    <tr key={c._id} className="cp-table-row">
+                      <td className="cp-cell-name">
+                        <Link to={`/campaigns/${c._id}`} className="cp-campaign-name-link" title={`View details for ${c.name}`}>
+                          <span className="cp-campaign-title">{c.name}</span>
+                          {(c.customGoal || c.goal) && (
+                            <span className="cp-campaign-goal">
+                              {c.customGoal || c.goal}
+                            </span>
+                          )}
+                        </Link>
+                      </td>
+                      <td>
+                        <span className="cp-type-badge">
+                          {c.campaignType || 'one-time'}
                         </span>
-                      ) : (
-                        <span style={{ color: 'var(--color-text-muted)' }}>Not selected</span>
-                      )}
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '12px' }}>
-                        {c.audienceSelectionMode === 'group'
-                          ? 'Contact Group'
-                          : c.audienceSelectionMode === 'segment'
-                          ? 'Dynamic Segment'
-                          : c.audienceSelectionMode === 'filters'
-                          ? 'Filtered Contacts'
-                          : c.audienceSelectionMode === 'manual'
-                          ? 'Manual Selection'
-                          : 'All Contacts'}
-                      </span>
-                      <small style={{ display: 'block', color: 'var(--color-text-muted)', fontSize: '11px' }}>
-                        {c.category || 'Real Estate'}
-                      </small>
-                    </td>
-                    <td>
-                      <b>{c.audienceCounts?.eligible ?? c.audienceCounts?.total ?? 0}</b>
-                      <small style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}> / {c.audienceCounts?.total ?? 0}</small>
-                    </td>
-                    <td>
-                      <Status value={c.status} />
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '12px' }}>
-                        {c.mockSchedule?.startAt
-                          ? new Date(c.mockSchedule.startAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
-                          : c.status === 'Running'
-                          ? 'Executing Now'
-                          : date(c.updatedAt)}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '11px', padding: '2px 6px', borderRadius: '4px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', fontWeight: 600 }}>
-                        {c.executionMode || 'MOCK'}
-                      </span>
-                    </td>
-                    <td>{date(c.updatedAt)}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <button className="icon-btn" title="View details" onClick={() => navigate(`/campaigns/${c._id}`)}>
-                          <Eye size={14} />
-                        </button>
-                        {['Draft', 'Needs Review', 'Ready'].includes(c.status) && (
-                          <button className="icon-btn" title="Edit draft" onClick={() => navigate(`/campaigns/${c._id}/edit`)}>
-                            <FileText size={14} />
-                          </button>
+                      </td>
+                      <td className="cp-cell-template">
+                        {c.template?.name ? (
+                          <div className="cp-template-info">
+                            <span className="cp-template-name">{c.template.name}</span>
+                            <span className="cp-template-meta">
+                              v{c.template.currentVersionNumber || 1} · {(c.template.language || 'en').toUpperCase()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="cp-text-muted">Not selected</span>
                         )}
-                        <button className="icon-btn" title="Duplicate plan" onClick={() => duplicate(c._id)}>
-                          <Copy size={14} />
-                        </button>
-                        {c.status === 'Running' && (
-                          <button className="icon-btn" title="Pause simulation" onClick={() => handlePause(c._id)}>
-                            <Ban size={14} style={{ color: '#d97706' }} />
+                      </td>
+                      <td>
+                        <div className="cp-audience-info">
+                          <span className="cp-audience-mode">
+                            {c.audienceSelectionMode === 'group'
+                              ? 'Contact Group'
+                              : c.audienceSelectionMode === 'segment'
+                              ? 'Dynamic Segment'
+                              : c.audienceSelectionMode === 'filters'
+                              ? 'Filtered Contacts'
+                              : c.audienceSelectionMode === 'manual'
+                              ? 'Manual Selection'
+                              : 'All Contacts'}
+                          </span>
+                          <span className="cp-audience-cat">
+                            {c.category || 'Real Estate'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="cp-cell-recipients">
+                        <div
+                          className="cp-recipients-pill"
+                          title={
+                            totalAudience > 0
+                              ? `${eligibleAudience} mock-eligible contacts · ${excludedAudience} excluded (${c.audienceCounts?.optedOut || excludedAudience} opted out)`
+                              : '0 recipients'
+                          }
+                        >
+                          <span className="cp-recipients-eligible">
+                            <b>{eligibleAudience}</b> of {totalAudience}
+                          </span>
+                          {excludedAudience > 0 ? (
+                            <span className="cp-opted-out-tag">
+                              {excludedAudience} excluded
+                            </span>
+                          ) : (
+                            <span className="cp-eligible-tag">eligible</span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <Status value={c.status} />
+                      </td>
+                      <td className="cp-cell-schedule">
+                        <span className="cp-schedule-text">
+                          {c.mockSchedule?.startAt
+                            ? new Date(c.mockSchedule.startAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
+                            : c.status === 'Running'
+                            ? 'Executing Now'
+                            : c.status === 'Completed'
+                            ? 'Mock Run Completed'
+                            : date(c.updatedAt)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="cp-mode-badge" title="Simulated WhatsApp execution — no real messages sent">
+                          {c.executionMode || 'MOCK'}
+                        </span>
+                      </td>
+                      <td className="cp-cell-date">{date(c.updatedAt)}</td>
+                      <td style={{ textAlign: 'right', paddingRight: '16px' }}>
+                        <div className="cp-row-actions">
+                          <button className="cp-action-btn" title="View campaign details" onClick={() => navigate(`/campaigns/${c._id}`)}>
+                            <Eye size={14} />
                           </button>
-                        )}
-                        {c.status === 'Paused' && (
-                          <button className="icon-btn" title="Resume simulation" onClick={() => handleResume(c._id)}>
-                            <Play size={14} style={{ color: 'var(--color-primary)' }} />
+                          {['Draft', 'Needs Review', 'Ready'].includes(c.status) && (
+                            <button className="cp-action-btn" title="Edit draft configuration" onClick={() => navigate(`/campaigns/${c._id}/edit`)}>
+                              <FileText size={14} />
+                            </button>
+                          )}
+                          <button className="cp-action-btn" title="Duplicate plan as a new draft" onClick={() => duplicate(c._id)}>
+                            <Copy size={14} />
                           </button>
-                        )}
-                        {['Scheduled', 'Running', 'Paused'].includes(c.status) && (
-                          <button className="icon-btn text-danger" title="Cancel simulation" onClick={() => handleCancel(c._id)}>
-                            <X size={14} />
+                          {c.status === 'Running' && (
+                            <button className="cp-action-btn text-warning" title="Pause simulation" onClick={() => handlePause(c._id)}>
+                              <Ban size={14} />
+                            </button>
+                          )}
+                          {c.status === 'Paused' && (
+                            <button className="cp-action-btn text-primary" title="Resume simulation" onClick={() => handleResume(c._id)}>
+                              <Play size={14} />
+                            </button>
+                          )}
+                          {['Scheduled', 'Running', 'Paused'].includes(c.status) && (
+                            <button className="cp-action-btn text-danger" title="Cancel simulation" onClick={() => handleCancel(c._id)}>
+                              <X size={14} />
+                            </button>
+                          )}
+                          <button className="cp-action-btn" title="Archive campaign" onClick={() => archive(c._id)}>
+                            <Archive size={14} />
                           </button>
-                        )}
-                        <button className="icon-btn" title="Archive" onClick={() => archive(c._id)}>
-                          <Archive size={14} />
-                        </button>
-                        {c.status === 'Draft' && (
-                          <button className="icon-btn text-danger" title="Delete draft" onClick={() => remove(c)}>
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {c.status === 'Draft' && (
+                            <button className="cp-action-btn text-danger" title="Delete draft" onClick={() => remove(c)}>
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-        <footer className="campaign-footer">
-          <span>{total} campaigns</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <button className="outline-btn small" disabled={page <= 1 || loading} onClick={() => setPage(p => p - 1)} style={{ width: '28px', padding: 0 }}>
+        <footer className="campaign-footer cp-pagination">
+          <span className="cp-pagination-info">Showing {records.length} of {total} {total === 1 ? 'campaign' : 'campaigns'}</span>
+          <div className="cp-pagination-nav">
+            <button
+              className="outline-btn small"
+              disabled={page <= 1 || loading}
+              onClick={() => setPage(p => p - 1)}
+              style={{ width: '28px', padding: 0 }}
+              title="Previous page"
+            >
               ←
             </button>
-            <span style={{ fontSize: '12px' }}>
-              Page {page} / {Math.max(1, Math.ceil(total / 10))}
+            <span className="cp-pagination-page">
+              Page {page} of {Math.max(1, Math.ceil(total / 10))}
             </span>
-            <button className="outline-btn small" disabled={page >= Math.ceil(total / 10) || loading} onClick={() => setPage(p => p + 1)} style={{ width: '28px', padding: 0 }}>
+            <button
+              className="outline-btn small"
+              disabled={page >= Math.ceil(total / 10) || loading}
+              onClick={() => setPage(p => p + 1)}
+              style={{ width: '28px', padding: 0 }}
+              title="Next page"
+            >
               →
             </button>
           </div>
         </footer>
+
+        {stats?.completedMockCampaigns > 0 && (
+          <div className="cp-recent-runs-summary">
+            <div className="cp-recent-runs-head">
+              <div className="cp-recent-runs-title">
+                <span className="cp-live-indicator" />
+                <span>Mock Automation Engine · Execution Telemetry</span>
+              </div>
+              <span className="cp-recent-runs-meta">
+                <b>{stats.completedMockCampaigns}</b> simulated {stats.completedMockCampaigns === 1 ? 'run' : 'runs'} completed in workspace
+              </span>
+            </div>
+            <p className="cp-recent-runs-note">
+              WhatsApp messaging is operating in <strong>Mock Mode</strong>. Dispatched campaign runs simulate provider queuing, rate-limiting, message delivery and read receipts safely in MongoDB without live Meta API charges or external sends.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -590,12 +803,42 @@ const WIZARD_STEPS = [
 
 export function CampaignWizardPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { currentWorkspace, industryConfig } = useWorkspace();
   const [campaignId, setCampaignId] = useState(id || null);
   const [draft, setDraft] = useState(BLANK);
+  useEffect(() => {
+    const key = searchParams.get('starter');
+    if (id || !key) return;
+    let active = true;
+    api.getStarterDrafts().then(({ data }) => {
+      const preset = data.records?.find(p => p.campaignId === key);
+      if (active && preset) setDraft({ ...BLANK, name: preset.campaignName || preset.name, description: preset.description, goal: preset.goal });
+    }).catch(e => toast.error(error(e)));
+    return () => { active = false; };
+  }, [id, searchParams]);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(Boolean(id));
   const [busy, setBusy] = useState(false);
+
+  const availableGoals = industryConfig.ui.campaigns.goals;
+
+  const availableCategories = industryConfig.ui.campaigns.categories;
+
+  const serviceLabel = industryConfig.terminology.offeringLabel;
+
+  const servicePlaceholder = industryConfig.terminology.offeringLabel;
+
+  const categoryLabel = industryConfig.terminology.categoryLabel || 'Category';
+
+  const interestFieldLabel = industryConfig.terminology.interestFieldLabel;
+
+  const interestFieldPlaceholder = industryConfig.terminology.interestFieldLabel;
+
+  const projectFieldLabel = industryConfig.ui.contacts.projectColumnLabel;
+
+  const projectFieldPlaceholder = industryConfig.ui.contacts.projectColumnLabel;
 
   // Step 1: Template selection
   const [templates, setTemplates] = useState([]);
@@ -937,10 +1180,10 @@ export function CampaignWizardPage() {
       <div className="campaign-heading">
         <div>
           <div className="form-kicker">CAMPAIGN CREATION WIZARD · STEP {step} OF 4</div>
-          <h1>{campaignId ? `Edit: ${draft.name || 'Campaign Draft'}` : 'New Real Estate Campaign'}</h1>
+          <h1>{campaignId ? `Edit: ${draft.name || 'Campaign Draft'}` : `New ${currentWorkspace?.name ? `${currentWorkspace.name} ` : ''}Campaign`}</h1>
           <p>Four-step guided setup: choose template, target audience, preview personalized messages, and schedule or launch mock.</p>
         </div>
-        <span style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', fontWeight: 600 }}>
+        <span className="cp-mode-badge" style={{ padding: '6px 12px', fontSize: '11.5px' }}>
           MOCK MODE ONLY
         </span>
       </div>
@@ -964,7 +1207,7 @@ export function CampaignWizardPage() {
           <header>
             <span>STEP 1 OF 4</span>
             <h2>Choose Template & Campaign Basics</h2>
-            <p>Configure campaign name, real estate purpose, and select a pinned WhatsApp message template.</p>
+            <p>Configure campaign name, purpose, and select a pinned WhatsApp message template.</p>
           </header>
 
           <div className="campaign-form-grid">
@@ -974,17 +1217,17 @@ export function CampaignWizardPage() {
                 value={draft.name}
                 maxLength={120}
                 onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
-                placeholder="e.g. Gurugram Plot Interest Update"
+                placeholder="e.g. Follow-Up Campaign"
               />
             </label>
             <label className="field">
               Campaign Goal / Purpose
               <select
-                value={GOALS.includes(draft.goal) ? draft.goal : draft.goal ? 'Other' : ''}
+                value={availableGoals.includes(draft.goal) ? draft.goal : draft.goal ? 'Other' : ''}
                 onChange={e => setDraft(d => ({ ...d, goal: e.target.value, customGoal: e.target.value === 'Other' ? d.customGoal : '' }))}
               >
                 <option value="">Select a purpose</option>
-                {GOALS.map(g => (
+                {availableGoals.map(g => (
                   <option key={g}>{g}</option>
                 ))}
               </select>
@@ -1000,11 +1243,11 @@ export function CampaignWizardPage() {
               </label>
             )}
             <label className="field">
-              Interested Project / Property Focus
+              {serviceLabel}
               <input
                 value={draft.service}
                 onChange={e => setDraft(d => ({ ...d, service: e.target.value }))}
-                placeholder="e.g. DLF Privana Plots"
+                placeholder={servicePlaceholder}
               />
             </label>
           </div>
@@ -1029,20 +1272,20 @@ export function CampaignWizardPage() {
                     value={draft.description}
                     maxLength={1000}
                     onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
-                    placeholder="Share property information with opted-in contacts interested in plots..."
+                    placeholder="Describe campaign objective and audience context..."
                   />
                 </label>
                 <label className="field">
-                  Property Category
+                  {categoryLabel}
                   <input
                     list="wizard-categories"
                     value={draft.category}
                     onChange={e => setDraft(d => ({ ...d, category: e.target.value }))}
-                    placeholder="e.g. Residential Plots"
+                    placeholder="e.g. Category"
                   />
                   <datalist id="wizard-categories">
-                    {CATEGORIES.map(x => (
-                      <option key={x} />
+                    {availableCategories.map(x => (
+                      <option key={x} value={x} />
                     ))}
                   </datalist>
                 </label>
@@ -1182,8 +1425,8 @@ export function CampaignWizardPage() {
         <section className="campaign-wizard-card">
           <header>
             <span>STEP 2 OF 4</span>
-            <h2>Select Audience & Real Estate Filters</h2>
-            <p>Target contacts by group, dynamic segment, city, property interest, and review live eligibility exclusions.</p>
+            <h2>Select Audience & Filter Targeting</h2>
+            <p>Target contacts by group, dynamic segment, city, customer interest, and review live eligibility exclusions.</p>
           </header>
 
           {/* Mode Selector */}
@@ -1277,25 +1520,25 @@ export function CampaignWizardPage() {
                 />
               </label>
               <label className="field">
-                Property Interest
+                {interestFieldLabel}
                 <input
                   value={filters.service || ''}
                   onChange={e => {
                     setContactPage(1);
                     setFilters(f => ({ ...f, service: e.target.value }));
                   }}
-                  placeholder="e.g. Plots, Villas, 3BHK"
+                  placeholder={interestFieldPlaceholder}
                 />
               </label>
               <label className="field">
-                Interested Project
+                {projectFieldLabel}
                 <input
                   value={filters.industry || ''}
                   onChange={e => {
                     setContactPage(1);
                     setFilters(f => ({ ...f, industry: e.target.value }));
                   }}
-                  placeholder="e.g. DLF Privana"
+                  placeholder={projectFieldPlaceholder}
                 />
               </label>
               <label className="field">
@@ -1390,7 +1633,7 @@ export function CampaignWizardPage() {
                     <th>Contact Name</th>
                     <th>Phone</th>
                     <th>City / Location</th>
-                    <th>Property Interest</th>
+                    <th>{interestFieldLabel}</th>
                     <th>Consent</th>
                   </tr>
                 </thead>
@@ -1408,7 +1651,7 @@ export function CampaignWizardPage() {
                         </td>
                         <td>{c.phoneNumber}</td>
                         <td>{c.city || c.location || '—'}</td>
-                        <td>{c.interestedPropertyType || c.interestedService || '—'}</td>
+                        <td>{c.interestedPropertyType || c.interestedService || c.industryData?.courseInterest || c.industryData?.preferredService || c.industryData?.vehicleInterest || '—'}</td>
                         <td>
                           <Status value={c.whatsappConsentStatus} />
                         </td>
@@ -1447,7 +1690,7 @@ export function CampaignWizardPage() {
           <header>
             <span>STEP 3 OF 4</span>
             <h2>Personalized Message Preview & Review</h2>
-            <p>Preview rendered WhatsApp messages across sample contacts with dynamic property tokens resolved.</p>
+            <p>Preview rendered WhatsApp messages across sample contacts with dynamic personalization tokens resolved.</p>
           </header>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', padding: '24px' }}>
@@ -1499,10 +1742,10 @@ export function CampaignWizardPage() {
                     <div className="wa-simulator-device">
                       <div className="wa-simulator-top">
                         <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#075e54', display: 'grid', placeItems: 'center', color: '#fff', fontSize: '13px', fontWeight: 700 }}>
-                          M
+                          {(currentWorkspace?.name || 'B').trim().charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontSize: '13px', fontWeight: 600 }}>M2W Luxury Realty</div>
+                          <div style={{ fontSize: '13px', fontWeight: 600 }}>{currentWorkspace?.name || 'Your business'}</div>
                           <div style={{ fontSize: '10.5px', color: '#25d366' }}>Official WhatsApp Business Account</div>
                         </div>
                       </div>
@@ -1549,13 +1792,13 @@ export function CampaignWizardPage() {
                   <strong style={{ fontSize: '14px' }}>{draft.name}</strong>
                 </div>
                 <div>
-                  <small style={{ color: 'var(--color-text-muted)', fontSize: '11px', display: 'block' }}>REAL ESTATE PURPOSE</small>
-                  <span style={{ fontSize: '13px' }}>{draft.customGoal || draft.goal || 'General Property Information'}</span>
+                  <small style={{ color: 'var(--color-text-muted)', fontSize: '11px', display: 'block' }}>CAMPAIGN PURPOSE</small>
+                  <span style={{ fontSize: '13px' }}>{draft.customGoal || draft.goal || 'General Information & Updates'}</span>
                 </div>
                 <div>
                   <small style={{ color: 'var(--color-text-muted)', fontSize: '11px', display: 'block' }}>PINNED TEMPLATE</small>
                   <span style={{ fontSize: '13px' }}>
-                    <b>{selectedTemplate?.name || 'Selected Template'}</b> (v{selectedTemplate?.versionNumber || 1} · {selectedTemplate?.language || 'en'})
+                    <b>{selectedTemplate?.name || 'Selected Template'}</b> (v{selectedTemplate?.versionNumber || selectedTemplate?.currentVersionNumber || 1} · {selectedTemplate?.language || 'en'})
                   </span>
                 </div>
                 <div>
@@ -1736,6 +1979,7 @@ export function CampaignWizardPage() {
 export function CampaignDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { currentWorkspace, industryConfig } = useWorkspace();
   const [data, setData] = useState(null);
   const [tab, setTab] = useState('overview');
   const [audience, setAudience] = useState([]);
@@ -1924,7 +2168,7 @@ export function CampaignDetailPage() {
   });
 
   return (
-    <div className="campaign-page">
+    <div className="campaign-page campaign-detail-page">
       <div className="campaign-detail-top">
         <Link to="/campaigns" className="back-link">
           <ArrowLeft size={14} /> Campaigns
@@ -1932,7 +2176,7 @@ export function CampaignDetailPage() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           {['Draft', 'Ready'].includes(c.status) && (
             <>
-              <button className="primary-btn small" onClick={handleLaunchNow}>
+              <button className="primary-btn small cp-btn-primary" onClick={handleLaunchNow}>
                 <Play size={13} /> Launch Mock Now
               </button>
               <button className="outline-btn small" onClick={() => navigate(`/campaigns/${id}/edit`)}>
@@ -1962,7 +2206,7 @@ export function CampaignDetailPage() {
           )}
           {c.status === 'Paused' && (
             <>
-              <button className="primary-btn small" onClick={handleResume}>
+              <button className="primary-btn small cp-btn-primary" onClick={handleResume}>
                 <Play size={13} /> Resume
               </button>
               <button className="outline-btn small text-danger" onClick={handleCancel}>
@@ -1971,7 +2215,7 @@ export function CampaignDetailPage() {
             </>
           )}
           {c.status === 'Failed' && (
-            <button className="primary-btn small" onClick={handleRetryFailed}>
+            <button className="primary-btn small cp-btn-primary" onClick={handleRetryFailed}>
               <RotateCcw size={13} /> Retry Eligible Failures
             </button>
           )}
@@ -1986,12 +2230,12 @@ export function CampaignDetailPage() {
 
       <div className="campaign-heading">
         <div>
-          <div className="form-kicker">REAL ESTATE CAMPAIGN DETAIL · {c.campaignType?.toUpperCase() || 'ONE-TIME'}</div>
+          <div className="form-kicker">{`${(currentWorkspace?.name || 'CAMPAIGN').toUpperCase()} DETAIL · ${c.campaignType?.toUpperCase() || 'ONE-TIME'}`}</div>
           <h1>{c.name}</h1>
           <p>{c.description || c.customGoal || c.goal}</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '6px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', fontWeight: 600 }}>
+          <span className="cp-mode-badge" style={{ padding: '5px 12px', fontSize: '11px' }}>
             MOCK SIMULATION
           </span>
           <Status value={c.status} />
@@ -2021,8 +2265,8 @@ export function CampaignDetailPage() {
               <dd>{c.description || '—'}</dd>
               <dt>Purpose / Goal</dt>
               <dd>{c.customGoal || c.goal || '—'}</dd>
-              <dt>Property Category</dt>
-              <dd>{c.category || 'Real Estate'}{c.subcategory ? ` · ${c.subcategory}` : ''}</dd>
+              <dt>Category</dt>
+              <dd>{c.category || 'General'}{c.subcategory ? ` · ${c.subcategory}` : ''}</dd>
               <dt>Focus Service / Location</dt>
               <dd>{[c.service, c.location].filter(Boolean).join(' · ') || '—'}</dd>
               <dt>Campaign Type</dt>

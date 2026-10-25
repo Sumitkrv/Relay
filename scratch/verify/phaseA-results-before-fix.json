@@ -1,0 +1,272 @@
+[
+  {
+    "email": "owner.gym@relay-demo.test",
+    "workspace": "FitZone Gym",
+    "api": {
+      "contacts": 5,
+      "templates": 7,
+      "quick": 0,
+      "rules": 7,
+      "campaigns": 1,
+      "conversations": 0,
+      "profileComplete": false,
+      "profileScore": 25,
+      "dashContacts": "{\"total\":10,\"verifiedOptedIn\":0,\"optedOut\":1,\"unknownConsent\":5,\"newLeads\":10,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[{\"contacts\":5,\"day\":\"Oct 22\"},{\"c",
+      "dashTemplates": "{\"total\":7}",
+      "dashCampaigns": "{\"total\":1,\"draft\":1,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":1,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":10,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\""
+    },
+    "db": {
+      "contacts": 10,
+      "contactsAllNotDeleted": 10,
+      "templates": 7,
+      "quick": 0,
+      "quickByOwner": 5,
+      "rules": 7,
+      "rulesByOwner": 4,
+      "campaigns": 1,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "contacts api=5 db=10"
+    ]
+  },
+  {
+    "email": "owner.clinic@relay-demo.test",
+    "workspace": "CarePlus Clinic",
+    "api": {
+      "contacts": 5,
+      "templates": 7,
+      "quick": 0,
+      "rules": 4,
+      "campaigns": 1,
+      "conversations": 0,
+      "profileComplete": false,
+      "profileScore": 25,
+      "dashContacts": "{\"total\":5,\"verifiedOptedIn\":0,\"optedOut\":1,\"unknownConsent\":4,\"newLeads\":5,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[{\"contacts\":5,\"day\":\"Oct 22\"}]}",
+      "dashTemplates": "{\"total\":7}",
+      "dashCampaigns": "{\"total\":1,\"draft\":1,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":1,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":10,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\""
+    },
+    "db": {
+      "contacts": 5,
+      "contactsAllNotDeleted": 5,
+      "templates": 7,
+      "quick": 0,
+      "quickByOwner": 5,
+      "rules": 4,
+      "rulesByOwner": 4,
+      "campaigns": 1,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": []
+  },
+  {
+    "email": "m2w-owner@relay-demo.test",
+    "workspace": "M2W Realty Demo Clone",
+    "api": {
+      "contacts": 2,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":2,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":2,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[{\"contacts\":2,\"day\":\"Oct 23\"}]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 2,
+      "contactsAllNotDeleted": 2,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 10,
+      "rules": 0,
+      "rulesByOwner": 8,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=8"
+    ]
+  },
+  {
+    "email": "salon-owner@relay-demo.test",
+    "workspace": "Glow Studio",
+    "api": {
+      "contacts": 1,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":1,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":1,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[{\"contacts\":1,\"day\":\"Oct 23\"}]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 1,
+      "contactsAllNotDeleted": 1,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 0,
+      "rules": 0,
+      "rulesByOwner": 0,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=0"
+    ]
+  },
+  {
+    "email": "education-owner@relay-demo.test",
+    "workspace": "BrightPath Academy",
+    "api": {
+      "contacts": 0,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":0,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":0,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 0,
+      "contactsAllNotDeleted": 0,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 0,
+      "rules": 0,
+      "rulesByOwner": 0,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=0"
+    ]
+  },
+  {
+    "email": "automobile-owner@relay-demo.test",
+    "workspace": "DriveMax Autos",
+    "api": {
+      "contacts": 0,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":0,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":0,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 0,
+      "contactsAllNotDeleted": 0,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 0,
+      "rules": 0,
+      "rulesByOwner": 0,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=0"
+    ]
+  },
+  {
+    "email": "business-owner@relay-demo.test",
+    "workspace": "Nova Services",
+    "api": {
+      "contacts": 0,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":0,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":0,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 0,
+      "contactsAllNotDeleted": 0,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 0,
+      "rules": 0,
+      "rulesByOwner": 0,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=0"
+    ]
+  },
+  {
+    "email": "admin@relay-demo.test",
+    "workspace": "Relay Admin's Business",
+    "api": {
+      "contacts": 0,
+      "templates": 0,
+      "quick": 0,
+      "rules": 1,
+      "campaigns": 0,
+      "conversations": 0,
+      "profileComplete": true,
+      "profileScore": 100,
+      "dashContacts": "{\"total\":0,\"verifiedOptedIn\":0,\"optedOut\":0,\"unknownConsent\":0,\"newLeads\":0,\"interestedLeads\":0,\"convertedLeads\":0,\"growth\":[]}",
+      "dashTemplates": "{\"total\":0}",
+      "dashCampaigns": "{\"total\":0,\"draft\":0,\"readyForPreparation\":0,\"awaitingApproval\":0,\"needsReview\":0,\"scheduled\":0,\"run",
+      "dashInbox": "{\"totalConversations\":0,\"openConversations\":0,\"needsReview\":0,\"internalUnread\":0,\"autoReplyExecution",
+      "reportKpis": "{\"totalCampaigns\":0,\"scheduledRunningCampaigns\":0,\"mockMessagesProcessed\":0,\"verifiedMessagesSent\":null,\"measurementAvailability\":{\"totalCampaigns\":\"AVAILABLE\",\"scheduledRunningCampaigns\":\"AVAILABLE\","
+    },
+    "db": {
+      "contacts": 0,
+      "contactsAllNotDeleted": 0,
+      "templates": 0,
+      "quick": 0,
+      "quickByOwner": 0,
+      "rules": 0,
+      "rulesByOwner": 0,
+      "campaigns": 0,
+      "conversations": 0,
+      "profile": 1
+    },
+    "mismatches": [
+      "rules api=1 db(ws)=0 db(owner)=0"
+    ]
+  }
+]

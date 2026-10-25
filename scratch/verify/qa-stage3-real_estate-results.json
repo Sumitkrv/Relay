@@ -1,0 +1,122 @@
+[
+ {
+  "id": "stage3: template + version resolved",
+  "ok": true,
+  "note": "tpl status 200 versionId=6add835eab30e6a836df4a2e localStatus=Draft"
+ },
+ {
+  "id": "stage3: QA user has businessName for consent matching",
+  "ok": true,
+  "note": "businessName=QA real estate A Co"
+ },
+ {
+  "id": "stage3: two consent-evidenced contacts created",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "campaign: create draft",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "campaign: manual audience snapshot",
+  "ok": true,
+  "note": "status 200 {\"count\":3,\"duplicates\":0,\"version\":1,\"selectionSource\":\"manual\",\"total\":3,\"eligible\":0,\"missingConsent\":1,\"optedOut\":0,\"invalidPhone\":0,\"missingPersonalization\":0,\"inactive\":0,\"providerPending\":3,\"du"
+ },
+ {
+  "id": "campaign: validation flags non-consented contact",
+  "ok": true,
+  "note": "status 200 counts={\"total\":3,\"eligible\":0,\"missingConsent\":1,\"optedOut\":0,\"invalidPhone\":0,\"missingPersonalization\":0,\"inactive\":0,\"providerPending\":3,\"duplicateSelections\":0}"
+ },
+ {
+  "id": "campaign: preview resolves variables from real contact",
+  "ok": true,
+  "note": "status 200 body=\"Hi QA, v2 from QA real estate A Co. Reply STOP to opt out.\""
+ },
+ {
+  "id": "campaign: audience list endpoint",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "campaign: group audience selection",
+  "ok": true,
+  "note": "status 200 {\"count\":2,\"duplicates\":0,\"version\":2,\"selectionSource\":\"group\",\"total\":2,\"eligible\":0,\"missingConsent\":1,\"optedOut\":1,\"invalidPhone\":0,\"missingPersonalization\""
+ },
+ {
+  "id": "campaign: filter audience selection",
+  "ok": true,
+  "note": "status 200 {\"count\":3,\"duplicates\":0,\"version\":3,\"selectionSource\":\"filters\",\"total\":3,\"eligible\":0,\"missingConsent\":1,\"optedOut\":0,\"invalidPhone\":0,\"missingPersonalizatio"
+ },
+ {
+  "id": "campaign: opted-in-only audience validates",
+  "ok": false,
+  "note": "status 200 eligible=0 campaignStatus=Needs Review issues=[]"
+ },
+ {
+  "id": "campaign: schedule future",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "campaign: past schedule rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "campaign: reschedule",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "campaign: unschedule",
+  "ok": true,
+  "note": "status 200 "
+ },
+ {
+  "id": "campaign: mock launch accepted",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "campaign: execution reaches terminal state",
+  "ok": true,
+  "note": "status=completed counts={\"simulated_success\":2} progress=100"
+ },
+ {
+  "id": "campaign: jobs simulated_success (no real send)",
+  "ok": true,
+  "note": "total=2 statuses=[\"simulated_success\",\"simulated_success\"]"
+ },
+ {
+  "id": "campaign: execution flagged mockOnly",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "campaign: persisted campaign messages endpoint",
+  "ok": true,
+  "note": "status 200 {\"records\":[{\"_id\":\"6add84a59171464b974b827e\",\"ownerId\":\"6add82ec203325bf42652222\",\"idempotencyKey\":\"6add82ec203325bf42652222:6add84a5b772ad9bb228ba76:6add84a5b"
+ },
+ {
+  "id": "campaign: analytics endpoint",
+  "ok": true,
+  "note": "status 200 {\"campaignId\":\"6add84a5b772ad9bb228b9b0\",\"campaignName\":\"QA Campaign 309008\",\"campaignType\":\"scheduled\",\"status\":\"Completed\",\"executionMode\":\"MOCK\",\"audienceSize\":2,\"mockSummary\":{\"totalJobs\":2,\"simul"
+ },
+ {
+  "id": "campaign: re-launch of completed campaign behaves safely",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "campaign: cancel scheduled campaign",
+  "ok": true,
+  "note": "status 200 {\"campaign\":{\"_id\":\"6add84a5b772ad9bb228bb04\",\"ownerId\":\"6add82ec203325bf42652222\",\"workspaceId\":\"6add82ed203325bf4265224b\",\"name\":\"QA Campaign 309008 B\",\"descr"
+ },
+ {
+  "id": "campaigns list & stats",
+  "ok": true,
+  "note": "list=6 stats={\"stats\":{\"totalCampaigns\":6,\"draftCampaigns\":2,\"awaitingRequirements\":0,\"readyForFutureExecution\":0,\"archivedCampaigns\":0,\"totalSelectedContacts\":8,\"requiringAttention\":0,\"scheduledMockCampaigns\":2,\""
+ }
+]

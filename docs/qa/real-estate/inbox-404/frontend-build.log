@@ -1,0 +1,20 @@
+
+> freelance-crm-frontend@1.0.0 build
+> vite build
+
+vite v6.4.4 building for production...
+transforming...
+✓ 2499 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                           0.70 kB │ gzip:   0.40 kB
+dist/assets/index-DVx33jJP.css          280.60 kB │ gzip:  46.70 kB
+dist/assets/react-vendor-CrK_Zf-d.js    143.06 kB │ gzip:  45.82 kB
+dist/assets/charts-CaIU425z.js          424.90 kB │ gzip: 115.24 kB
+dist/assets/index-DtFKOzkR.js         1,335.61 kB │ gzip: 332.03 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.85s

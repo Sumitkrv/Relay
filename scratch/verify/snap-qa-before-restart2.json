@@ -1,0 +1,142 @@
+{
+ "autoreplyrules": {
+  "n": 66,
+  "sha": "39a9c7dc08dc91e3"
+ },
+ "businessprofiles": {
+  "n": 13,
+  "sha": "7bd35bd5be8b6f98"
+ },
+ "campaignactivities": {
+  "n": 35,
+  "sha": "26cbd63b55417f7b"
+ },
+ "campaignaudiences": {
+  "n": 8,
+  "sha": "a54f83344a109094"
+ },
+ "campaignexecutions": {
+  "n": 4,
+  "sha": "3370ac6e819ec027"
+ },
+ "campaignmessagejobs": {
+  "n": 8,
+  "sha": "783115661ac322b0"
+ },
+ "campaigns": {
+  "n": 30,
+  "sha": "410d8eaa085173d0"
+ },
+ "consentrecords": {
+  "n": 5,
+  "sha": "61b78203c59fdb93"
+ },
+ "contactactivities": {
+  "n": 18,
+  "sha": "681e062af9adbcfc"
+ },
+ "contactgroups": {
+  "n": 1,
+  "sha": "6204d1897c1b84f5"
+ },
+ "contacts": {
+  "n": 9,
+  "sha": "d532b0f7e2db3865"
+ },
+ "conversationactivities": {
+  "n": 7,
+  "sha": "5b1fd48b4738be88"
+ },
+ "conversationmessages": {
+  "n": 9,
+  "sha": "5b31565fd384a0db"
+ },
+ "conversations": {
+  "n": 3,
+  "sha": "7c4d734ec2115367"
+ },
+ "followuptasks": {
+  "n": 1,
+  "sha": "108717cef979bcdd"
+ },
+ "importerrors": {
+  "n": 6,
+  "sha": "011c3000a1354b5b"
+ },
+ "importjobs": {
+  "n": 3,
+  "sha": "67df74feac715699"
+ },
+ "importrows": {
+  "n": 10,
+  "sha": "6f12a2c62574be10"
+ },
+ "inboundruleclaims": {
+  "n": 2,
+  "sha": "26e15786bd785290"
+ },
+ "inboxnotifications": {
+  "n": 1,
+  "sha": "6703ae5dbf867002"
+ },
+ "internalnotes": {
+  "n": 1,
+  "sha": "7dbbc4d52f381c66"
+ },
+ "leadscorehistories": {
+  "n": 7,
+  "sha": "f610cbeb27060fa2"
+ },
+ "leadscores": {
+  "n": 5,
+  "sha": "3de98bb565c8997f"
+ },
+ "leadscoringrulesets": {
+  "n": 1,
+  "sha": "e3a5c9e357f05e61"
+ },
+ "messageevents": {
+  "n": 8,
+  "sha": "b1698ef8cff7386b"
+ },
+ "messages": {
+  "n": 8,
+  "sha": "bda8c4c00d154d53"
+ },
+ "messagetemplates": {
+  "n": 198,
+  "sha": "110609af59c1e8c9"
+ },
+ "onboardingdrafts": {
+  "n": 13,
+  "sha": "5570c78cc4882abe"
+ },
+ "quickreplies": {
+  "n": 105,
+  "sha": "4ebf0442054ca572"
+ },
+ "ruleexecutions": {
+  "n": 2,
+  "sha": "20a14ac92e4d929e"
+ },
+ "templateversions": {
+  "n": 200,
+  "sha": "f6007f499aec66a1"
+ },
+ "userpreferences": {
+  "n": 1,
+  "sha": "ff16ae4322801eb1"
+ },
+ "users": {
+  "n": 13,
+  "sha": "5b25047c1ccfa72f"
+ },
+ "workspacememberships": {
+  "n": 13,
+  "sha": "7b4fb39243ba814f"
+ },
+ "workspaces": {
+  "n": 13,
+  "sha": "57539e5c9c177791"
+ }
+}

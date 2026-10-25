@@ -1,0 +1,62 @@
+{
+  "checks": [
+    {
+      "check": "Contacts form, real API save, refresh, details and site-visit metadata",
+      "result": "PASS"
+    },
+    {
+      "check": "Reports Overview tab",
+      "result": "PASS"
+    },
+    {
+      "check": "Reports Campaign Performance tab",
+      "result": "PASS"
+    },
+    {
+      "check": "Reports Message Activity tab",
+      "result": "PASS"
+    },
+    {
+      "check": "Reports Consent & Opt-outs tab",
+      "result": "PASS"
+    },
+    {
+      "check": "Reports Exports tab",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Profile panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Business Profile panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Security & Password panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings WhatsApp Integration panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Preferences panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Billing & Subscriptions panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings About Relay panel",
+      "result": "PASS"
+    },
+    {
+      "check": "Settings Developer / Test Mode panel",
+      "result": "PASS"
+    }
+  ],
+  "errors": [],
+  "networkFailures": []
+}

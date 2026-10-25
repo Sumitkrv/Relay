@@ -1,3 +1,4 @@
+import { tenantScope } from '../utils/tenantScope.js';
 import mongoose from 'mongoose';
 import * as reportService from '../services/reportService.js';
 import ReportGeneration from '../models/ReportGeneration.js';
@@ -5,12 +6,12 @@ import ReportGeneration from '../models/ReportGeneration.js';
 const fail = (m, s = 400) => Object.assign(new Error(m), { status: s });
 
 export async function overview(req, res) {
-  const data = await reportService.getOverview(req.user._id, req.query);
+  const data = await reportService.getOverview(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function campaigns(req, res) {
-  const data = await reportService.getCampaignPerformance(req.user._id, req.query);
+  const data = await reportService.getCampaignPerformance(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
@@ -21,74 +22,74 @@ export async function compare(req, res) {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  const data = await reportService.compareCampaigns(req.user._id, ids);
+  const data = await reportService.compareCampaigns(req.user._id, ids, { workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function getCampaign(req, res) {
   const cId = req.params.id;
-  const data = await reportService.getCampaignPerformance(req.user._id, { campaignId: cId });
+  const data = await reportService.getCampaignPerformance(req.user._id, { campaignId: cId, workspaceId: req.workspaceId });
   if (!data.records.length) throw fail('Campaign report not found.', 404);
   res.json({ campaign: data.records[0] });
 }
 
 export async function campaignRecipients(req, res) {
-  const data = await reportService.getCampaignRecipients(req.user._id, req.params.id, req.query);
+  const data = await reportService.getCampaignRecipients(req.user._id, req.params.id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function messages(req, res) {
-  const data = await reportService.getMessages(req.user._id, req.query);
+  const data = await reportService.getMessages(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function messageStatus(req, res) {
-  const data = await reportService.getMessageStatusSummary(req.user._id, req.query);
+  const data = await reportService.getMessageStatusSummary(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function failures(req, res) {
-  const data = await reportService.getFailureAnalytics(req.user._id, req.query);
+  const data = await reportService.getFailureAnalytics(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function retries(req, res) {
-  const data = await reportService.getRetryAnalytics(req.user._id, req.query);
+  const data = await reportService.getRetryAnalytics(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function scheduling(req, res) {
-  const data = await reportService.getSchedulingAnalytics(req.user._id, req.query);
+  const data = await reportService.getSchedulingAnalytics(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function consent(req, res) {
-  const data = await reportService.getConsentReporting(req.user._id, req.query);
+  const data = await reportService.getConsentReporting(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function optOuts(req, res) {
-  const data = await reportService.getOptOutReporting(req.user._id, req.query);
+  const data = await reportService.getOptOutReporting(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function audienceExclusions(req, res) {
-  const data = await reportService.getAudienceExclusions(req.user._id, req.query);
+  const data = await reportService.getAudienceExclusions(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function inbox(req, res) {
-  const data = await reportService.getInboxAnalytics(req.user._id, req.query);
+  const data = await reportService.getInboxAnalytics(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function autoReplies(req, res) {
-  const data = await reportService.getAutoReplyAnalytics(req.user._id, req.query);
+  const data = await reportService.getAutoReplyAnalytics(req.user._id, { ...req.query, workspaceId: req.workspaceId });
   res.json(data);
 }
 
 export async function filters(req, res) {
-  const data = await reportService.getAvailableFilters(req.user._id);
+  const data = await reportService.getAvailableFilters(req.user._id, { workspaceId: req.workspaceId });
   res.json(data);
 }
 
@@ -101,7 +102,7 @@ export async function exportReport(req, res) {
   const file = await reportService.exportReportData(req.user._id, {
     reportType,
     format,
-    filters
+    filters: { ...filters, workspaceId: req.workspaceId }
   });
 
   res.setHeader('Content-Type', file.mimeType);
@@ -113,7 +114,7 @@ export async function exportReport(req, res) {
 }
 
 export async function listExports(req, res) {
-  const records = await ReportGeneration.find({ ownerId: req.user._id })
+  const records = await ReportGeneration.find({ ...tenantScope(req) })
     .sort({ createdAt: -1 })
     .limit(50)
     .select('-fileData')
@@ -123,7 +124,7 @@ export async function listExports(req, res) {
 
 export async function downloadExport(req, res) {
   if (!mongoose.isObjectIdOrHexString(req.params.id)) throw fail('Invalid Generation ID.', 400);
-  const row = await ReportGeneration.findOne({ _id: req.params.id, ownerId: req.user._id })
+  const row = await ReportGeneration.findOne({ _id: req.params.id, ...tenantScope(req) })
     .select('+fileData')
     .lean();
   if (!row || !row.fileData) throw fail('Export file is unavailable or expired.', 404);

@@ -38,26 +38,30 @@ import {
   HelpCircle,
   TrendingUp,
   Inbox,
-  RotateCcw
+  RotateCcw,
+  Check,
+  Info
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageHeader from '../components/PageHeader';
 import * as reportsApi from '../services/reports';
+import '../reports.css';
 
+// Locked Design System Status & Chart Colors
 const STATUS_COLORS = {
   Draft: '#94A3B8',
   'Needs Review': '#F59E0B',
   'Validated for Preparation': '#3B82F6',
-  Ready: '#0D9488',
+  Ready: '#2563EB',
   Scheduled: '#8B5CF6',
   Running: '#0284C7',
   Paused: '#D97706',
-  Completed: '#10B981',
-  Failed: '#EF4444',
+  Completed: '#16A34A',
+  Failed: '#DC2626',
   Cancelled: '#64748B'
 };
 
-const CHART_PIE_COLORS = ['#0D9488', '#F59E0B', '#EF4444', '#8B5CF6', '#3B82F6', '#64748B'];
+const CHART_PIE_COLORS = ['#2563EB', '#8B5CF6', '#3B82F6', '#D97706', '#DC2626', '#64748B'];
 
 export default function ReportsPage() {
   // Navigation & Tabs
@@ -114,6 +118,7 @@ export default function ReportsPage() {
   const [exportFormat, setExportFormat] = useState('csv');
   const [exporting, setExporting] = useState(false);
   const [exportHistory, setExportHistory] = useState([]);
+  const [loadError, setLoadError] = useState('');
 
   // Load available filter options once
   useEffect(() => {
@@ -137,6 +142,7 @@ export default function ReportsPage() {
 
   // Main Loader
   const loadActiveTabData = async (isManual = false) => {
+    setLoadError('');
     if (isManual) setRefreshing(true);
     else setLoading(true);
 
@@ -190,7 +196,7 @@ export default function ReportsPage() {
       }
       setLastUpdated(new Date());
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to load report data.');
+      setLoadError(err?.response?.data?.message || 'Failed to load report data.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -288,39 +294,28 @@ export default function ReportsPage() {
     }
   };
 
+  if (loadError) return <div className="reports-page" role="alert"><p>{loadError}</p><button className="outline-btn" onClick={() => loadActiveTabData(true)}>Retry reports</button></div>;
+
   return (
-    <div className="reports-page" style={{ paddingBottom: '40px' }}>
+    <div className="reports-page">
       {/* 1. Header */}
       <PageHeader
         eyebrow="WHATSAPP AUTOMATION · REPORTING & ANALYTICS"
         title="Reports & Analytics"
-        subtitle="Understand campaign execution, message activity and operational performance."
+        subtitle="Track campaign performance, messaging activity and operational insights."
       />
 
-      {/* 2. Top Action & Responsive Filter Toolbar */}
-      <div
-        className="panel"
-        style={{
-          marginBottom: '20px',
-          padding: '14px 18px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          background: 'var(--color-surface)',
-          borderRadius: '12px'
-        }}
-      >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
+      {/* 2. Global Filter Toolbar */}
+      <div className="reports-toolbar">
+        <div className="reports-toolbar-left">
           {/* Date Range Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Calendar size={15} color="var(--color-text-muted)" />
+          <div className="reports-filter-group">
+            <Calendar size={15} className="reports-filter-icon" />
             <select
-              className="form-control"
+              className="reports-select"
               value={range}
               onChange={(e) => setRange(e.target.value)}
-              style={{ height: '36px', fontSize: '13px', minWidth: '130px' }}
+              aria-label="Select Date Range"
             >
               <option value="today">Today</option>
               <option value="7d">Last 7 Days</option>
@@ -333,33 +328,34 @@ export default function ReportsPage() {
 
           {/* Custom Date Inputs if custom selected */}
           {range === 'custom' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="reports-filter-group">
               <input
                 type="date"
-                className="form-control"
+                className="reports-date-input"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                style={{ height: '36px', fontSize: '12.5px', width: '135px' }}
+                aria-label="Custom Start Date"
               />
-              <span style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>to</span>
+              <span style={{ color: 'var(--rp-muted)', fontSize: '12px' }}>to</span>
               <input
                 type="date"
-                className="form-control"
+                className="reports-date-input"
                 value={customEnd}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                style={{ height: '36px', fontSize: '12.5px', width: '135px' }}
+                aria-label="Custom End Date"
               />
             </div>
           )}
 
           {/* Campaign Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Filter size={15} color="var(--color-text-muted)" />
+          <div className="reports-filter-group">
+            <Filter size={15} className="reports-filter-icon" />
             <select
-              className="form-control"
+              className="reports-select"
               value={selectedCampaignId}
               onChange={(e) => setSelectedCampaignId(e.target.value)}
-              style={{ height: '36px', fontSize: '13px', maxWidth: '200px' }}
+              style={{ maxWidth: '220px' }}
+              aria-label="Filter by Campaign"
             >
               <option value="">All Campaigns</option>
               {(filterOptions.campaigns || []).map((c) => (
@@ -371,13 +367,13 @@ export default function ReportsPage() {
           </div>
 
           {/* Execution Mode */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Radio size={15} color="var(--color-text-muted)" />
+          <div className="reports-filter-group">
+            <Radio size={15} className="reports-filter-icon" />
             <select
-              className="form-control"
+              className="reports-select"
               value={executionMode}
               onChange={(e) => setExecutionMode(e.target.value)}
-              style={{ height: '36px', fontSize: '13px', minWidth: '130px' }}
+              aria-label="Select Execution Mode"
             >
               <option value="ALL">All Modes</option>
               <option value="MOCK">Mock Engine Only</option>
@@ -386,42 +382,43 @@ export default function ReportsPage() {
           </div>
 
           {/* Status Filter */}
-          <select
-            className="form-control"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ height: '36px', fontSize: '13px', minWidth: '120px' }}
-          >
-            <option value="all">All Statuses</option>
-            <option value="Completed">Completed</option>
-            <option value="Running">Running</option>
-            <option value="Scheduled">Scheduled</option>
-            <option value="Draft">Draft</option>
-            <option value="Failed">Failed</option>
-          </select>
+          <div className="reports-filter-group">
+            <select
+              className="reports-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Filter by Status"
+            >
+              <option value="all">All Statuses</option>
+              <option value="Completed">Completed</option>
+              <option value="Running">Running</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Draft">Draft</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
         </div>
 
         {/* Right Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="reports-toolbar-right">
           {lastUpdated && (
-            <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', marginRight: '4px' }}>
+            <span className="reports-timestamp-badge">
+              <Clock size={13} />
               Refreshed {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
           <button
-            className="btn btn-secondary"
+            className="reports-btn"
             onClick={() => loadActiveTabData(true)}
             disabled={refreshing || loading}
-            style={{ height: '36px', padding: '0 12px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
             title="Refresh current report dataset"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
             <span>Refresh</span>
           </button>
           <button
-            className="btn btn-primary"
+            className="reports-btn primary"
             onClick={() => setExportModalOpen(true)}
-            style={{ height: '36px', padding: '0 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <Download size={14} />
             <span>Export Report</span>
@@ -430,41 +427,51 @@ export default function ReportsPage() {
       </div>
 
       {/* 3. Navigation Tabs */}
-      <div className="inbox-filter-tabs" style={{ marginBottom: '22px', borderRadius: '10px' }}>
+      <div className="reports-nav-tabs" role="tablist">
         <button
-          className={activeTab === 'overview' ? 'active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'overview'}
+          className={`reports-nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          <TrendingUp size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />
-          Overview
+          <TrendingUp size={15} />
+          <span>Overview</span>
         </button>
         <button
-          className={activeTab === 'campaigns' ? 'active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'campaigns'}
+          className={`reports-nav-tab ${activeTab === 'campaigns' ? 'active' : ''}`}
           onClick={() => setActiveTab('campaigns')}
         >
-          <Columns size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />
-          Campaign Performance
+          <Columns size={15} />
+          <span>Campaign Performance</span>
         </button>
         <button
-          className={activeTab === 'messages' ? 'active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'messages'}
+          className={`reports-nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
           onClick={() => setActiveTab('messages')}
         >
-          <Layers size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />
-          Message Activity
+          <Layers size={15} />
+          <span>Message Activity</span>
         </button>
         <button
-          className={activeTab === 'consent' ? 'active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'consent'}
+          className={`reports-nav-tab ${activeTab === 'consent' ? 'active' : ''}`}
           onClick={() => setActiveTab('consent')}
         >
-          <ShieldCheck size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />
-          Consent & Opt-outs
+          <ShieldCheck size={15} />
+          <span>Consent & Opt-outs</span>
         </button>
         <button
-          className={activeTab === 'exports' ? 'active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'exports'}
+          className={`reports-nav-tab ${activeTab === 'exports' ? 'active' : ''}`}
           onClick={() => setActiveTab('exports')}
         >
-          <FileSpreadsheet size={15} style={{ marginRight: '6px', verticalAlign: '-2px' }} />
-          Exports
+          <FileSpreadsheet size={15} />
+          <span>Exports</span>
         </button>
       </div>
 
@@ -472,49 +479,50 @@ export default function ReportsPage() {
           TAB 1: OVERVIEW
           ========================================================================= */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* 4 Primary KPI Cards */}
-          <div className="stat-grid">
+          <div className="reports-kpi-grid">
             {/* Card 1: Total Campaigns */}
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Total Campaigns</span>
-                <div className="stat-icon tint-0">
-                  <FileBarChart2 size={16} />
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Total Campaigns</span>
+                <div className="reports-kpi-icon blue">
+                  <FileBarChart2 size={18} />
                 </div>
               </div>
-              <div className="stat-value">{overviewData?.kpis?.totalCampaigns ?? 0}</div>
-              <div className="stat-foot">
-                <CheckCircle2 size={13} color="var(--color-primary)" />
+              <div className="reports-kpi-value">{overviewData?.kpis?.totalCampaigns ?? 0}</div>
+              <div className="reports-kpi-foot">
+                <CheckCircle2 size={13} color="var(--rp-blue)" />
                 <span>Non-archived campaigns in database</span>
               </div>
             </div>
 
             {/* Card 2: Scheduled / Running */}
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Scheduled / Running</span>
-                <div className="stat-icon tint-1">
-                  <Clock size={16} />
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Scheduled / Running</span>
+                <div className="reports-kpi-icon violet">
+                  <Clock size={18} />
                 </div>
               </div>
-              <div className="stat-value">{overviewData?.kpis?.scheduledRunningCampaigns ?? 0}</div>
-              <div className="stat-foot">
+              <div className="reports-kpi-value">{overviewData?.kpis?.scheduledRunningCampaigns ?? 0}</div>
+              <div className="reports-kpi-foot">
+                <Clock size={13} color="var(--rp-violet)" />
                 <span>Queued or active orchestrations</span>
               </div>
             </div>
 
             {/* Card 3: Mock Messages Processed */}
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Mock Messages Processed</span>
-                <div className="stat-icon tint-2">
-                  <Layers size={16} />
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Mock Messages Processed</span>
+                <div className="reports-kpi-icon blue">
+                  <Layers size={18} />
                 </div>
               </div>
-              <div className="stat-value">{overviewData?.kpis?.mockMessagesProcessed ?? 0}</div>
-              <div className="stat-foot">
-                <span className="status-badge" style={{ fontSize: '11px', padding: '1px 6px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
+              <div className="reports-kpi-value">{overviewData?.kpis?.mockMessagesProcessed ?? 0}</div>
+              <div className="reports-kpi-foot">
+                <span className="rp-badge blue" style={{ fontSize: '11px', padding: '1px 6px' }}>
                   Mock Engine
                 </span>
                 <span>Simulated outbound dispatches</span>
@@ -522,18 +530,18 @@ export default function ReportsPage() {
             </div>
 
             {/* Card 4: Verified WhatsApp Messages Sent */}
-            <div className="stat-card" style={{ borderLeft: '3px solid var(--color-warning)' }}>
-              <div className="stat-head">
-                <span>Verified Messages Sent</span>
-                <div className="stat-icon tint-3">
-                  <Radio size={16} />
+            <div className="reports-kpi-card" style={{ borderLeft: '3px solid var(--rp-warning)' }}>
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Verified Messages Sent</span>
+                <div className="reports-kpi-icon warning">
+                  <Radio size={18} />
                 </div>
               </div>
-              <div className="stat-value" style={{ fontSize: '20px', color: 'var(--color-text-muted)', paddingTop: '4px' }}>
+              <div className="reports-kpi-value" style={{ fontSize: '22px', color: 'var(--rp-muted)', paddingTop: '4px' }}>
                 Not Available
               </div>
-              <div className="stat-foot">
-                <span className="status-badge" style={{ fontSize: '11px', padding: '1px 6px', background: 'var(--color-warning-soft)', color: 'var(--color-warning)' }}>
+              <div className="reports-kpi-foot">
+                <span className="rp-badge warning" style={{ fontSize: '11px', padding: '1px 6px' }}>
                   Provider Disconnected
                 </span>
                 <span>Meta API offline</span>
@@ -541,92 +549,137 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Compact Secondary Metrics Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '12px'
-            }}
-          >
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Draft Campaigns</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text-primary)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.draftCampaigns ?? 0}
+          {/* Secondary Operational Metrics Structured Grouping */}
+          <div className="reports-secondary-section">
+            {/* Group A: Campaign Lifecycle */}
+            <div className="reports-secondary-group">
+              <div className="reports-secondary-group-head">
+                <span className="reports-secondary-group-title">Campaign Lifecycle</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--rp-muted)' }}>Status Breakdown</span>
+              </div>
+              <div className="reports-secondary-group-grid">
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Draft Campaigns</span>
+                  <span className="reports-secondary-tile-value">{overviewData?.secondaryMetrics?.draftCampaigns ?? 0}</span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Ready for Preparation</span>
+                  <span className="reports-secondary-tile-value" style={{ color: 'var(--rp-blue)' }}>
+                    {overviewData?.secondaryMetrics?.readyCampaigns ?? 0}
+                  </span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label" title="Historical completed execution runs across campaigns">
+                    Completed Mock Runs
+                  </span>
+                  <span className="reports-secondary-tile-value" style={{ color: 'var(--rp-success)' }}>
+                    {overviewData?.secondaryMetrics?.completedMockRuns ?? 0}
+                  </span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Failed Mock Runs</span>
+                  <span
+                    className="reports-secondary-tile-value"
+                    style={{ color: overviewData?.secondaryMetrics?.failedMockRuns ? 'var(--rp-danger)' : 'var(--rp-navy)' }}
+                  >
+                    {overviewData?.secondaryMetrics?.failedMockRuns ?? 0}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Ready for Preparation</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-primary)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.readyCampaigns ?? 0}
+
+            {/* Group B: Messaging Operations */}
+            <div className="reports-secondary-group">
+              <div className="reports-secondary-group-head">
+                <span className="reports-secondary-group-title">Messaging Operations</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--rp-muted)' }}>Dispatch & Queue</span>
+              </div>
+              <div className="reports-secondary-group-grid">
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Excluded Recipients</span>
+                  <span className="reports-secondary-tile-value" style={{ color: 'var(--rp-warning)' }}>
+                    {overviewData?.secondaryMetrics?.excludedRecipients ?? 0}
+                  </span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label" title="Additional delivery attempts across all message runs">
+                    Retry Attempts
+                  </span>
+                  <span className="reports-secondary-tile-value">{overviewData?.secondaryMetrics?.retryAttempts ?? 0}</span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Unread Inbox Threads</span>
+                  <span className="reports-secondary-tile-value" style={{ color: 'var(--rp-blue)' }}>
+                    {overviewData?.secondaryMetrics?.unreadConversations ?? 0}
+                  </span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Queue Health</span>
+                  <span className="reports-secondary-tile-value" style={{ fontSize: '14px', color: 'var(--rp-success)', marginTop: '4px' }}>
+                    100% Operational
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Completed Mock Runs</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-success)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.completedMockRuns ?? 0}
+
+            {/* Group C: Compliance & Provider */}
+            <div className="reports-secondary-group">
+              <div className="reports-secondary-group-head">
+                <span className="reports-secondary-group-title">Compliance & Replies</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--rp-muted)' }}>Audit Safeguards</span>
               </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Failed Mock Runs</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: overviewData?.secondaryMetrics?.failedMockRuns ? 'var(--color-danger)' : 'var(--color-text-primary)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.failedMockRuns ?? 0}
-              </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Excluded Recipients</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-warning)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.excludedRecipients ?? 0}
-              </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Retry Attempts</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text-primary)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.retryAttempts ?? 0}
-              </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Unread Inbox Threads</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-info)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.unreadConversations ?? 0}
-              </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Verified Customer Replies</div>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                —
-              </div>
-            </div>
-            <div className="panel" style={{ padding: '12px 16px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Recorded Opt-Outs</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-danger)', marginTop: '2px' }}>
-                {overviewData?.secondaryMetrics?.recordedOptOuts ?? 0}
+              <div className="reports-secondary-group-grid">
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Recorded Opt-Outs</span>
+                  <span className="reports-secondary-tile-value" style={{ color: 'var(--rp-danger)' }}>
+                    {overviewData?.secondaryMetrics?.recordedOptOuts ?? 0}
+                  </span>
+                </div>
+                <div className="reports-secondary-tile">
+                  <span className="reports-secondary-tile-label">Verified Customer Replies</span>
+                  <span className="reports-secondary-tile-value" style={{ fontSize: '16px', color: 'var(--rp-muted)', marginTop: '4px' }}>
+                    —
+                  </span>
+                </div>
+                <div className="reports-secondary-tile" style={{ gridColumn: 'span 2' }}>
+                  <span className="reports-secondary-tile-label">Provider Connection Status</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                    <span className="rp-badge warning" style={{ fontSize: '11px' }}>
+                      Mock Mode Active
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>Official Meta provider disconnected</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Visual Charts: 2 Column Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
+          <div className="reports-charts-grid">
             {/* Chart 1: Message Processing Trend */}
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Mock Message Processing Trend</div>
-                  <div className="panel-subtitle">Daily dispatches and failures in selected period</div>
+                  <div className="reports-panel-title">Mock Message Processing Trend</div>
+                  <div className="reports-panel-subtitle">Daily dispatches and failures in selected period</div>
                 </div>
+                <span className="rp-badge blue" style={{ fontSize: '11px' }}>
+                  Mock Telemetry
+                </span>
               </div>
-              <div style={{ padding: '16px 20px', height: '260px' }}>
-                {((overviewData?.charts?.messageTrend || []).length > 0 && (overviewData.charts.messageTrend.some(d => (d.simulatedSent > 0 || d.failed > 0 || d.total > 0)))) ? (
+              <div style={{ padding: '16px 20px', height: '280px' }}>
+                {(overviewData?.charts?.messageTrend || []).length > 0 &&
+                overviewData.charts.messageTrend.some((d) => d.simulatedSent > 0 || d.failed > 0 || d.total > 0) ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={overviewData.charts.messageTrend}>
                       <defs>
-                        <linearGradient id="colorSent" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0D9488" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#0D9488" stopOpacity={0.0} />
+                        <linearGradient id="colorSentBlue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
                         </linearGradient>
-                        <linearGradient id="colorFail" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#EF4444" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
+                        <linearGradient id="colorFailRed" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#DC2626" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#DC2626" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -634,37 +687,72 @@ export default function ReportsPage() {
                       <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
+                          backgroundColor: '#0F172A',
+                          borderColor: '#1E293B',
                           borderRadius: '8px',
                           color: '#F8FAFC',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)'
                         }}
                       />
                       <Legend verticalAlign="top" height={36} iconType="circle" />
-                      <Area type="monotone" dataKey="simulatedSent" name="Simulated Sent" stroke="#0D9488" fillOpacity={1} fill="url(#colorSent)" />
-                      <Area type="monotone" dataKey="failed" name="Simulated Failed" stroke="#EF4444" fillOpacity={1} fill="url(#colorFail)" />
+                      <Area
+                        type="monotone"
+                        dataKey="simulatedSent"
+                        name="Simulated Sent"
+                        stroke="#2563EB"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: '#2563EB', strokeWidth: 1, stroke: '#FFFFFF' }}
+                        fillOpacity={1}
+                        fill="url(#colorSentBlue)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="failed"
+                        name="Simulated Failed"
+                        stroke="#DC2626"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: '#DC2626', strokeWidth: 1, stroke: '#FFFFFF' }}
+                        fillOpacity={1}
+                        fill="url(#colorFailRed)"
+                      />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>
-                    <Layers size={28} style={{ color: 'var(--color-text-muted)', opacity: 0.5, marginBottom: '8px' }} />
-                    <span style={{ fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '4px' }}>No mock message dispatches in this date range.</span>
-                    <span style={{ fontSize: '12px', maxWidth: '320px' }}>Daily dispatch trends will render here once campaigns are executed in mock simulation mode.</span>
+                  <div
+                    style={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--rp-muted)',
+                      fontSize: '13px',
+                      textAlign: 'center',
+                      padding: '20px'
+                    }}
+                  >
+                    <Layers size={32} style={{ color: 'var(--rp-muted)', opacity: 0.4, marginBottom: '10px' }} />
+                    <span style={{ fontWeight: 600, color: 'var(--rp-navy)', marginBottom: '4px' }}>
+                      No mock message dispatches in this date range.
+                    </span>
+                    <span style={{ fontSize: '12px', maxWidth: '320px', color: 'var(--rp-muted)' }}>
+                      Daily dispatch trends will render here once campaigns are executed in mock simulation mode.
+                    </span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Chart 2: Campaign Status Distribution */}
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Campaign Status Distribution</div>
-                  <div className="panel-subtitle">Count of campaigns grouped by current state</div>
+                  <div className="reports-panel-title">Campaign Status Distribution</div>
+                  <div className="reports-panel-subtitle">Count of campaigns grouped by current state</div>
                 </div>
               </div>
-              <div style={{ padding: '16px 20px', height: '260px' }}>
+              <div style={{ padding: '16px 20px', height: '280px' }}>
                 {(overviewData?.charts?.campaignStatusDistribution || []).length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={overviewData.charts.campaignStatusDistribution}>
@@ -673,8 +761,8 @@ export default function ReportsPage() {
                       <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} allowDecimals={false} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
+                          backgroundColor: '#0F172A',
+                          borderColor: '#1E293B',
                           borderRadius: '8px',
                           color: '#F8FAFC',
                           fontSize: '12px'
@@ -682,13 +770,13 @@ export default function ReportsPage() {
                       />
                       <Bar dataKey="count" name="Campaigns" radius={[4, 4, 0, 0]}>
                         {(overviewData.charts.campaignStatusDistribution || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#0D9488'} />
+                          <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#2563EB'} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                  <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--rp-muted)', fontSize: '13px' }}>
                     No campaigns created yet.
                   </div>
                 )}
@@ -696,14 +784,14 @@ export default function ReportsPage() {
             </div>
 
             {/* Chart 3: Failure Breakdown */}
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Top Failure Reasons</div>
-                  <div className="panel-subtitle">Normalized error codes from transport & preparation</div>
+                  <div className="reports-panel-title">Top Failure Reasons</div>
+                  <div className="reports-panel-subtitle">Normalized error codes from transport & preparation</div>
                 </div>
               </div>
-              <div style={{ padding: '16px 20px', height: '260px' }}>
+              <div style={{ padding: '16px 20px', height: '280px' }}>
                 {(overviewData?.charts?.failureBreakdown || []).length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={overviewData.charts.failureBreakdown} layout="vertical">
@@ -712,33 +800,33 @@ export default function ReportsPage() {
                       <YAxis type="category" dataKey="reason" stroke="#94A3B8" fontSize={11} width={130} tickLine={false} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
+                          backgroundColor: '#0F172A',
+                          borderColor: '#1E293B',
                           borderRadius: '8px',
                           color: '#F8FAFC',
                           fontSize: '12px'
                         }}
                       />
-                      <Bar dataKey="count" name="Occurrences" fill="#EF4444" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="count" name="Occurrences" fill="#DC2626" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                  <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--rp-muted)', fontSize: '13px' }}>
                     No message failure codes recorded in this date range.
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Chart 4: Audience Eligibility Distribution */}
-            <div className="panel">
-              <div className="panel-head">
+            {/* Chart 4: Audience Eligibility Ratio */}
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Audience Eligibility Ratio</div>
-                  <div className="panel-subtitle">Eligible contacts vs excluded from dispatch</div>
+                  <div className="reports-panel-title">Audience Eligibility Ratio</div>
+                  <div className="reports-panel-subtitle">Eligible contacts vs excluded from dispatch</div>
                 </div>
               </div>
-              <div style={{ padding: '16px 20px', height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ padding: '16px 20px', height: '280px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {overviewData?.charts?.audienceBreakdown?.totalAudienceSnapshots > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -752,13 +840,13 @@ export default function ReportsPage() {
                         paddingAngle={4}
                         dataKey="value"
                       >
-                        <Cell fill="#0D9488" />
-                        <Cell fill="#F59E0B" />
+                        <Cell fill="#2563EB" />
+                        <Cell fill="#D97706" />
                       </Pie>
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: '#1E293B',
-                          borderColor: '#334155',
+                          backgroundColor: '#0F172A',
+                          borderColor: '#1E293B',
                           borderRadius: '8px',
                           color: '#F8FAFC',
                           fontSize: '12px'
@@ -768,7 +856,7 @@ export default function ReportsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                  <div style={{ color: 'var(--rp-muted)', fontSize: '13px' }}>
                     No audience snapshots prepared yet.
                   </div>
                 )}
@@ -786,38 +874,38 @@ export default function ReportsPage() {
           {/* Comparison Action Bar */}
           {selectedForCompare.length > 0 && (
             <div
-              className="panel"
+              className="reports-panel"
               style={{
-                padding: '12px 20px',
-                background: 'var(--color-primary-soft)',
-                border: '1px solid var(--color-primary-border)',
+                padding: '14px 20px',
+                background: 'var(--rp-blue-soft)',
+                border: '1px solid var(--rp-blue-border)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Columns size={18} color="var(--color-primary)" />
-                <span style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--color-primary-active)' }}>
+                <Columns size={18} color="var(--rp-blue)" />
+                <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--rp-blue)' }}>
                   {selectedForCompare.length} Campaign{selectedForCompare.length > 1 ? 's' : ''} Selected for Comparison
                 </span>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--rp-muted)' }}>
                   (Select between 2 and 4 campaigns to compare side-by-side)
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
-                  className="btn btn-secondary"
+                  className="reports-btn sm"
                   onClick={() => setSelectedForCompare([])}
-                  style={{ height: '32px', fontSize: '12px' }}
                 >
                   Clear Selection
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="reports-btn primary sm"
                   onClick={handleOpenComparison}
                   disabled={selectedForCompare.length < 2 || comparing}
-                  style={{ height: '32px', fontSize: '12px' }}
                 >
                   {comparing ? 'Comparing...' : 'Compare Side-by-Side'}
                 </button>
@@ -826,62 +914,88 @@ export default function ReportsPage() {
           )}
 
           {/* Search & Actions Panel */}
-          <div className="panel">
+          <div className="reports-panel">
             <div
               style={{
-                padding: '14px 18px',
+                padding: '14px 20px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid var(--color-border-subtle)',
-                gap: '10px',
+                borderBottom: '1px solid var(--rp-border-subtle)',
+                gap: '12px',
                 flexWrap: 'wrap'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '220px' }}>
-                <div style={{ position: 'relative', width: '100%', maxWidth: '320px' }}>
-                  <Search size={15} style={{ position: 'absolute', left: '12px', top: '11px', color: 'var(--color-text-muted)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1', minWidth: '260px' }}>
+                <div style={{ position: 'relative', width: '100%', maxWidth: '380px' }}>
+                  <Search size={15} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--rp-muted)' }} />
                   <input
                     type="text"
-                    className="form-control"
+                    className="reports-date-input"
                     placeholder="Search campaign by name or category..."
                     value={campaignSearch}
                     onChange={(e) => {
                       setCampaignSearch(e.target.value);
                       setCampaignPage(1);
                     }}
-                    style={{ paddingLeft: '34px', height: '36px', fontSize: '13px' }}
+                    style={{
+                      paddingLeft: '36px',
+                      height: '38px',
+                      fontSize: '13px',
+                      width: '100%',
+                      background: 'var(--rp-surface-subtle)',
+                      border: '1px solid var(--rp-border)',
+                      borderRadius: '8px',
+                      paddingRight: campaignSearch ? '30px' : '10px'
+                    }}
                   />
+                  {campaignSearch && (
+                    <button
+                      onClick={() => setCampaignSearch('')}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '10px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--rp-muted)'
+                      }}
+                      title="Clear search"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--rp-muted)' }}>
                 Showing {campaignData.records.length} of {campaignData.pagination.total} campaigns
               </div>
             </div>
 
             {/* Campaign Table */}
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <div className="reports-table-container">
+              <table className="reports-table">
                 <thead>
-                  <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                    <th style={{ padding: '12px 14px', width: '40px' }}>
+                  <tr>
+                    <th style={{ width: '40px', textAlign: 'center' }}>
                       <input
                         type="checkbox"
                         disabled
                         title="Select individual campaigns to compare"
                       />
                     </th>
-                    <th style={{ padding: '12px 14px' }}>Campaign Name</th>
-                    <th style={{ padding: '12px 14px' }}>Status</th>
-                    <th style={{ padding: '12px 14px' }}>Template</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Audience</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Eligible</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Excluded</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Mock Sent</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Failures</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Retries</th>
-                    <th style={{ padding: '12px 14px' }}>Scheduled / Run</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Actions</th>
+                    <th>Campaign Name</th>
+                    <th>Status</th>
+                    <th>Template</th>
+                    <th style={{ textAlign: 'right' }}>Audience</th>
+                    <th style={{ textAlign: 'right' }}>Eligible</th>
+                    <th style={{ textAlign: 'right' }}>Excluded</th>
+                    <th style={{ textAlign: 'right' }}>Mock Sent</th>
+                    <th style={{ textAlign: 'right' }}>Failures</th>
+                    <th style={{ textAlign: 'right' }}>Retries</th>
+                    <th>Scheduled / Run</th>
+                    <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -889,21 +1003,22 @@ export default function ReportsPage() {
                     campaignData.records.map((c) => {
                       const isSelected = selectedForCompare.includes(c._id);
                       return (
-                        <tr key={c._id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                          <td style={{ padding: '12px 14px' }}>
+                        <tr key={c._id}>
+                          <td style={{ textAlign: 'center' }}>
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleCompare(c._id)}
+                              aria-label={`Select ${c.name} for comparison`}
                             />
                           </td>
-                          <td style={{ padding: '12px 14px' }}>
-                            <div style={{ fontWeight: '600', color: 'var(--color-text-primary)' }}>{c.name}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{c.category || 'General'}</div>
+                          <td>
+                            <div style={{ fontWeight: '600', color: 'var(--rp-navy)' }}>{c.name}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>{c.category || 'General'}</div>
                           </td>
-                          <td style={{ padding: '12px 14px' }}>
+                          <td>
                             <span
-                              className="status-badge"
+                              className="rp-badge"
                               style={{
                                 background: STATUS_COLORS[c.status] ? `${STATUS_COLORS[c.status]}1A` : '#F1F5F9',
                                 color: STATUS_COLORS[c.status] || '#475569'
@@ -912,41 +1027,38 @@ export default function ReportsPage() {
                               {c.status}
                             </span>
                           </td>
-                          <td style={{ padding: '12px 14px', color: 'var(--color-text-secondary)' }}>{c.templateName}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '500' }}>{c.audienceSize}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', color: 'var(--color-success)', fontWeight: '500' }}>
+                          <td style={{ color: 'var(--rp-text-secondary)' }}>{c.templateName}</td>
+                          <td style={{ textAlign: 'right', fontWeight: '500' }}>{c.audienceSize}</td>
+                          <td style={{ textAlign: 'right', color: 'var(--rp-success)', fontWeight: '600' }}>
                             {c.eligibleRecipients}
                           </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', color: c.excludedRecipients > 0 ? 'var(--color-warning)' : 'var(--color-text-muted)' }}>
+                          <td style={{ textAlign: 'right', color: c.excludedRecipients > 0 ? 'var(--rp-warning)' : 'var(--rp-muted)' }}>
                             {c.excludedRecipients}
                           </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600' }}>{c.mockMessagesProcessed}</td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', color: c.simulatedFailures > 0 ? 'var(--color-danger)' : 'var(--color-text-muted)' }}>
+                          <td style={{ textAlign: 'right', fontWeight: '700' }}>{c.mockMessagesProcessed}</td>
+                          <td style={{ textAlign: 'right', color: c.simulatedFailures > 0 ? 'var(--rp-danger)' : 'var(--rp-muted)' }}>
                             {c.simulatedFailures}
                           </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'right', color: 'var(--color-text-muted)' }}>{c.retryAttempts}</td>
-                          <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                          <td style={{ textAlign: 'right', color: 'var(--rp-muted)' }}>{c.retryAttempts}</td>
+                          <td style={{ fontSize: '12px', color: 'var(--rp-muted)' }}>
                             {c.actualRunDate ? new Date(c.actualRunDate).toLocaleDateString() : c.scheduledDate ? new Date(c.scheduledDate).toLocaleDateString() : '—'}
                           </td>
-                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                              <button
-                                className="btn btn-secondary"
-                                onClick={() => setDetailCampaign(c)}
-                                style={{ height: '28px', padding: '0 8px', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                title="View detailed breakdown"
-                              >
-                                <Eye size={12} />
-                                <span>Details</span>
-                              </button>
-                            </div>
+                          <td style={{ textAlign: 'center' }}>
+                            <button
+                              className="reports-btn sm"
+                              onClick={() => setDetailCampaign(c)}
+                              title="View detailed breakdown"
+                            >
+                              <Eye size={12} />
+                              <span>Details</span>
+                            </button>
                           </td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                      <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: 'var(--rp-muted)' }}>
                         No campaigns found matching selected filters.
                       </td>
                     </tr>
@@ -959,30 +1071,28 @@ export default function ReportsPage() {
             {campaignData.pagination.pages > 1 && (
               <div
                 style={{
-                  padding: '12px 18px',
+                  padding: '12px 20px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  borderTop: '1px solid var(--color-border-subtle)',
+                  borderTop: '1px solid var(--rp-border-subtle)',
                   fontSize: '12.5px'
                 }}
               >
                 <button
-                  className="btn btn-secondary"
+                  className="reports-btn sm"
                   disabled={campaignPage <= 1}
                   onClick={() => setCampaignPage((p) => Math.max(1, p - 1))}
-                  style={{ height: '30px', fontSize: '12px' }}
                 >
                   Previous
                 </button>
-                <span>
+                <span style={{ color: 'var(--rp-muted)' }}>
                   Page {campaignPage} of {campaignData.pagination.pages}
                 </span>
                 <button
-                  className="btn btn-secondary"
+                  className="reports-btn sm"
                   disabled={campaignPage >= campaignData.pagination.pages}
                   onClick={() => setCampaignPage((p) => Math.min(campaignData.pagination.pages, p + 1))}
-                  style={{ height: '30px', fontSize: '12px' }}
                 >
                   Next
                 </button>
@@ -996,85 +1106,85 @@ export default function ReportsPage() {
           TAB 3: MESSAGE ACTIVITY
           ========================================================================= */}
       {activeTab === 'messages' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Status Lifecycle Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
             {/* 1. Internal Preparation */}
-            <div className="panel" style={{ padding: '16px 18px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-primary)', marginBottom: '12px' }}>
+            <div className="reports-panel" style={{ padding: '18px 20px' }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--rp-navy)', marginBottom: '12px' }}>
                 Internal Preparation States
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Queued in Background</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Queued in Background</span>
                   <span style={{ fontWeight: '600' }}>{messageStatusData?.internalPreparation?.QUEUED ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Leased / Processing</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Leased / Processing</span>
                   <span style={{ fontWeight: '600' }}>{messageStatusData?.internalPreparation?.PROCESSING ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Scheduled for Future</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Scheduled for Future</span>
                   <span style={{ fontWeight: '600' }}>{messageStatusData?.internalPreparation?.SCHEDULED ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Blocked (Consent / Opt-out)</span>
-                  <span style={{ fontWeight: '600', color: 'var(--color-warning)' }}>{messageStatusData?.internalPreparation?.BLOCKED ?? 0}</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Blocked (Consent / Opt-out)</span>
+                  <span style={{ fontWeight: '600', color: 'var(--rp-warning)' }}>{messageStatusData?.internalPreparation?.BLOCKED ?? 0}</span>
                 </div>
               </div>
             </div>
 
             {/* 2. Mock Results */}
-            <div className="panel" style={{ padding: '16px 18px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-primary)', marginBottom: '12px' }}>
+            <div className="reports-panel" style={{ padding: '18px 20px' }}>
+              <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--rp-navy)', marginBottom: '12px' }}>
                 Mock Engine Outcomes
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Simulated Sent</span>
-                  <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>{messageStatusData?.mockResults?.SIMULATED_SENT ?? 0}</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Simulated Sent</span>
+                  <span style={{ fontWeight: '600', color: 'var(--rp-success)' }}>{messageStatusData?.mockResults?.SIMULATED_SENT ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Simulated Delivered</span>
-                  <span style={{ fontWeight: '600', color: 'var(--color-success)' }}>{messageStatusData?.mockResults?.SIMULATED_DELIVERED ?? 0}</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Simulated Delivered</span>
+                  <span style={{ fontWeight: '600', color: 'var(--rp-success)' }}>{messageStatusData?.mockResults?.SIMULATED_DELIVERED ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Temporary Failures (Retrying)</span>
-                  <span style={{ fontWeight: '600', color: 'var(--color-warning)' }}>{messageStatusData?.mockResults?.TEMPORARY_FAILURE ?? 0}</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Temporary Failures (Retrying)</span>
+                  <span style={{ fontWeight: '600', color: 'var(--rp-warning)' }}>{messageStatusData?.mockResults?.TEMPORARY_FAILURE ?? 0}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Permanent Failures (Exhausted)</span>
-                  <span style={{ fontWeight: '600', color: 'var(--color-danger)' }}>{messageStatusData?.mockResults?.PERMANENT_FAILURE ?? 0}</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Permanent Failures (Exhausted)</span>
+                  <span style={{ fontWeight: '600', color: 'var(--rp-danger)' }}>{messageStatusData?.mockResults?.PERMANENT_FAILURE ?? 0}</span>
                 </div>
               </div>
             </div>
 
             {/* 3. Verified Provider */}
-            <div className="panel" style={{ padding: '16px 18px', borderLeft: '3px solid var(--color-warning)' }}>
+            <div className="reports-panel" style={{ padding: '18px 20px', borderLeft: '3px solid var(--rp-warning)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-text-primary)' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--rp-navy)' }}>
                   Verified WhatsApp Provider
                 </div>
-                <span className="status-badge" style={{ fontSize: '11px', background: 'var(--color-warning-soft)', color: 'var(--color-warning)' }}>
+                <span className="rp-badge warning" style={{ fontSize: '11px' }}>
                   Disconnected
                 </span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12.5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Official Provider Accepted</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Unavailable</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Official Provider Accepted</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Unavailable</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Provider Webhook Delivered</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Unavailable</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Provider Webhook Delivered</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Unavailable</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Customer Read Receipts</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Unavailable</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Customer Read Receipts</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Unavailable</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Customer Inbound Replies</span>
-                  <span style={{ color: 'var(--color-text-muted)' }}>Unavailable</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Customer Inbound Replies</span>
+                  <span style={{ color: 'var(--rp-muted)' }}>Unavailable</span>
                 </div>
               </div>
             </div>
@@ -1082,107 +1192,124 @@ export default function ReportsPage() {
 
           {/* Retry Analytics Summary Panel */}
           {retryData && (
-            <div
-              className="panel"
-              style={{
-                padding: '16px 20px',
-                background: 'var(--color-surface)',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '14px'
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Messages Requiring Retry</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text-primary)', marginTop: '2px' }}>
-                  {retryData.messagesRequiringRetry}
+            <div className="reports-panel">
+              <div className="reports-panel-head">
+                <div>
+                  <div className="reports-panel-title">Retry & Attempt Reconciliation</div>
+                  <div className="reports-panel-subtitle">Durable retry telemetry for message delivery resilience</div>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Unique logical messages with &gt;1 attempt</div>
+                <span className="rp-badge blue" style={{ fontSize: '11px' }}>
+                  Persistent Queue
+                </span>
               </div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Total Retry Attempts</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text-primary)', marginTop: '2px' }}>
-                  {retryData.totalRetryAttempts}
+              <div
+                style={{
+                  padding: '18px 20px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '16px'
+                }}
+              >
+                <div className="reports-secondary-tile">
+                  <div className="reports-secondary-tile-label">Messages Requiring Retry</div>
+                  <div className="reports-secondary-tile-value">{retryData.messagesRequiringRetry}</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--rp-muted)', marginTop: '2px' }}>
+                    Unique logical messages with &gt;1 attempt
+                  </div>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Sum of (attemptCount - 1)</div>
+                <div className="reports-secondary-tile">
+                  <div className="reports-secondary-tile-label">Total Retry Attempts</div>
+                  <div className="reports-secondary-tile-value">{retryData.totalRetryAttempts}</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--rp-muted)', marginTop: '2px' }}>
+                    Sum of (attemptCount - 1)
+                  </div>
+                </div>
+                <div className="reports-secondary-tile">
+                  <div className="reports-secondary-tile-label">Retries Succeeded in Mock</div>
+                  <div className="reports-secondary-tile-value" style={{ color: 'var(--rp-success)' }}>
+                    {retryData.retriesSucceededInMockMode}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--rp-muted)', marginTop: '2px' }}>
+                    Eventual terminal success
+                  </div>
+                </div>
+                <div className="reports-secondary-tile">
+                  <div className="reports-secondary-tile-label">Retries Exhausted</div>
+                  <div className="reports-secondary-tile-value" style={{ color: 'var(--rp-danger)' }}>
+                    {retryData.retriesExhausted}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--rp-muted)', marginTop: '2px' }}>
+                    Max retry threshold reached
+                  </div>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Retries Succeeded in Mock</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-success)', marginTop: '2px' }}>
-                  {retryData.retriesSucceededInMockMode}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Eventual terminal success</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Retries Exhausted</div>
-                <div style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-danger)', marginTop: '2px' }}>
-                  {retryData.retriesExhausted}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Max attempts reached</div>
+              <div style={{ padding: '0 20px 16px', fontSize: '12px', color: 'var(--rp-muted)' }}>
+                <Info size={13} style={{ verticalAlign: '-2px', marginRight: '4px' }} />
+                Unique recipient counts are never inflated by delivery retries. Each retry is an attempt on a single persistent message identity.
               </div>
             </div>
           )}
 
           {/* Failure Breakdown Table */}
-          <div className="panel">
-            <div className="panel-head">
+          <div className="reports-panel">
+            <div className="reports-panel-head">
               <div>
-                <div className="panel-title">Failure & Exclusion Analysis</div>
-                <div className="panel-subtitle">Normalized reason codes, classified by pipeline layer</div>
+                <div className="reports-panel-title">Failure & Exclusion Analysis</div>
+                <div className="reports-panel-subtitle">Normalized reason codes, classified by pipeline layer</div>
               </div>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <div className="reports-table-container">
+              <table className="reports-table">
                 <thead>
-                  <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                    <th style={{ padding: '12px 14px' }}>Failure Code</th>
-                    <th style={{ padding: '12px 14px' }}>Category</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Affected Messages</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Total Attempts</th>
-                    <th style={{ padding: '12px 14px' }}>Actionable Explanation</th>
+                  <tr>
+                    <th>Failure Code</th>
+                    <th>Category</th>
+                    <th style={{ textAlign: 'right' }}>Affected Messages</th>
+                    <th style={{ textAlign: 'right' }}>Total Attempts</th>
+                    <th>Actionable Explanation</th>
                   </tr>
                 </thead>
                 <tbody>
                   {failuresData.length > 0 ? (
                     failuresData.map((f, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        <td style={{ padding: '12px 14px' }}>
-                          <code style={{ fontSize: '12px', background: 'var(--color-surface-subtle)', padding: '2px 6px', borderRadius: '4px' }}>
+                      <tr key={idx}>
+                        <td>
+                          <code style={{ fontSize: '12px', background: 'var(--rp-surface-subtle)', padding: '3px 6px', borderRadius: '4px', border: '1px solid var(--rp-border)' }}>
                             {f.failureCode}
                           </code>
                         </td>
-                        <td style={{ padding: '12px 14px' }}>
+                        <td>
                           <span
-                            className="status-badge"
+                            className="rp-badge"
                             style={{
                               fontSize: '11px',
                               background:
                                 f.category === 'Eligibility Exclusion'
-                                  ? 'var(--color-warning-soft)'
+                                  ? 'var(--rp-warning-soft)'
                                   : f.category === 'Preparation Failure'
-                                  ? 'var(--color-info-soft)'
-                                  : 'var(--color-danger-soft)',
+                                  ? 'var(--rp-blue-soft)'
+                                  : 'var(--rp-danger-soft)',
                               color:
                                 f.category === 'Eligibility Exclusion'
-                                  ? 'var(--color-warning)'
+                                  ? 'var(--rp-warning)'
                                   : f.category === 'Preparation Failure'
-                                  ? 'var(--color-info)'
-                                  : 'var(--color-danger)'
+                                  ? 'var(--rp-blue)'
+                                  : 'var(--rp-danger)'
                             }}
                           >
                             {f.category}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600' }}>{f.affectedLogicalMessages}</td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', color: 'var(--color-text-muted)' }}>{f.totalAttempts}</td>
-                        <td style={{ padding: '12px 14px', color: 'var(--color-text-secondary)', fontSize: '12.5px' }}>
+                        <td style={{ textAlign: 'right', fontWeight: '700' }}>{f.affectedLogicalMessages}</td>
+                        <td style={{ textAlign: 'right', color: 'var(--rp-muted)' }}>{f.totalAttempts}</td>
+                        <td style={{ color: 'var(--rp-text-secondary)', fontSize: '12.5px' }}>
                           {f.actionableExplanation}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--rp-muted)' }}>
                         No failure records found for active filters.
                       </td>
                     </tr>
@@ -1194,32 +1321,47 @@ export default function ReportsPage() {
 
           {/* Recipient-Level Log Table if Campaign is selected */}
           {selectedCampaignId && (
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Campaign Recipient Details</div>
-                  <div className="panel-subtitle">Individual contact eligibility and mock dispatch outcomes</div>
+                  <div className="reports-panel-title">Campaign Recipient Details</div>
+                  <div className="reports-panel-subtitle">Individual contact eligibility and mock dispatch outcomes</div>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
-                    className="form-control"
+                    className="reports-date-input"
                     placeholder="Search recipient..."
                     value={recipientSearch}
                     onChange={(e) => {
                       setRecipientSearch(e.target.value);
                       setRecipientPage(1);
                     }}
-                    style={{ height: '32px', fontSize: '12px', width: '180px' }}
+                    style={{
+                      height: '34px',
+                      fontSize: '12.5px',
+                      width: '180px',
+                      background: 'var(--rp-surface-subtle)',
+                      border: '1px solid var(--rp-border)',
+                      borderRadius: '6px',
+                      padding: '0 8px'
+                    }}
                   />
                   <select
-                    className="form-control"
+                    className="reports-select"
                     value={recipientStatusFilter}
                     onChange={(e) => {
                       setRecipientStatusFilter(e.target.value);
                       setRecipientPage(1);
                     }}
-                    style={{ height: '32px', fontSize: '12px' }}
+                    style={{
+                      height: '34px',
+                      fontSize: '12.5px',
+                      background: 'var(--rp-surface-subtle)',
+                      border: '1px solid var(--rp-border)',
+                      borderRadius: '6px',
+                      padding: '0 8px'
+                    }}
                   >
                     <option value="all">All Eligibility</option>
                     <option value="Eligible for Campaign Preparation">Eligible</option>
@@ -1228,46 +1370,46 @@ export default function ReportsPage() {
                   </select>
                 </div>
               </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12.5px' }}>
+              <div className="reports-table-container">
+                <table className="reports-table">
                   <thead>
-                    <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                      <th style={{ padding: '10px 14px' }}>Recipient Name</th>
-                      <th style={{ padding: '10px 14px' }}>Phone Number</th>
-                      <th style={{ padding: '10px 14px' }}>Eligibility</th>
-                      <th style={{ padding: '10px 14px' }}>Execution Status</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right' }}>Attempts</th>
-                      <th style={{ padding: '10px 14px' }}>Exclusion / Failure</th>
+                    <tr>
+                      <th>Recipient Name</th>
+                      <th>Phone Number</th>
+                      <th>Eligibility</th>
+                      <th>Execution Status</th>
+                      <th style={{ textAlign: 'right' }}>Attempts</th>
+                      <th>Exclusion / Failure</th>
                     </tr>
                   </thead>
                   <tbody>
                     {recipientData.records.length > 0 ? (
                       recipientData.records.map((r, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                          <td style={{ padding: '10px 14px', fontWeight: '500' }}>{r.contactName}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: 'monospace' }}>{r.contactPhone}</td>
-                          <td style={{ padding: '10px 14px' }}>
+                        <tr key={idx}>
+                          <td style={{ fontWeight: '500' }}>{r.contactName}</td>
+                          <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{r.contactPhone}</td>
+                          <td>
                             <span
-                              className="status-badge"
+                              className="rp-badge"
                               style={{
                                 fontSize: '11px',
-                                background: r.eligibilityStatus === 'Eligible for Campaign Preparation' ? 'var(--color-success-soft)' : 'var(--color-warning-soft)',
-                                color: r.eligibilityStatus === 'Eligible for Campaign Preparation' ? 'var(--color-success)' : 'var(--color-warning)'
+                                background: r.eligibilityStatus === 'Eligible for Campaign Preparation' ? 'var(--rp-success-soft)' : 'var(--rp-warning-soft)',
+                                color: r.eligibilityStatus === 'Eligible for Campaign Preparation' ? 'var(--rp-success)' : 'var(--rp-warning)'
                               }}
                             >
                               {r.eligibilityStatus}
                             </span>
                           </td>
-                          <td style={{ padding: '10px 14px' }}>{r.executionStatus}</td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right' }}>{r.attemptCount}</td>
-                          <td style={{ padding: '10px 14px', color: 'var(--color-text-muted)', fontSize: '12px' }}>
+                          <td>{r.executionStatus}</td>
+                          <td style={{ textAlign: 'right', fontWeight: '600' }}>{r.attemptCount}</td>
+                          <td style={{ color: 'var(--rp-muted)', fontSize: '12px' }}>
                             {r.failureCode || (r.exclusionReasons || []).join('; ') || '—'}
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                        <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--rp-muted)' }}>
                           No recipient records found for this campaign.
                         </td>
                       </tr>
@@ -1284,90 +1426,98 @@ export default function ReportsPage() {
           TAB 4: CONSENT & OPT-OUTS
           ========================================================================= */}
       {activeTab === 'consent' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Compliance & Suppression Informational Callout */}
+          <div className="reports-compliance-banner">
+            <ShieldCheck size={20} color="var(--rp-blue)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <strong>Compliance & Suppression Architecture:</strong> Contact consent status is mutually exclusive per contact (Opt-In / Unknown / Opted Out). Suppression is a zero-policy compliance guard. A contact who has opted out is also added to the suppression list to ensure zero-policy dispatch blocking across all campaigns.
+            </div>
+          </div>
+
           {/* Consent Metric Cards */}
-          <div className="stat-grid">
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Total Contacts</span>
-                <div className="stat-icon tint-0">
-                  <Users size={16} />
+          <div className="reports-kpi-grid">
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Total Contacts</span>
+                <div className="reports-kpi-icon blue">
+                  <Users size={18} />
                 </div>
               </div>
-              <div className="stat-value">{consentData?.totalContacts ?? 0}</div>
-              <div className="stat-foot">Workspace contact base</div>
+              <div className="reports-kpi-value">{consentData?.totalContacts ?? 0}</div>
+              <div className="reports-kpi-foot">Workspace contact base</div>
             </div>
 
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Recorded WhatsApp Opt-In</span>
-                <div className="stat-icon tint-0">
-                  <ShieldCheck size={16} />
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Recorded WhatsApp Opt-In</span>
+                <div className="reports-kpi-icon success">
+                  <ShieldCheck size={18} />
                 </div>
               </div>
-              <div className="stat-value" style={{ color: 'var(--color-success)' }}>
+              <div className="reports-kpi-value" style={{ color: (consentData?.validRecordedOptIn ?? 0) > 0 ? 'var(--rp-success)' : 'var(--rp-navy)' }}>
                 {consentData?.validRecordedOptIn ?? 0}
               </div>
-              <div className="stat-foot">Valid consent recorded</div>
+              <div className="reports-kpi-foot">Valid consent recorded</div>
             </div>
 
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Unknown Consent</span>
-                <div className="stat-icon tint-3">
-                  <HelpCircle size={16} />
+            <div className="reports-kpi-card">
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Unknown Consent</span>
+                <div className="reports-kpi-icon warning">
+                  <HelpCircle size={18} />
                 </div>
               </div>
-              <div className="stat-value">{consentData?.unknownConsent ?? 0}</div>
-              <div className="stat-foot">Requires explicit consent capture</div>
+              <div className="reports-kpi-value" style={{ color: 'var(--rp-warning)' }}>
+                {consentData?.unknownConsent ?? 0}
+              </div>
+              <div className="reports-kpi-foot">Requires explicit consent capture</div>
             </div>
 
-            <div className="stat-card">
-              <div className="stat-head">
-                <span>Opted Out / Suppressed</span>
-                <div className="stat-icon tint-3">
-                  <ShieldAlert size={16} />
+            <div className="reports-kpi-card" style={{ borderLeft: '3px solid var(--rp-danger)' }}>
+              <div className="reports-kpi-head">
+                <span className="reports-kpi-label">Opted Out / Suppressed</span>
+                <div className="reports-kpi-icon" style={{ background: 'var(--rp-danger-soft)', color: 'var(--rp-danger)' }}>
+                  <ShieldAlert size={18} />
                 </div>
               </div>
-              <div className="stat-value" style={{ color: 'var(--color-danger)' }}>
+              <div className="reports-kpi-value" style={{ color: 'var(--rp-danger)' }}>
                 {(consentData?.contactsOptedOut || 0) + (consentData?.suppressedDNC || 0)}
               </div>
-              <div className="stat-foot">Zero-policy blocked contacts</div>
+              <div className="reports-kpi-foot">Zero-policy blocked contacts</div>
             </div>
           </div>
 
           {/* Audience Exclusion Breakdown Panel */}
           {exclusionsData && (
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Campaign Audience Exclusion Reasons</div>
-                  <div className="panel-subtitle">
+                  <div className="reports-panel-title">Campaign Audience Exclusion Reasons</div>
+                  <div className="reports-panel-subtitle">
                     Unique excluded contacts: <strong>{exclusionsData.uniqueExcludedContacts}</strong> | Total exclusion reason triggers:{' '}
                     <strong>{exclusionsData.totalExclusionReasons}</strong>
                   </div>
                 </div>
+                <span className="rp-badge warning" style={{ fontSize: '11px' }}>
+                  Safety Guards
+                </span>
               </div>
-              <div style={{ padding: '16px 20px' }}>
+              <div style={{ padding: '18px 20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                   {(exclusionsData.breakdown || []).map((item, idx) => (
                     <div
                       key={idx}
-                      style={{
-                        padding: '12px 14px',
-                        background: 'var(--color-surface-subtle)',
-                        borderRadius: '8px',
-                        border: '1px solid var(--color-border)'
-                      }}
+                      className="reports-secondary-tile"
                     >
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{item.reason}</div>
-                      <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-text-primary)', marginTop: '4px' }}>
+                      <div className="reports-secondary-tile-label">{item.reason}</div>
+                      <div className="reports-secondary-tile-value">
                         {item.count}
                       </div>
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: '12px', fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
+                <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--rp-muted)' }}>
                   {exclusionsData.note}
                 </div>
               </div>
@@ -1375,57 +1525,58 @@ export default function ReportsPage() {
           )}
 
           {/* Opt-Out Events Table */}
-          <div className="panel">
-            <div className="panel-head">
+          <div className="reports-panel">
+            <div className="reports-panel-head">
               <div>
-                <div className="panel-title">Recorded Opt-Out & Suppression Events</div>
-                <div className="panel-subtitle">Authoritative suppression records with audit provenance</div>
+                <div className="reports-panel-title">Recorded Opt-Out & Suppression Events</div>
+                <div className="reports-panel-subtitle">Authoritative suppression records with audit provenance</div>
               </div>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <div className="reports-table-container">
+              <table className="reports-table">
                 <thead>
-                  <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                    <th style={{ padding: '12px 14px' }}>Contact Name</th>
-                    <th style={{ padding: '12px 14px' }}>Phone Number</th>
-                    <th style={{ padding: '12px 14px' }}>Consent Status</th>
-                    <th style={{ padding: '12px 14px' }}>Source Classification</th>
-                    <th style={{ padding: '12px 14px' }}>Suppression Reason</th>
-                    <th style={{ padding: '12px 14px' }}>Event Date</th>
+                  <tr>
+                    <th>Contact Name</th>
+                    <th>Phone Number</th>
+                    <th>Consent Status</th>
+                    <th>Source Classification</th>
+                    <th>Suppression Reason</th>
+                    <th>Event Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {optOutData.records.length > 0 ? (
                     optOutData.records.map((r, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        <td style={{ padding: '12px 14px', fontWeight: '500' }}>{r.contactName}</td>
-                        <td style={{ padding: '12px 14px', fontFamily: 'monospace' }}>{r.contactPhone}</td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span className="status-badge" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
+                      <tr key={idx}>
+                        <td style={{ fontWeight: '500' }}>{r.contactName}</td>
+                        <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{r.contactPhone}</td>
+                        <td>
+                          <span className="rp-badge danger">
                             {r.consentStatus}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px' }}>
+                        <td>
                           <span
-                            className="status-badge"
+                            className="rp-badge"
                             style={{
                               fontSize: '11px',
-                              background: r.source === 'VERIFIED_CUSTOMER_OPTOUT' ? 'var(--color-success-soft)' : 'var(--color-surface-subtle)',
-                              color: r.source === 'VERIFIED_CUSTOMER_OPTOUT' ? 'var(--color-success)' : 'var(--color-text-secondary)'
+                              background: r.source === 'VERIFIED_CUSTOMER_OPTOUT' ? 'var(--rp-success-soft)' : 'var(--rp-surface-subtle)',
+                              color: r.source === 'VERIFIED_CUSTOMER_OPTOUT' ? 'var(--rp-success)' : 'var(--rp-muted)',
+                              border: '1px solid var(--rp-border)'
                             }}
                           >
                             {r.source}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px', color: 'var(--color-text-secondary)' }}>{r.suppressionReason}</td>
-                        <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                        <td style={{ color: 'var(--rp-text-secondary)' }}>{r.suppressionReason}</td>
+                        <td style={{ fontSize: '12px', color: 'var(--rp-muted)' }}>
                           {r.eventDate ? new Date(r.eventDate).toLocaleDateString() : '—'}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                      <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--rp-muted)' }}>
                         No opt-out or suppression records found.
                       </td>
                     </tr>
@@ -1437,62 +1588,71 @@ export default function ReportsPage() {
 
           {/* Inbox & Auto-Reply Activity */}
           {inboxAnalytics && (
-            <div className="panel">
-              <div className="panel-head">
+            <div className="reports-panel">
+              <div className="reports-panel-head">
                 <div>
-                  <div className="panel-title">Inbox & Auto-Reply Rule Execution</div>
-                  <div className="panel-subtitle">Automation rules triggered by inbound simulated or test keywords</div>
+                  <div className="reports-panel-title">Inbox & Auto-Reply Rule Execution</div>
+                  <div className="reports-panel-subtitle">Automation rules triggered by inbound simulated or test keywords</div>
                 </div>
+                <span className="rp-badge blue" style={{ fontSize: '11px' }}>
+                  Automation
+                </span>
               </div>
-              <div style={{ padding: '16px 20px' }}>
+              <div style={{ padding: '18px 20px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '16px' }}>
-                  <div style={{ padding: '12px 14px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Open Conversations</div>
-                    <div style={{ fontSize: '18px', fontWeight: '700' }}>{inboxAnalytics.openConversations}</div>
+                  <div className="reports-secondary-tile">
+                    <div className="reports-secondary-tile-label">Open Conversations</div>
+                    <div className="reports-secondary-tile-value">{inboxAnalytics.openConversations}</div>
                   </div>
-                  <div style={{ padding: '12px 14px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Needs Attention (e.g. VISIT)</div>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-warning)' }}>{inboxAnalytics.needsAttention}</div>
+                  <div className="reports-secondary-tile">
+                    <div className="reports-secondary-tile-label">Needs Attention (e.g. VISIT)</div>
+                    <div className="reports-secondary-tile-value" style={{ color: 'var(--rp-warning)' }}>
+                      {inboxAnalytics.needsAttention}
+                    </div>
                   </div>
-                  <div style={{ padding: '12px 14px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Total Rules Triggered</div>
-                    <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--color-primary)' }}>{inboxAnalytics.autoReplyRulesTriggered}</div>
+                  <div className="reports-secondary-tile">
+                    <div className="reports-secondary-tile-label">Total Rules Triggered</div>
+                    <div className="reports-secondary-tile-value" style={{ color: 'var(--rp-blue)' }}>
+                      {inboxAnalytics.autoReplyRulesTriggered}
+                    </div>
                   </div>
                 </div>
 
                 {(inboxAnalytics.autoReplies || []).length > 0 ? (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12.5px' }}>
+                  <div className="reports-table-container">
+                    <table className="reports-table">
                       <thead>
-                        <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                          <th style={{ padding: '8px 12px' }}>Rule Name</th>
-                          <th style={{ padding: '8px 12px' }}>Matched Keyword</th>
-                          <th style={{ padding: '8px 12px' }}>Execution Mode</th>
-                          <th style={{ padding: '8px 12px' }}>Status</th>
-                          <th style={{ padding: '8px 12px', textAlign: 'right' }}>Executions</th>
+                        <tr>
+                          <th>Rule Name</th>
+                          <th>Matched Keyword</th>
+                          <th>Execution Mode</th>
+                          <th>Status</th>
+                          <th style={{ textAlign: 'right' }}>Executions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {inboxAnalytics.autoReplies.map((ar, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                            <td style={{ padding: '8px 12px', fontWeight: '500' }}>{ar.ruleName}</td>
-                            <td style={{ padding: '8px 12px' }}>
-                              <code>{ar.keyword}</code>
+                          <tr key={i}>
+                            <td style={{ fontWeight: '500' }}>{ar.ruleName}</td>
+                            <td>
+                              <code style={{ fontSize: '11.5px', background: 'var(--rp-surface-subtle)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--rp-border)' }}>
+                                {ar.keyword}
+                              </code>
                             </td>
-                            <td style={{ padding: '8px 12px' }}>
-                              <span className="status-badge" style={{ fontSize: '10.5px' }}>
+                            <td>
+                              <span className="rp-badge neutral" style={{ fontSize: '10.5px' }}>
                                 {ar.executionMode}
                               </span>
                             </td>
-                            <td style={{ padding: '8px 12px' }}>{ar.status}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: '600' }}>{ar.count}</td>
+                            <td>{ar.status}</td>
+                            <td style={{ textAlign: 'right', fontWeight: '700' }}>{ar.count}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>No rule executions recorded yet.</div>
+                  <div style={{ fontSize: '12px', color: 'var(--rp-muted)' }}>No rule executions recorded yet.</div>
                 )}
               </div>
             </div>
@@ -1504,26 +1664,34 @@ export default function ReportsPage() {
           TAB 5: EXPORTS
           ========================================================================= */}
       {activeTab === 'exports' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Export Generator Card */}
-          <div className="panel" style={{ padding: '20px 24px' }}>
-            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+          <div className="reports-panel" style={{ padding: '22px 24px' }}>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--rp-navy)', marginBottom: '4px' }}>
               Generate Custom Export
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '18px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--rp-muted)', marginBottom: '18px' }}>
               Export sanitized, formula-injection-protected reports adhering to owner isolation and active toolbar filters.
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', marginBottom: '6px' }}>
                   Report Dataset
                 </label>
                 <select
-                  className="form-control"
+                  className="reports-select"
                   value={exportType}
                   onChange={(e) => setExportType(e.target.value)}
-                  style={{ height: '38px', fontSize: '13px' }}
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    fontSize: '13px',
+                    background: 'var(--rp-surface-subtle)',
+                    border: '1px solid var(--rp-border)',
+                    borderRadius: '8px',
+                    padding: '0 10px'
+                  }}
                 >
                   <option value="campaign_summary">Campaign Performance Summary</option>
                   <option value="campaign_recipients">Campaign Recipients & Eligibility</option>
@@ -1538,10 +1706,18 @@ export default function ReportsPage() {
                   File Format
                 </label>
                 <select
-                  className="form-control"
+                  className="reports-select"
                   value={exportFormat}
                   onChange={(e) => setExportFormat(e.target.value)}
-                  style={{ height: '38px', fontSize: '13px' }}
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    fontSize: '13px',
+                    background: 'var(--rp-surface-subtle)',
+                    border: '1px solid var(--rp-border)',
+                    borderRadius: '8px',
+                    padding: '0 10px'
+                  }}
                 >
                   <option value="csv">CSV (Comma Separated Values)</option>
                   <option value="xlsx">XLSX (Microsoft Excel Workbook)</option>
@@ -1552,17 +1728,17 @@ export default function ReportsPage() {
                 <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', marginBottom: '6px' }}>
                   Applied Filter Scope
                 </label>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', padding: '9px 12px', background: 'var(--color-surface-subtle)', borderRadius: '6px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--rp-text-secondary)', padding: '9px 12px', background: 'var(--rp-surface-subtle)', borderRadius: '8px', border: '1px solid var(--rp-border)' }}>
                   Range: <strong>{range}</strong> | Mode: <strong>{executionMode}</strong>
                 </div>
               </div>
             </div>
 
             <button
-              className="btn btn-primary"
+              className="reports-btn primary"
               onClick={handleExportDownload}
               disabled={exporting}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0 18px', height: '38px', fontSize: '13px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0 20px', height: '40px', fontSize: '13px' }}
             >
               <Download size={15} />
               <span>{exporting ? 'Generating Secure Export...' : `Download ${exportFormat.toUpperCase()}`}</span>
@@ -1570,47 +1746,55 @@ export default function ReportsPage() {
           </div>
 
           {/* Export History Table */}
-          <div className="panel">
-            <div className="panel-head">
+          <div className="reports-panel">
+            <div className="reports-panel-head">
               <div>
-                <div className="panel-title">Archived Export History</div>
-                <div className="panel-subtitle">Previously generated files available for re-download</div>
+                <div className="reports-panel-title">Archived Export History</div>
+                <div className="reports-panel-subtitle">Previously generated files available for re-download</div>
               </div>
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+            <div className="reports-table-container">
+              <table className="reports-table">
                 <thead>
-                  <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '1px solid var(--color-border)' }}>
-                    <th style={{ padding: '12px 14px' }}>File Name</th>
-                    <th style={{ padding: '12px 14px' }}>Report Type</th>
-                    <th style={{ padding: '12px 14px' }}>Format</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Row Count</th>
-                    <th style={{ padding: '12px 14px' }}>Generated Date</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Action</th>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Report Type</th>
+                    <th>Format</th>
+                    <th style={{ textAlign: 'right' }}>Row Count</th>
+                    <th>Generated Date</th>
+                    <th style={{ textAlign: 'center' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {exportHistory.length > 0 ? (
                     exportHistory.map((item) => (
-                      <tr key={item._id} style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                        <td style={{ padding: '12px 14px', fontWeight: '500', color: 'var(--color-text-primary)' }}>
+                      <tr key={item._id}>
+                        <td style={{ fontWeight: '500', color: 'var(--rp-navy)' }}>
                           {item.fileName}
                         </td>
-                        <td style={{ padding: '12px 14px' }}>{item.reportType}</td>
-                        <td style={{ padding: '12px 14px' }}>
-                          <span className="status-badge" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
+                        <td>{item.reportType}</td>
+                        <td>
+                          <span className="rp-badge neutral" style={{ fontSize: '11px', textTransform: 'uppercase' }}>
                             {item.format}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600' }}>{item.rowCount}</td>
-                        <td style={{ padding: '12px 14px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                        <td style={{ textAlign: 'right', fontWeight: '600' }}>
+                          {item.rowCount === 0 ? (
+                            <span title="No records matched the filter scope at export time" style={{ color: 'var(--rp-muted)', fontSize: '12px' }}>
+                              0 (Filtered)
+                            </span>
+                          ) : (
+                            item.rowCount
+                          )}
+                        </td>
+                        <td style={{ fontSize: '12px', color: 'var(--rp-muted)' }}>
                           {new Date(item.createdAt).toLocaleString()}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center' }}>
                           <button
-                            className="btn btn-secondary"
+                            className="reports-btn sm"
                             onClick={() => handleDownloadHistoryItem(item)}
-                            style={{ height: '28px', padding: '0 8px', fontSize: '11.5px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            title="Download archived copy"
                           >
                             <Download size={12} />
                             <span>Download</span>
@@ -1620,7 +1804,7 @@ export default function ReportsPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                      <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--rp-muted)' }}>
                         No export files archived yet.
                       </td>
                     </tr>
@@ -1649,116 +1833,116 @@ export default function ReportsPage() {
           }}
         >
           <div
-            className="panel"
+            className="reports-panel"
             style={{
               width: '100%',
               maxWidth: '960px',
               maxHeight: '90vh',
               overflowY: 'auto',
-              background: 'var(--color-surface)',
               borderRadius: '14px',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
             }}
           >
-            <div className="panel-head" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div className="reports-panel-head" style={{ borderBottom: '1px solid var(--rp-border)' }}>
               <div>
-                <div className="panel-title" style={{ fontSize: '17px' }}>
+                <div className="reports-panel-title" style={{ fontSize: '17px' }}>
                   Campaign Performance Comparison
                 </div>
-                <div className="panel-subtitle">Side-by-side evaluation of {comparisonResults.count} selected campaigns</div>
+                <div className="reports-panel-subtitle">Side-by-side evaluation of {comparisonResults.count} selected campaigns</div>
               </div>
               <button
-                className="btn btn-secondary"
+                className="reports-btn sm"
                 onClick={() => setCompareModalOpen(false)}
-                style={{ width: '32px', height: '32px', padding: 0, display: 'grid', placeItems: 'center' }}
+                style={{ width: '32px', height: '32px', padding: 0 }}
+                aria-label="Close comparison modal"
               >
                 <X size={16} />
               </button>
             </div>
 
             <div style={{ padding: '20px' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <div className="reports-table-container">
+                <table className="reports-table">
                   <thead>
-                    <tr style={{ background: 'var(--color-surface-subtle)', borderBottom: '2px solid var(--color-border)' }}>
+                    <tr style={{ background: 'var(--rp-surface-subtle)', borderBottom: '2px solid var(--rp-border)' }}>
                       <th style={{ padding: '12px', width: '220px', fontWeight: '700' }}>Metric / Dimension</th>
                       {comparisonResults.campaigns.map((c) => (
-                        <th key={c._id} style={{ padding: '12px', minWidth: '180px', fontWeight: '700', color: 'var(--color-primary)' }}>
+                        <th key={c._id} style={{ padding: '12px', minWidth: '180px', fontWeight: '700', color: 'var(--rp-blue)' }}>
                           {c.name}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Execution Mode</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px' }}>
-                          <span className="status-badge" style={{ fontSize: '11px' }}>
+                          <span className="rp-badge neutral" style={{ fontSize: '11px' }}>
                             {c.executionMode}
                           </span>
                         </td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Status</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px' }}>
-                          <span className="status-badge" style={{ fontSize: '11px', background: `${STATUS_COLORS[c.status] || '#64748B'}1A`, color: STATUS_COLORS[c.status] || '#64748B' }}>
+                          <span className="rp-badge" style={{ fontSize: '11px', background: `${STATUS_COLORS[c.status] || '#64748B'}1A`, color: STATUS_COLORS[c.status] || '#64748B' }}>
                             {c.status}
                           </span>
                         </td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Template</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px' }}>{c.templateName}</td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)', background: 'var(--color-surface-subtle)' }}>
+                    <tr style={{ background: 'var(--rp-surface-subtle)' }}>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Audience Size</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px', fontWeight: '700' }}>{c.audienceSize}</td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Eligible Contacts</td>
                       {comparisonResults.campaigns.map((c) => (
-                        <td key={c._id} style={{ padding: '10px 12px', color: 'var(--color-success)', fontWeight: '600' }}>
+                        <td key={c._id} style={{ padding: '10px 12px', color: 'var(--rp-success)', fontWeight: '600' }}>
                           {c.eligibleContacts}
                         </td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Excluded Contacts</td>
                       {comparisonResults.campaigns.map((c) => (
-                        <td key={c._id} style={{ padding: '10px 12px', color: c.excludedContacts > 0 ? 'var(--color-warning)' : 'inherit' }}>
+                        <td key={c._id} style={{ padding: '10px 12px', color: c.excludedContacts > 0 ? 'var(--rp-warning)' : 'inherit' }}>
                           {c.excludedContacts}
                         </td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)', background: 'var(--color-surface-subtle)' }}>
+                    <tr style={{ background: 'var(--rp-surface-subtle)' }}>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Mock Messages Processed</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px', fontWeight: '700' }}>{c.mockMessagesProcessed}</td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Simulated Failures</td>
                       {comparisonResults.campaigns.map((c) => (
-                        <td key={c._id} style={{ padding: '10px 12px', color: c.failureCount > 0 ? 'var(--color-danger)' : 'inherit' }}>
+                        <td key={c._id} style={{ padding: '10px 12px', color: c.failureCount > 0 ? 'var(--rp-danger)' : 'inherit' }}>
                           {c.failureCount}
                         </td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Retry Attempts</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px' }}>{c.retryAttempts}</td>
                       ))}
                     </tr>
-                    <tr style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                    <tr>
                       <td style={{ padding: '10px 12px', fontWeight: '600' }}>Run Duration</td>
                       {comparisonResults.campaigns.map((c) => (
                         <td key={c._id} style={{ padding: '10px 12px' }}>{c.runDurationFormatted}</td>
@@ -1767,7 +1951,7 @@ export default function ReportsPage() {
                   </tbody>
                 </table>
               </div>
-              <div style={{ marginTop: '16px', fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: '1.4' }}>
+              <div style={{ marginTop: '16px', fontSize: '11.5px', color: 'var(--rp-muted)', lineHeight: '1.4' }}>
                 {comparisonResults.modeDisclaimer}
               </div>
             </div>
@@ -1792,25 +1976,26 @@ export default function ReportsPage() {
           }}
         >
           <div
-            className="panel"
+            className="reports-panel"
             style={{
               width: '100%',
               maxWidth: '680px',
               maxHeight: '90vh',
               overflowY: 'auto',
-              background: 'var(--color-surface)',
-              borderRadius: '14px'
+              borderRadius: '14px',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
             }}
           >
-            <div className="panel-head" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div className="reports-panel-head" style={{ borderBottom: '1px solid var(--rp-border)' }}>
               <div>
-                <div className="panel-title">{detailCampaign.name}</div>
-                <div className="panel-subtitle">Campaign Execution & Audience Breakdown</div>
+                <div className="reports-panel-title">{detailCampaign.name}</div>
+                <div className="reports-panel-subtitle">Campaign Execution & Audience Breakdown</div>
               </div>
               <button
-                className="btn btn-secondary"
+                className="reports-btn sm"
                 onClick={() => setDetailCampaign(null)}
-                style={{ width: '32px', height: '32px', padding: 0, display: 'grid', placeItems: 'center' }}
+                style={{ width: '32px', height: '32px', padding: 0 }}
+                aria-label="Close detail modal"
               >
                 <X size={16} />
               </button>
@@ -1818,26 +2003,26 @@ export default function ReportsPage() {
 
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', fontSize: '13px' }}>
-                <div style={{ padding: '10px 12px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Status</div>
+                <div style={{ padding: '10px 12px', background: 'var(--rp-surface-subtle)', borderRadius: '8px', border: '1px solid var(--rp-border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>Status</div>
                   <div style={{ fontWeight: '600', marginTop: '2px' }}>{detailCampaign.status}</div>
                 </div>
-                <div style={{ padding: '10px 12px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Execution Mode</div>
+                <div style={{ padding: '10px 12px', background: 'var(--rp-surface-subtle)', borderRadius: '8px', border: '1px solid var(--rp-border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>Execution Mode</div>
                   <div style={{ fontWeight: '600', marginTop: '2px' }}>{detailCampaign.executionMode}</div>
                 </div>
-                <div style={{ padding: '10px 12px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Template Pinned</div>
+                <div style={{ padding: '10px 12px', background: 'var(--rp-surface-subtle)', borderRadius: '8px', border: '1px solid var(--rp-border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>Template Pinned</div>
                   <div style={{ fontWeight: '600', marginTop: '2px' }}>{detailCampaign.templateName}</div>
                 </div>
-                <div style={{ padding: '10px 12px', background: 'var(--color-surface-subtle)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Category / Project</div>
+                <div style={{ padding: '10px 12px', background: 'var(--rp-surface-subtle)', borderRadius: '8px', border: '1px solid var(--rp-border)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--rp-muted)' }}>Category / Project</div>
                   <div style={{ fontWeight: '600', marginTop: '2px' }}>{detailCampaign.category}</div>
                 </div>
               </div>
 
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ padding: '10px 14px', background: 'var(--color-surface-subtle)', fontWeight: '600', fontSize: '13px' }}>
+              <div style={{ border: '1px solid var(--rp-border)', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ padding: '10px 14px', background: 'var(--rp-surface-subtle)', fontWeight: '600', fontSize: '13px' }}>
                   Audience & Messaging Metrics
                 </div>
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px' }}>
@@ -1847,11 +2032,11 @@ export default function ReportsPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Eligible for Dispatch</span>
-                    <strong style={{ color: 'var(--color-success)' }}>{detailCampaign.eligibleRecipients}</strong>
+                    <strong style={{ color: 'var(--rp-success)' }}>{detailCampaign.eligibleRecipients}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Excluded (Consent / Suppressed)</span>
-                    <strong style={{ color: 'var(--color-warning)' }}>{detailCampaign.excludedRecipients}</strong>
+                    <strong style={{ color: 'var(--rp-warning)' }}>{detailCampaign.excludedRecipients}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Mock Messages Dispatched</span>
@@ -1859,7 +2044,7 @@ export default function ReportsPage() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Simulated Failures</span>
-                    <strong style={{ color: 'var(--color-danger)' }}>{detailCampaign.simulatedFailures}</strong>
+                    <strong style={{ color: 'var(--rp-danger)' }}>{detailCampaign.simulatedFailures}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Retry Attempts</span>
@@ -1870,7 +2055,7 @@ export default function ReportsPage() {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                 <button
-                  className="btn btn-secondary"
+                  className="reports-btn sm"
                   onClick={() => setDetailCampaign(null)}
                 >
                   Close
@@ -1898,24 +2083,24 @@ export default function ReportsPage() {
           }}
         >
           <div
-            className="panel"
+            className="reports-panel"
             style={{
               width: '100%',
               maxWidth: '520px',
-              background: 'var(--color-surface)',
               borderRadius: '14px',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
             }}
           >
-            <div className="panel-head" style={{ borderBottom: '1px solid var(--color-border)' }}>
+            <div className="reports-panel-head" style={{ borderBottom: '1px solid var(--rp-border)' }}>
               <div>
-                <div className="panel-title">Export Report</div>
-                <div className="panel-subtitle">Generate CSV or XLSX with active toolbar filters</div>
+                <div className="reports-panel-title">Export Report</div>
+                <div className="reports-panel-subtitle">Generate CSV or XLSX with active toolbar filters</div>
               </div>
               <button
-                className="btn btn-secondary"
+                className="reports-btn sm"
                 onClick={() => setExportModalOpen(false)}
-                style={{ width: '32px', height: '32px', padding: 0, display: 'grid', placeItems: 'center' }}
+                style={{ width: '32px', height: '32px', padding: 0 }}
+                aria-label="Close export dialog"
               >
                 <X size={16} />
               </button>
@@ -1927,10 +2112,18 @@ export default function ReportsPage() {
                   Select Report Type
                 </label>
                 <select
-                  className="form-control"
+                  className="reports-select"
                   value={exportType}
                   onChange={(e) => setExportType(e.target.value)}
-                  style={{ height: '38px', fontSize: '13px' }}
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    fontSize: '13px',
+                    background: 'var(--rp-surface-subtle)',
+                    border: '1px solid var(--rp-border)',
+                    borderRadius: '8px',
+                    padding: '0 10px'
+                  }}
                 >
                   <option value="campaign_summary">Campaign Performance Summary</option>
                   <option value="campaign_recipients">Campaign Recipients & Eligibility</option>
@@ -1949,14 +2142,14 @@ export default function ReportsPage() {
                     style={{
                       flex: 1,
                       padding: '10px',
-                      border: '1px solid var(--color-border)',
+                      border: '1px solid var(--rp-border)',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      background: exportFormat === 'csv' ? 'var(--color-primary-soft)' : 'transparent',
-                      borderColor: exportFormat === 'csv' ? 'var(--color-primary)' : 'var(--color-border)'
+                      background: exportFormat === 'csv' ? 'var(--rp-blue-soft)' : 'transparent',
+                      borderColor: exportFormat === 'csv' ? 'var(--rp-blue)' : 'var(--rp-border)'
                     }}
                   >
                     <input
@@ -1972,14 +2165,14 @@ export default function ReportsPage() {
                     style={{
                       flex: 1,
                       padding: '10px',
-                      border: '1px solid var(--color-border)',
+                      border: '1px solid var(--rp-border)',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      background: exportFormat === 'xlsx' ? 'var(--color-primary-soft)' : 'transparent',
-                      borderColor: exportFormat === 'xlsx' ? 'var(--color-primary)' : 'var(--color-border)'
+                      background: exportFormat === 'xlsx' ? 'var(--rp-blue-soft)' : 'transparent',
+                      borderColor: exportFormat === 'xlsx' ? 'var(--rp-blue)' : 'var(--rp-border)'
                     }}
                   >
                     <input
@@ -1997,10 +2190,11 @@ export default function ReportsPage() {
               <div
                 style={{
                   padding: '12px',
-                  background: 'var(--color-surface-subtle)',
+                  background: 'var(--rp-surface-subtle)',
                   borderRadius: '8px',
+                  border: '1px solid var(--rp-border-subtle)',
                   fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
+                  color: 'var(--rp-text-secondary)',
                   lineHeight: '1.4'
                 }}
               >
@@ -2009,13 +2203,13 @@ export default function ReportsPage() {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
                 <button
-                  className="btn btn-secondary"
+                  className="reports-btn sm"
                   onClick={() => setExportModalOpen(false)}
                 >
                   Cancel
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="reports-btn primary sm"
                   onClick={handleExportDownload}
                   disabled={exporting}
                   style={{ display: 'flex', alignItems: 'center', gap: '6px' }}

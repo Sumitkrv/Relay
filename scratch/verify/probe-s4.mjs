@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import { createRequire } from 'module';
+const require = createRequire('/Users/sumitthakur/Desktop/Relay/backend/package.json');
+const { MongoClient, ObjectId } = require('mongodb');
+const creds = JSON.parse(fs.readFileSync(new URL('./qa-credentials.json', import.meta.url)));
+const raw = JSON.parse(fs.readFileSync(new URL('./stage4-raw.json', import.meta.url)));
+const A=creds.accounts['real_estate:a']; const W=new ObjectId(A.workspaceId);
+const cli=await MongoClient.connect('mongodb://127.0.0.1:27017'); const db=cli.db('relay_demo_qa_persistent');
+console.log('templates by status', JSON.stringify(await db.collection('messagetemplates').aggregate([{$match:{workspaceId:W}},{$group:{_id:{l:'$localStatus',a:'$isArchived'},n:{$sum:1}}}]).toArray()));
+console.log('contacts by flags', JSON.stringify(await db.collection('contacts').aggregate([{$match:{workspaceId:W}},{$group:{_id:{d:'$isDeleted',a:'$isArchived',c:'$whatsappConsentStatus'},n:{$sum:1}}}]).toArray()));
+console.log('mock msgs', await db.collection('conversationmessages').countDocuments({workspaceId:W}), 'campaignjobs', await db.collection('campaignmessagejobs').countDocuments({workspaceId:W}), 'ruleExec', await db.collection('autoreplyexecutions').countDocuments({workspaceId:W}).catch(()=>'n/a'));
+const o=raw.overview; console.log('OVERVIEW contacts', JSON.stringify(o.contacts), '\n templates', JSON.stringify(o.templates), '\n campaigns', JSON.stringify(o.campaigns), '\n inbox', JSON.stringify(o.inbox),'\n mock', JSON.stringify(o.mockMessages), '\n autoReply', JSON.stringify(o.autoReplyExecutions));
+console.log('REPORTS kpis', JSON.stringify(raw.reports.kpis).slice(0,900));
+await cli.close();

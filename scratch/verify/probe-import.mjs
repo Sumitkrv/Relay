@@ -1,0 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire('/Users/sumitthakur/Desktop/Relay/backend/package.json');
+const { MongoClient, ObjectId } = require('mongodb');
+const c = await MongoClient.connect('mongodb://127.0.0.1:27017');
+const db = c.db('relay_demo_qa_persistent');
+const docs = await db.collection('contacts').find({ _id: { $in: ['6add835eab30e6a836df49e7','6add835eab30e6a836df49e8'].map(i=>new ObjectId(i)) } }).toArray();
+console.log(JSON.stringify(docs.map(d=>({_id:d._id,fullName:d.fullName,ownerId:d.ownerId,workspaceId:d.workspaceId,isDeleted:d.isDeleted,isArchived:d.isArchived,status:d.status,archivedAt:d.archivedAt,deletedAt:d.deletedAt,source:d.source,phone:d.phoneNumber,consent:d.consent&&d.consent.status})),null,1));
+const all = await db.collection('contacts').find({workspaceId:docs[0]?.workspaceId}).project({fullName:1,isDeleted:1,isArchived:1,ownerId:1}).toArray();
+console.log(all.length, JSON.stringify(all.map(a=>[a.fullName,a.isDeleted,a.isArchived])));
+await c.close();

@@ -1,12 +1,12 @@
+import { resolveContactVariables } from '../utils/crmVariables';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertCircle,
   Archive,
-  ArrowUpDown,
   Check,
-  ChevronDown,
+  CheckCircle2,
   Copy,
   ExternalLink,
-  Eye,
   FileText,
   History,
   Image as ImageIcon,
@@ -20,19 +20,15 @@ import {
   Save,
   Search,
   Sparkles,
-  Star,
   Trash2,
   Upload,
   Video,
   X,
-  AlertCircle,
-  CheckCircle2,
-  Layers,
-  HelpCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import { useWorkspace } from '../context/WorkspaceContext';
 import { getContact, listContacts } from '../services/contacts';
 import {
   archiveTemplate,
@@ -57,12 +53,13 @@ import {
   uploadTemplateMedia,
   validateTemplate,
 } from '../services/templates';
+import '../templates.css';
 
 const EMPTY = {
   name: '',
   description: '',
   category: 'Marketing',
-  businessCategory: 'Real Estate',
+  businessCategory: '',
   intendedService: '',
   tags: [],
   isFavorite: false,
@@ -86,42 +83,6 @@ const EMPTY = {
   revisionNotes: '',
 };
 
-const VARIABLE_GROUPS = [
-  {
-    id: 'contact',
-    label: 'Contact Profile',
-    vars: [
-      { key: 'name', label: 'Full Name' },
-      { key: 'first_name', label: 'First Name' },
-      { key: 'city', label: 'City' },
-      { key: 'location', label: 'Location' },
-      { key: 'company_name', label: 'Company' },
-      { key: 'phone', label: 'Phone' },
-      { key: 'email', label: 'Email' },
-    ],
-  },
-  {
-    id: 'real_estate',
-    label: 'Real Estate Preferences',
-    vars: [
-      { key: 'property_type', label: 'Property Type' },
-      { key: 'project', label: 'Project Name' },
-      { key: 'preferred_location', label: 'Preferred Location' },
-      { key: 'budget', label: 'Budget Range' },
-      { key: 'property_interest', label: 'Interest' },
-    ],
-  },
-  {
-    id: 'business',
-    label: 'M2W Realty Business',
-    vars: [
-      { key: 'business_name', label: 'Business Name' },
-      { key: 'business_phone', label: 'Business Phone' },
-      { key: 'business_website', label: 'Website' },
-    ],
-  },
-];
-
 const LANGS = [
   ['en', 'English'],
   ['hi', 'Hindi (हिन्दी)'],
@@ -130,8 +91,18 @@ const LANGS = [
 
 const errorMsg = (e) => e.response?.data?.message || e.message || 'Something went wrong.';
 
+// Safe client-side synchronized preview resolver for real-time typing
+
 export default function TemplatesPage() {
   const [params] = useSearchParams();
+  const { currentWorkspace, industryConfig } = useWorkspace();
+  const activeIndustry = industryConfig.industryKey;
+  const presetLibraryLabel = industryConfig.ui.libraryLabel;
+  const industryName = industryConfig.industryName;
+  const industryDescription = industryConfig.description;
+  const templatePlaceholder = industryConfig.ui.templatePlaceholder;
+  const industryLabel = industryConfig.displayLabel;
+  const [variableGroups, setVariableGroups] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [library, setLibrary] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -153,7 +124,7 @@ export default function TemplatesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showVersions, setShowVersions] = useState(false);
-  const [showPreviewDrawer, setShowPreviewDrawer] = useState(true);
+  const [showPreviewDrawer, setShowPreviewDrawer] = useState(() => window.innerWidth >= 1440);
   const [mobileSegment, setMobileSegment] = useState('editor'); // 'library' | 'editor' | 'preview'
   const [previewDevice, setPreviewDevice] = useState('phone'); // 'phone' | 'desktop'
   const [activeVarGroup, setActiveVarGroup] = useState('contact');
@@ -169,8 +140,33 @@ export default function TemplatesPage() {
   const [newButtonText, setNewButtonText] = useState('');
   const [newButtonValue, setNewButtonValue] = useState('');
 
+  const [saveError, setSaveError] = useState(null);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+
   const editor = useRef(null);
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(savedDraft), [draft, savedDraft]);
+
+  // Authoritative draft save state machine: NEW_CLEAN | NEW_DIRTY | EXISTING_CLEAN | EXISTING_DIRTY | SAVING | SAVE_ERROR
+  const saveState = useMemo(() => {
+    if (saving) return 'SAVING';
+    if (saveError) return 'SAVE_ERROR';
+    if (!selected) {
+      const hasEnteredFields = Boolean(
+        draft.name.trim() ||
+        draft.body.trim() ||
+        draft.header.trim() ||
+        draft.footer.trim() ||
+        (draft.buttons && draft.buttons.length > 0)
+      );
+      return (dirty || hasEnteredFields) ? 'NEW_DIRTY' : 'NEW_CLEAN';
+    }
+    return dirty ? 'EXISTING_DIRTY' : 'EXISTING_CLEAN';
+  }, [saving, saveError, selected, dirty, draft]);
+
+  // Selected CRM Contact record for live personalization
+  const selectedContact = useMemo(() => {
+    return contacts.find((c) => String(c._id) === String(contactId)) || null;
+  }, [contacts, contactId]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -186,25 +182,34 @@ export default function TemplatesPage() {
     setLoading(true);
     try {
       const showArchived = statusFilter === 'archived';
-      const [{ data: a }, { data: b }] = await Promise.all([
+      const [{ data: a }, { data: b }, { data: variables }] = await Promise.all([
         listTemplates({archived:showArchived?'true':'false'}),
         getTemplateLibrary(),
+        getTemplateVariables(),
       ]);
       setTemplates(a.records || []);
       setLibrary(b.records || []);
+      setVariableGroups(variables.categories.map(g => ({ id: g.id, label: g.name, vars: g.variables })));
     } catch (e) {
       toast.error(errorMsg(e), {id:'template-load-error'});
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [statusFilter, currentWorkspace?._id]);
 
   useEffect(() => {
     refresh();
     listContacts({ limit: 100, archived: 'false' })
       .then(({ data }) => setContacts(data.records || []))
       .catch(() => {});
-  }, [refresh]);
+  }, [refresh, currentWorkspace?._id]);
+
+  // Reset selected template and draft on workspace change
+  useEffect(() => {
+    setSelected(null);
+    setDraft(EMPTY);
+    setSavedDraft(EMPTY);
+  }, [currentWorkspace?._id]);
 
   useEffect(() => {
     if (!selected) {
@@ -244,6 +249,7 @@ export default function TemplatesPage() {
 
   const chooseTemplate = (t) => {
     if (dirty && !window.confirm('Discard unsaved template changes?')) return;
+    const isNew = !t._id;
     const next = {
       ...EMPTY,
       ...t,
@@ -253,7 +259,9 @@ export default function TemplatesPage() {
     };
     setSelected(t._id || null);
     setDraft(next);
-    setSavedDraft(next);
+    setSavedDraft(isNew ? EMPTY : next);
+    setSaveError(null);
+    setLastSavedAt(t.updatedAt ? new Date(t.updatedAt) : null);
     setPreview(null);
     setValidation(null);
     setTab('templates');
@@ -263,6 +271,7 @@ export default function TemplatesPage() {
   const newTemplate = () => chooseTemplate(EMPTY);
 
   const save = async () => {
+    if (saving) return;
     if (!draft.name.trim()) {
       toast.error('Add a clear, provider-compatible template name.');
       return;
@@ -272,6 +281,7 @@ export default function TemplatesPage() {
       return;
     }
     setSaving(true);
+    setSaveError(null);
     try {
       const payload = {
         ...draft,
@@ -289,6 +299,8 @@ export default function TemplatesPage() {
       };
       setDraft(next);
       setSavedDraft(next);
+      setSaveError(null);
+      setLastSavedAt(new Date());
       toast.success('Template draft saved in MongoDB.');
       await refresh();
       // Auto-validate after save
@@ -299,11 +311,25 @@ export default function TemplatesPage() {
         })
         .catch(() => {});
     } catch (e) {
-      toast.error(errorMsg(e));
+      const msg = errorMsg(e);
+      setSaveError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
+
+  // Keyboard shortcut: Cmd+S / Ctrl+S to save draft
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        save();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [save]);
 
   const toggleFavorite = async (t) => {
     try {
@@ -583,13 +609,35 @@ export default function TemplatesPage() {
     ),
   ].map((x) => x.replace(/[{}\s]/g, ''));
 
+  // Live body preview computed value:
+  // If preview from server exists and draft is not dirty, use it;
+  // Otherwise resolve in real-time client side with selected contact.
+  const livePreviewBody = useMemo(() => {
+    if (!dirty && preview?.body) return preview.body;
+    if (draft.body.trim()) return resolveContactVariables(draft.body, selectedContact, currentWorkspace);
+    return '';
+  }, [dirty, preview?.body, draft.body, selectedContact, currentWorkspace]);
+
+  const livePreviewHeader = useMemo(() => {
+    if (!dirty && preview?.header) return preview.header;
+    if (draft.header) return resolveContactVariables(draft.header, selectedContact, currentWorkspace);
+    return '';
+  }, [dirty, preview?.header, draft.header, selectedContact, currentWorkspace]);
+
+  const livePreviewFooter = useMemo(() => {
+    return draft.footer || preview?.footer || '';
+  }, [draft.footer, preview?.footer]);
+
+  const businessDisplayName = currentWorkspace?.name || 'Workspace';
+  const businessInitial = businessDisplayName.charAt(0).toUpperCase() || 'R';
+
   return (
     <div className="templates-page">
       {/* Page Header */}
       <PageHeader
-        eyebrow="RELAY REAL ESTATE · MESSAGE TEMPLATE STUDIO"
+        eyebrow="RELAY MESSAGE TEMPLATES · TEMPLATE STUDIO"
         title="Templates"
-        subtitle="Manage personalized WhatsApp templates, brochures, interactive buttons, and verified provider readiness."
+        subtitle="Create, personalize and manage your business messaging templates."
         actions={
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button className="primary-btn small" onClick={newTemplate}>
@@ -599,13 +647,19 @@ export default function TemplatesPage() {
         }
       />
 
-      {/* Primary Workspace Tabs */}
-      <div className="inbox-filter-tabs" style={{ marginBottom: '18px', borderRadius: '10px' }}>
-        <button className={tab === 'templates' ? 'active' : ''} onClick={() => setTab('templates')}>
-          <MessageSquareText size={14} style={{ display: 'inline', marginRight: '6px' }} /> Template Studio
+      {/* Top Level Studio / Preset Library Tabs */}
+      <div className="tp-top-tabs">
+        <button
+          className={`tp-top-tab ${tab === 'templates' ? 'active' : ''}`}
+          onClick={() => setTab('templates')}
+        >
+          <MessageSquareText size={14} /> Template Studio
         </button>
-        <button className={tab === 'library' ? 'active' : ''} onClick={() => setTab('library')}>
-          <Sparkles size={14} style={{ display: 'inline', marginRight: '6px' }} /> Real Estate Preset Library
+        <button
+          className={`tp-top-tab ${tab === 'library' ? 'active' : ''}`}
+          onClick={() => setTab('library')}
+        >
+          <Sparkles size={14} /> {presetLibraryLabel}
         </button>
       </div>
 
@@ -629,7 +683,7 @@ export default function TemplatesPage() {
             </button>
             <button
               className={mobileSegment === 'preview' ? 'primary-btn small' : 'outline-btn small'}
-              onClick={() => setMobileSegment('preview')}
+              onClick={() => { setMobileSegment('preview'); setShowPreviewDrawer(true); }}
               style={{ flex: 1 }}
             >
               Live Preview
@@ -638,46 +692,52 @@ export default function TemplatesPage() {
 
           <div className={`template-workspace ${!showPreviewDrawer ? 'hide-preview' : ''}`}>
             {/* ========================================================
-                LEFT PANEL: Template Library (~260px)
+                LEFT PANEL: Template Library (~280px)
                 ======================================================== */}
-            <aside className="template-list-panel">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <strong style={{ fontSize: '13.5px', color: 'var(--color-text-primary)' }}>Saved Templates</strong>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '11.5px',
-                    color: 'var(--color-primary)',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="active">Active Drafts</option>
-                  <option value="archived">Archived</option>
-                </select>
+            <aside className={`template-list-panel ${mobileSegment !== 'library' ? 'mobile-hidden' : ''}`}>
+              <div className="tp-library-head">
+                <div className="tp-library-title">
+                  <span>Saved Templates</span>
+                  <span className="tp-library-badge">{filtered.length}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <select
+                    className="tp-status-select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="active">Active Drafts</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                  <button
+                    type="button"
+                    className="icon-btn small"
+                    onClick={newTemplate}
+                    title="Create new template draft"
+                    style={{ width: '28px', height: '28px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
               </div>
 
               {/* Search Bar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '0 8px', height: '34px' }}>
-                <Search size={14} color="var(--color-text-muted)" />
+              <div className="tp-search-bar">
+                <Search size={14} color="var(--tp-slate-400)" />
                 <input
-                  style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '12px' }}
+                  className="tp-search-input"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search template name…"
+                  placeholder="Search template name or body…"
                 />
               </div>
 
-              {/* Filters */}
-              <div style={{ display: 'flex', gap: '6px' }}>
+              {/* Filter Controls */}
+              <div className="tp-filter-row">
                 <select
+                  className="tp-filter-select"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  style={{ flex: 1, height: '30px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '11px', padding: '0 4px' }}
                 >
                   <option value="">All Categories</option>
                   <option value="Marketing">Marketing</option>
@@ -685,9 +745,9 @@ export default function TemplatesPage() {
                   <option value="Authentication">Authentication</option>
                 </select>
                 <select
+                  className="tp-filter-select"
                   value={languageFilter}
                   onChange={(e) => setLanguageFilter(e.target.value)}
-                  style={{ flex: 1, height: '30px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '11px', padding: '0 4px' }}
                 >
                   <option value="">All Languages</option>
                   <option value="en">English</option>
@@ -697,26 +757,22 @@ export default function TemplatesPage() {
                 <button
                   type="button"
                   title="Show favorites only"
+                  className={`tp-fav-filter-btn ${favoriteOnly ? 'active' : ''}`}
                   onClick={() => setFavoriteOnly((v) => !v)}
-                  style={{
-                    height: '30px',
-                    padding: '0 8px',
-                    borderRadius: '6px',
-                    border: '1px solid var(--color-border)',
-                    background: favoriteOnly ? 'var(--color-warning-soft)' : 'transparent',
-                    color: favoriteOnly ? 'var(--color-warning)' : 'var(--color-text-muted)',
-                    cursor: 'pointer',
-                  }}
                 >
                   ★
                 </button>
               </div>
 
-              {/* Template Items */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto', flex: 1, minHeight: '300px' }}>
-                {loading && <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', padding: '12px 0' }}>Loading templates…</div>}
+              {/* Template Items List */}
+              <div className="tp-list-items">
+                {loading && (
+                  <div style={{ fontSize: '12px', color: 'var(--tp-slate-400)', padding: '16px 0', textAlign: 'center' }}>
+                    Loading templates…
+                  </div>
+                )}
                 {!loading && !filtered.length && (
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', padding: '24px 8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--tp-slate-400)', padding: '28px 8px', textAlign: 'center' }}>
                     No {statusFilter === 'archived' ? 'archived' : 'active'} templates found.
                   </div>
                 )}
@@ -727,45 +783,32 @@ export default function TemplatesPage() {
                     <div
                       key={t._id}
                       onClick={() => chooseTemplate(t)}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '5px',
-                        padding: '10px 12px',
-                        border: '1px solid',
-                        borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-border)',
-                        backgroundColor: isSelected ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                        borderRadius: '8px',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`tp-template-item ${isSelected ? 'selected' : ''}`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <strong style={{ fontSize: '12.5px', color: 'var(--color-text-primary)' }}>{t.name}</strong>
-                        <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                      <div className="tp-template-item-head">
+                        <strong className="tp-template-name" title={t.name}>{t.name}</strong>
+                        <span className="tp-version-badge">
                           v{t.currentVersionNumber || 1}
                         </span>
                       </div>
-                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p className="tp-template-snippet">
                         {t.body || 'Empty message body'}
                       </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: 'var(--color-text-muted)', flexWrap: 'wrap' }}>
-                        <span style={{ background: 'var(--color-surface-muted)', padding: '1px 5px', borderRadius: '4px' }}>
-                          {t.category}
-                        </span>
-                        <span style={{ textTransform: 'uppercase' }}>{t.language}</span>
+                      <div className="tp-template-meta">
+                        <span className="tp-meta-pill">{t.category}</span>
+                        <span className="tp-meta-pill" style={{ textTransform: 'uppercase' }}>{t.language}</span>
                         {headerBadge && (
-                          <span style={{ background: 'var(--color-info-soft)', color: 'var(--color-info)', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+                          <span className="tp-meta-pill blue">
                             {headerBadge}
                           </span>
                         )}
                         <span
-                          style={{ marginLeft: 'auto', cursor: 'pointer', fontSize: '12px' }}
+                          className={`tp-fav-star ${t.isFavorite ? 'active' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleFavorite(t);
                           }}
+                          title={t.isFavorite ? 'Remove from favorites' : 'Mark as favorite'}
                         >
                           {t.isFavorite ? '★' : '☆'}
                         </span>
@@ -779,44 +822,42 @@ export default function TemplatesPage() {
             {/* ========================================================
                 CENTER PANEL: Template Editor (Flexible Primary Workspace)
                 ======================================================== */}
-            <section className="template-editor-panel">
-              {/* Editor Top Bar */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: '12px', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="page-header-eyebrow" style={{ margin: 0 }}>
-                      {selected ? `VERSION ${draft.currentVersionNumber || 1}` : 'NEW MESSAGE TEMPLATE'}
-                    </span>
+            <section className={`template-editor-panel ${mobileSegment !== 'editor' ? 'mobile-hidden' : ''}`}>
+              {/* Editor Top Bar with Contextual Header */}
+              <div className="tp-editor-header">
+                <div className="tp-editor-header-identity">
+                  <h2 className="tp-editor-title">
+                    {selected ? (draft.name || 'Untitled Template') : (draft.name || 'Create Message Template')}
+                  </h2>
+                  <div className="tp-editor-badge-row">
                     <span
-                      style={{
-                        fontSize: '11px',
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        fontWeight: 600,
-                        backgroundColor: draft.localStatus === 'Archived' ? 'var(--color-surface-muted)' : 'var(--color-primary-soft)',
-                        color: draft.localStatus === 'Archived' ? 'var(--color-text-muted)' : 'var(--color-primary)',
-                      }}
+                      className={`tp-badge-status ${
+                        draft.localStatus === 'Archived'
+                          ? 'archived'
+                          : saveState === 'NEW_CLEAN'
+                          ? 'neutral'
+                          : saveState === 'NEW_DIRTY' || saveState === 'EXISTING_DIRTY'
+                          ? 'dirty'
+                          : saveState === 'SAVING'
+                          ? 'saving'
+                          : saveState === 'SAVE_ERROR'
+                          ? 'error'
+                          : 'clean'
+                      }`}
                     >
-                      {draft.localStatus || 'Draft'}
+                      {saveState === 'NEW_CLEAN' && 'New Draft · Not Saved'}
+                      {(saveState === 'NEW_DIRTY' || saveState === 'EXISTING_DIRTY') && 'Unsaved Changes'}
+                      {saveState === 'EXISTING_CLEAN' && `${draft.localStatus || 'Draft'} · v${draft.currentVersionNumber || 1}`}
+                      {saveState === 'SAVING' && 'Saving…'}
+                      {saveState === 'SAVE_ERROR' && "Couldn't save changes"}
                     </span>
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        padding: '2px 7px',
-                        borderRadius: '4px',
-                        backgroundColor: '#F1F5F9',
-                        color: '#475569',
-                      }}
-                    >
+                    <span className="tp-badge-meta">
                       Meta Status: Not Submitted (Mock Mode)
                     </span>
                   </div>
-                  <h2 style={{ fontSize: '17px', color: 'var(--color-text-primary)', margin: '4px 0 0', fontWeight: 700 }}>
-                    {draft.name || 'Untitled Template'}
-                  </h2>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="tp-editor-actions">
                   {selected && (
                     <button className="icon-btn" title="Version history & audit snapshots" onClick={loadVersions}>
                       <History size={15} />
@@ -830,7 +871,7 @@ export default function TemplatesPage() {
                   {selected && (
                     <button
                       className="icon-btn"
-                      title={draft.localStatus === 'Archived' ? 'Restore template' : 'Archive template'}
+                      title={draft.localStatus === 'Archived' ? 'Restore template to active' : 'Archive template'}
                       onClick={handleArchiveToggle}
                     >
                       <Archive size={15} />
@@ -843,428 +884,431 @@ export default function TemplatesPage() {
                   )}
                   <button
                     className="outline-btn small"
-                    onClick={() => setShowPreviewDrawer((v) => !v)}
-                    title={showPreviewDrawer ? 'Hide Preview Column' : 'Show Preview Column'}
+                    onClick={() => { setShowPreviewDrawer(v => !v); if (window.innerWidth <= 768) setMobileSegment('preview'); }}
+                    title={showPreviewDrawer ? 'Collapse WhatsApp preview column' : 'Expand WhatsApp preview column'}
                   >
-                    {showPreviewDrawer ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />} Live Preview
+                    {showPreviewDrawer ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}{' '}
+                    {showPreviewDrawer ? 'Hide Preview' : 'Show Preview'}
                   </button>
+                </div>
+              </div>
+
+              {/* Dedicated Scrollable Form Body Container */}
+              <div className="tp-editor-body-scroll">
+                {/* Campaign references banner */}
+                {campaignUsage.length > 0 && (
+                  <div className="tp-pinned-banner">
+                    <b>Pinned in Campaigns:</b> {campaignUsage.map((c) => c.name).join(', ')}
+                    <div style={{ fontSize: '11px', color: 'var(--tp-slate-500)', marginTop: '2px' }}>
+                      Active campaigns maintain immutable snapshots of their assigned version.
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Core Sections */}
+                <div className="tp-editor-form">
+                  {/* SECTION 1: Identity & Classification */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <span className="tp-section-title">1. Identity & Classification</span>
+                      <span className="tp-section-subtitle">Provider identifier, category, and language</span>
+                    </div>
+                    <div className="tp-identity-grid">
+                      <label className="field tp-field-full">
+                        Template Identifier Name *
+                        <input
+                          maxLength="120"
+                          value={draft.name}
+                          onChange={(e) => setDraft((v) => ({ ...v, name: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_') }))}
+                          placeholder={templatePlaceholder}
+                          style={{ fontFamily: 'monospace', fontSize: '13px' }}
+                        />
+                        <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                          Unique identifier using lowercase letters, numbers, and underscores only.
+                        </small>
+                      </label>
+
+                      <div className="tp-identity-row">
+                        <label className="field" style={{ flex: 1 }}>
+                          Category *
+                          <select
+                            value={draft.category}
+                            onChange={(e) => setDraft((v) => ({ ...v, category: e.target.value }))}
+                          >
+                            <option value="Marketing">Marketing</option>
+                            <option value="Utility">Utility</option>
+                            <option value="Authentication">Authentication (OTP & Verification)</option>
+                          </select>
+                          <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                            Meta template message category
+                          </small>
+                        </label>
+
+                        <label className="field" style={{ flex: 1 }}>
+                          Template Language *
+                          <select
+                            value={draft.language}
+                            onChange={(e) => setDraft((v) => ({ ...v, language: e.target.value }))}
+                          >
+                            {LANGS.map(([code, name]) => (
+                              <option key={code} value={code}>
+                                {name}
+                              </option>
+                            ))}
+                          </select>
+                          <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                            Recipient display locale
+                          </small>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: Header Component */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <span className="tp-section-title">2. Header Component (Optional)</span>
+                      <span className="tp-section-subtitle">Text headline, image, video or PDF brochure</span>
+                    </div>
+
+                    <div className="tp-header-types">
+                      {[
+                        { type: 'NONE', label: 'None' },
+                        { type: 'TEXT', label: 'Text Title' },
+                        { type: 'IMAGE', label: 'Image Header' },
+                        { type: 'VIDEO', label: 'Video Header' },
+                        { type: 'DOCUMENT', label: 'PDF Brochure' },
+                      ].map((item) => (
+                        <button
+                          key={item.type}
+                          type="button"
+                          onClick={() => setDraft((v) => ({ ...v, headerType: item.type }))}
+                          className={`tp-header-opt-btn ${draft.headerType === item.type ? 'active' : ''}`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Header Input Render Based on Type */}
+                    {draft.headerType === 'TEXT' && (
+                      <div style={{ marginTop: '8px' }}>
+                        <input
+                          maxLength="60"
+                          value={draft.header}
+                          onChange={(e) => setDraft((v) => ({ ...v, header: e.target.value }))}
+                          placeholder="e.g. New Luxury Property Launch in Gurugram"
+                          style={{ width: '100%' }}
+                        />
+                        <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                          {draft.header.length}/60 characters
+                        </small>
+                      </div>
+                    )}
+
+                    {['IMAGE', 'VIDEO', 'DOCUMENT'].includes(draft.headerType) && (
+                      <div style={{ marginTop: '8px' }}>
+                        {draft.headerMediaUrl ? (
+                          <div className="tp-media-card">
+                            <div className="tp-media-info">
+                              {draft.headerType === 'DOCUMENT' && <FileText size={22} color="var(--tp-blue-600)" />}
+                              {draft.headerType === 'IMAGE' && <ImageIcon size={22} color="var(--tp-blue-600)" />}
+                              {draft.headerType === 'VIDEO' && <Video size={22} color="var(--tp-blue-600)" />}
+                              <div>
+                                <strong className="tp-media-title">
+                                  {draft.headerMediaName || 'Attached Media Asset'}
+                                </strong>
+                                <span className="tp-media-sub">
+                                  {formatFileSize(draft.headerMediaSize)} · {draft.headerType}
+                                </span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                className="outline-btn small"
+                                onClick={() => fileInputRef.current?.click()}
+                              >
+                                Replace
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-btn text-danger"
+                                onClick={removeHeaderMedia}
+                                title="Remove attachment"
+                              >
+                                <X size={15} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className="tp-media-dropzone"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload size={24} color="var(--tp-blue-600)" style={{ margin: '0 auto 6px' }} />
+                            <strong style={{ fontSize: '13px', display: 'block', color: 'var(--tp-slate-900)' }}>
+                              {uploadingMedia ? `Uploading (${uploadProgress}%)…` : `Select or drop ${draft.headerType.toLowerCase()} file`}
+                            </strong>
+                            <span style={{ fontSize: '11px', color: 'var(--tp-slate-500)' }}>
+                              {draft.headerType === 'DOCUMENT' && 'PDF brochure up to 10 MB'}
+                              {draft.headerType === 'IMAGE' && 'JPEG, PNG, or WEBP up to 5 MB'}
+                              {draft.headerType === 'VIDEO' && 'MP4 or 3GPP up to 16 MB'}
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          onChange={handleMediaUpload}
+                          style={{ display: 'none' }}
+                          accept={
+                            draft.headerType === 'DOCUMENT'
+                              ? '.pdf,application/pdf'
+                              : draft.headerType === 'IMAGE'
+                              ? 'image/jpeg,image/png,image/webp'
+                              : 'video/mp4,video/3gpp'
+                          }
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECTION 3: Message Body Composition */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <span className="tp-section-title">3. Message Body Text *</span>
+                      <span className="tp-section-subtitle">
+                        {draft.body.length}/4096 chars · {wordCount} words · {detectedVars.length} placeholders
+                      </span>
+                    </div>
+
+                    <textarea
+                      ref={editor}
+                      rows={7}
+                      maxLength={4096}
+                      value={draft.body}
+                      onChange={(e) => {
+                        setDraft((v) => ({ ...v, body: e.target.value }));
+                        if (saveError) setSaveError(null);
+                      }}
+                      placeholder="Write a message and insert supported contact or workspace variables below."
+                      className="tp-body-textarea"
+                    />
+
+                    {/* Variable Group Selector & Insertion Chips */}
+                    <div className="tp-var-toolbar">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div className="tp-var-group-tabs">
+                          {variableGroups.filter(
+                            (g) => g.id === 'contact' || g.id === 'business' || g.id === activeIndustry
+                          ).map((g) => (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => setActiveVarGroup(g.id)}
+                              className={`tp-var-group-btn ${activeVarGroup === g.id ? 'active' : ''}`}
+                            >
+                              {g.label}
+                            </button>
+                          ))}
+                        </div>
+                        <span style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                          Click token to insert at cursor
+                        </span>
+                      </div>
+
+                      <div className="tp-var-chips">
+                        {variableGroups.find((g) => g.id === activeVarGroup)?.vars.map((v) => (
+                          <button
+                            key={v.key}
+                            type="button"
+                            onClick={() => insertVariable(v.key)}
+                            className="tp-var-chip"
+                            title={`Insert {{${v.key}}} at cursor position`}
+                          >
+                            +{`{{${v.key}}}`} <span className="tp-var-chip-label">({v.label})</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECTION 4: Footer Component */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <span className="tp-section-title">4. Footer Notice (Optional)</span>
+                      <span className="tp-section-subtitle">Plain text only; variables are not allowed in footers.</span>
+                    </div>
+                    <input
+                      maxLength="60"
+                      value={draft.footer}
+                      onChange={(e) => setDraft((v) => ({ ...v, footer: e.target.value }))}
+                      placeholder="e.g. Reply STOP to opt out · M2W Realty Advisory Desk"
+                    />
+                    <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                      {draft.footer.length}/60 characters
+                    </small>
+                  </div>
+
+                  {/* SECTION 5: Interactive Buttons */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <div>
+                        <span className="tp-section-title">5. Interactive Buttons (Optional)</span>
+                        <span className="tp-section-subtitle">
+                          WhatsApp supports up to 3 Quick Replies OR up to 2 Call-to-Actions (1 URL + 1 Phone).
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="primary-btn small"
+                        onClick={() => setShowButtonModal(true)}
+                      >
+                        <Plus size={13} /> Add Button
+                      </button>
+                    </div>
+
+                    {draft.buttons?.length > 0 ? (
+                      <div className="tp-button-list">
+                        {draft.buttons.map((b, i) => (
+                          <div key={i} className="tp-button-row">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span className="tp-button-badge">
+                                {b.type === 'QUICK_REPLY' ? 'QUICK REPLY' : b.type === 'URL' ? 'URL CTA' : 'PHONE CTA'}
+                              </span>
+                              <strong style={{ color: 'var(--tp-slate-900)' }}>{b.text}</strong>
+                              {b.value && (
+                                <span style={{ color: 'var(--tp-slate-500)', fontSize: '11px', fontFamily: 'monospace' }}>
+                                  ({b.value})
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              className="icon-btn text-danger"
+                              onClick={() => removeButton(i)}
+                              title="Remove button"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '12px', color: 'var(--tp-slate-400)', fontStyle: 'italic', padding: '6px 0' }}>
+                        No interactive buttons configured yet. (Optional)
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SECTION 6: Versioning & Revision Notes */}
+                  <div className="tp-section-card">
+                    <div className="tp-section-head">
+                      <span className="tp-section-title">6. Revision Notes</span>
+                      <span className="tp-section-subtitle">Recorded in immutable version history snapshot</span>
+                    </div>
+                    <input
+                      maxLength="200"
+                      value={draft.revisionNotes}
+                      onChange={(e) => setDraft((v) => ({ ...v, revisionNotes: e.target.value }))}
+                      placeholder="e.g. Updated launch dates and added brochure CTA"
+                    />
+                    <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
+                      Optional note explaining what was updated in this revision
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contained Sticky Action Footer (Never overlaps form fields) */}
+              <div className="tp-editor-sticky-footer">
+                <span
+                  className={`tp-save-status ${
+                    saveState === 'SAVING'
+                      ? 'saving'
+                      : saveState === 'SAVE_ERROR'
+                      ? 'error'
+                      : saveState === 'NEW_CLEAN'
+                      ? 'neutral'
+                      : saveState === 'NEW_DIRTY' || saveState === 'EXISTING_DIRTY'
+                      ? 'dirty'
+                      : 'clean'
+                  }`}
+                >
+                  {saveState === 'SAVING' && (
+                    <>
+                      <LoaderCircle className="spin" size={14} /> Saving draft to MongoDB…
+                    </>
+                  )}
+                  {saveState === 'SAVE_ERROR' && (
+                    <>
+                      <AlertCircle size={14} /> Couldn't save changes ({saveError})
+                    </>
+                  )}
+                  {saveState === 'NEW_CLEAN' && (
+                    <>
+                      <FileText size={14} color="var(--tp-slate-400)" /> New Draft · Not Saved
+                    </>
+                  )}
+                  {(saveState === 'NEW_DIRTY' || saveState === 'EXISTING_DIRTY') && (
+                    <>
+                      <AlertCircle size={14} /> Unsaved draft changes
+                    </>
+                  )}
+                  {saveState === 'EXISTING_CLEAN' && (
+                    <>
+                      <CheckCircle2 size={14} color="var(--tp-emerald-600)" /> All changes saved to MongoDB
+                      {lastSavedAt && (
+                        <span style={{ fontSize: '11px', color: 'var(--tp-slate-400)', marginLeft: '4px' }}>
+                          ({lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
+                        </span>
+                      )}
+                    </>
+                  )}
+                </span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {selected && (
+                    <button type="button" className="outline-btn small" onClick={runValidation}>
+                      <Check size={13} /> Validate Template
+                    </button>
+                  )}
                   <button className="primary-btn small" onClick={save} disabled={saving}>
                     {saving ? <LoaderCircle className="spin" size={14} /> : <Save size={14} />} Save Draft
                   </button>
                 </div>
               </div>
-
-              {/* Campaign references banner */}
-              {campaignUsage.length > 0 && (
-                <div style={{ padding: '8px 12px', background: 'var(--color-surface-muted)', borderLeft: '3px solid var(--color-primary)', borderRadius: '4px 8px 8px 4px', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                  <b>Pinned in Campaigns:</b> {campaignUsage.map((c) => c.name).join(', ')}
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                    Active campaigns maintain immutable snapshots of their assigned version.
-                  </div>
-                </div>
-              )}
-
-              {/* Form Core Fields */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
-                  <label className="field">
-                    Template Identifier Name *
-                    <input
-                      maxLength="120"
-                      value={draft.name}
-                      onChange={(e) => setDraft((v) => ({ ...v, name: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_') }))}
-                      placeholder="e.g. property_launch_update"
-                      style={{ fontFamily: 'monospace', fontSize: '12.5px' }}
-                    />
-                    <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
-                      Lowercase letters, numbers, and underscores
-                    </small>
-                  </label>
-
-                  <label className="field">
-                    Category *
-                    <select
-                      value={draft.category}
-                      onChange={(e) => setDraft((v) => ({ ...v, category: e.target.value }))}
-                    >
-                      <option value="Marketing">Marketing (Promotions & Launches)</option>
-                      <option value="Utility">Utility (Site Visits & Coordination)</option>
-                      <option value="Authentication">Authentication (OTP & Verification)</option>
-                    </select>
-                  </label>
-
-                  <label className="field">
-                    Template Language *
-                    <select
-                      value={draft.language}
-                      onChange={(e) => setDraft((v) => ({ ...v, language: e.target.value }))}
-                    >
-                      {LANGS.map(([code, name]) => (
-                        <option key={code} value={code}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                {/* Header Type Selector */}
-                <div className="field">
-                  <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)', marginBottom: '4px', display: 'block' }}>
-                    Header Component (Optional)
-                  </span>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {[
-                      { type: 'NONE', label: 'None' },
-                      { type: 'TEXT', label: 'Text Title' },
-                      { type: 'IMAGE', label: 'Image Header' },
-                      { type: 'VIDEO', label: 'Video Header' },
-                      { type: 'DOCUMENT', label: 'PDF Brochure' },
-                    ].map((item) => (
-                      <button
-                        key={item.type}
-                        type="button"
-                        onClick={() => setDraft((v) => ({ ...v, headerType: item.type }))}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          border: '1px solid',
-                          borderColor: draft.headerType === item.type ? 'var(--color-primary)' : 'var(--color-border)',
-                          background: draft.headerType === item.type ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                          color: draft.headerType === item.type ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                        }}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Header Input Render Based on Type */}
-                  {draft.headerType === 'TEXT' && (
-                    <div style={{ marginTop: '8px' }}>
-                      <input
-                        maxLength="60"
-                        value={draft.header}
-                        onChange={(e) => setDraft((v) => ({ ...v, header: e.target.value }))}
-                        placeholder="e.g. New Luxury Property Launch in Gurugram"
-                        style={{ width: '100%' }}
-                      />
-                      <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
-                        {draft.header.length}/60 characters
-                      </small>
-                    </div>
-                  )}
-
-                  {['IMAGE', 'VIDEO', 'DOCUMENT'].includes(draft.headerType) && (
-                    <div style={{ marginTop: '8px' }}>
-                      {draft.headerMediaUrl ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            {draft.headerType === 'DOCUMENT' && <FileText size={20} color="var(--color-primary)" />}
-                            {draft.headerType === 'IMAGE' && <ImageIcon size={20} color="var(--color-primary)" />}
-                            {draft.headerType === 'VIDEO' && <Video size={20} color="var(--color-primary)" />}
-                            <div>
-                              <strong style={{ fontSize: '13px', display: 'block', color: 'var(--color-text-primary)' }}>
-                                {draft.headerMediaName || 'Attached Media Asset'}
-                              </strong>
-                              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                                {formatFileSize(draft.headerMediaSize)} · {draft.headerType}
-                              </span>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              type="button"
-                              className="outline-btn small"
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              Replace
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-btn text-danger"
-                              onClick={removeHeaderMedia}
-                              title="Remove attachment"
-                            >
-                              <X size={15} />
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          style={{
-                            border: '2px dashed var(--color-border)',
-                            borderRadius: '8px',
-                            padding: '18px',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            background: 'var(--color-surface-subtle)',
-                            transition: 'border 0.2s ease',
-                          }}
-                        >
-                          <Upload size={22} color="var(--color-primary)" style={{ margin: '0 auto 6px' }} />
-                          <strong style={{ fontSize: '13px', display: 'block', color: 'var(--color-text-primary)' }}>
-                            {uploadingMedia ? `Uploading (${uploadProgress}%)…` : `Select or drop ${draft.headerType.toLowerCase()} file`}
-                          </strong>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                            {draft.headerType === 'DOCUMENT' && 'PDF brochure up to 10 MB'}
-                            {draft.headerType === 'IMAGE' && 'JPEG, PNG, or WEBP up to 5 MB'}
-                            {draft.headerType === 'VIDEO' && 'MP4 or 3GPP up to 16 MB'}
-                          </span>
-                        </div>
-                      )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={handleMediaUpload}
-                        style={{ display: 'none' }}
-                        accept={
-                          draft.headerType === 'DOCUMENT'
-                            ? '.pdf,application/pdf'
-                            : draft.headerType === 'IMAGE'
-                            ? 'image/jpeg,image/png,image/webp'
-                            : 'video/mp4,video/3gpp'
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Message Body Field with Variable Toolbar */}
-                <div className="field">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)' }}>
-                      Message Body Text *
-                    </span>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                      {draft.body.length}/1024 chars · {wordCount} words · {detectedVars.length} placeholders
-                    </span>
-                  </div>
-                  <textarea
-                    ref={editor}
-                    rows={7}
-                    maxLength={1024}
-                    value={draft.body}
-                    onChange={(e) => setDraft((v) => ({ ...v, body: e.target.value }))}
-                    placeholder="Hi {{name}}, we have information about {{property_type}} options in {{city}}. Would you like to review the project details?"
-                    style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: 1.6 }}
-                  />
-
-                  {/* Variable Group Selector & Insertion Chips */}
-                  <div style={{ marginTop: '8px', padding: '10px 12px', background: 'var(--color-surface-subtle)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        {VARIABLE_GROUPS.map((g) => (
-                          <button
-                            key={g.id}
-                            type="button"
-                            onClick={() => setActiveVarGroup(g.id)}
-                            style={{
-                              border: 'none',
-                              background: activeVarGroup === g.id ? 'var(--color-surface)' : 'transparent',
-                              color: activeVarGroup === g.id ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                              fontWeight: activeVarGroup === g.id ? 700 : 500,
-                              fontSize: '11px',
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              boxShadow: activeVarGroup === g.id ? 'var(--shadow-xs)' : 'none',
-                            }}
-                          >
-                            {g.label}
-                          </button>
-                        ))}
-                      </div>
-                      <span style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
-                        Click token to insert at cursor
-                      </span>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      {VARIABLE_GROUPS.find((g) => g.id === activeVarGroup)?.vars.map((v) => (
-                        <button
-                          key={v.key}
-                          type="button"
-                          onClick={() => insertVariable(v.key)}
-                          style={{
-                            border: '1px solid var(--color-border)',
-                            background: 'var(--color-surface)',
-                            borderRadius: '6px',
-                            padding: '3px 9px',
-                            fontSize: '11px',
-                            cursor: 'pointer',
-                            color: 'var(--color-primary)',
-                            fontWeight: 600,
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          +{`{{${v.key}}}`} <span style={{ fontFamily: 'sans-serif', fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '10px' }}>({v.label})</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Field */}
-                <label className="field">
-                  Footer Notice (Optional)
-                  <input
-                    maxLength="60"
-                    value={draft.footer}
-                    onChange={(e) => setDraft((v) => ({ ...v, footer: e.target.value }))}
-                    placeholder="e.g. Reply STOP to opt out · M2W Realty Advisory Desk"
-                  />
-                  <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
-                    Plain text only; variables are not allowed in footers.
-                  </small>
-                </label>
-
-                {/* Interactive Buttons Builder */}
-                <div className="field">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <div>
-                      <span style={{ fontWeight: 600, fontSize: '12px', color: 'var(--color-text-primary)' }}>
-                        Interactive Buttons (Optional)
-                      </span>
-                      <small style={{ display: 'block', fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
-                        WhatsApp supports up to 3 Quick Replies OR up to 2 Call-to-Actions (1 URL + 1 Phone).
-                      </small>
-                    </div>
-                    <button
-                      type="button"
-                      className="outline-btn small"
-                      onClick={() => setShowButtonModal(true)}
-                    >
-                      <Plus size={13} /> Add Button
-                    </button>
-                  </div>
-
-                  {draft.buttons?.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {draft.buttons.map((b, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            background: 'var(--color-surface-muted)',
-                            border: '1px solid var(--color-border)',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                background: b.type === 'QUICK_REPLY' ? 'var(--color-primary-soft)' : 'var(--color-info-soft)',
-                                color: b.type === 'QUICK_REPLY' ? 'var(--color-primary)' : 'var(--color-info)',
-                              }}
-                            >
-                              {b.type === 'QUICK_REPLY' ? 'QUICK REPLY' : b.type === 'URL' ? 'URL CTA' : 'PHONE CTA'}
-                            </span>
-                            <strong style={{ color: 'var(--color-text-primary)' }}>{b.text}</strong>
-                            {b.value && (
-                              <span style={{ color: 'var(--color-text-muted)', fontSize: '11px', fontFamily: 'monospace' }}>
-                                ({b.value})
-                              </span>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            className="icon-btn text-danger"
-                            onClick={() => removeButton(i)}
-                            title="Remove button"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontStyle: 'italic', padding: '6px 0' }}>
-                      No interactive buttons configured yet.
-                    </div>
-                  )}
-                </div>
-
-                {/* Revision Notes */}
-                <label className="field">
-                  Revision Notes (for Version History)
-                  <input
-                    maxLength="200"
-                    value={draft.revisionNotes}
-                    onChange={(e) => setDraft((v) => ({ ...v, revisionNotes: e.target.value }))}
-                    placeholder="e.g. Updated launch dates and added brochure CTA"
-                  />
-                </label>
-
-                {/* Action Footer */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--color-border-subtle)' }}>
-                  <span style={{ fontSize: '12px', color: dirty ? 'var(--color-warning)' : 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    {dirty ? <AlertCircle size={13} /> : <CheckCircle2 size={13} color="var(--color-success)" />}
-                    {dirty ? 'Unsaved draft changes' : 'All changes saved to MongoDB'}
-                  </span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {selected && (
-                      <button type="button" className="outline-btn small" onClick={runValidation}>
-                        <Check size={13} /> Validate Template
-                      </button>
-                    )}
-                    <button className="primary-btn small" onClick={save} disabled={saving}>
-                      {saving ? <LoaderCircle className="spin" size={14} /> : <Save size={14} />} Save Draft
-                    </button>
-                  </div>
-                </div>
-              </div>
             </section>
 
             {/* ========================================================
-                RIGHT PANEL: Live WhatsApp Preview (~320px)
+                RIGHT PANEL: Live WhatsApp Preview (~340px)
                 ======================================================== */}
             {showPreviewDrawer && (
-              <aside className="template-preview-column">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <strong style={{ fontSize: '13.5px', color: 'var(--color-text-primary)' }}>
+              <aside className={`template-preview-column ${mobileSegment !== 'preview' ? 'mobile-hidden' : ''}`}>
+                <div className="tp-preview-header">
+                  <strong className="tp-preview-title">
                     WhatsApp Template Preview — Not Sent
                   </strong>
-                  <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    className="icon-btn small"
+                    aria-label="Close preview"
+                    onClick={() => { setShowPreviewDrawer(false); setMobileSegment('editor'); }}
+                  >
+                    <X size={14} />
+                  </button>
+                  <div className="tp-device-toggle">
                     <button
                       type="button"
+                      className={`tp-device-btn ${previewDevice === 'phone' ? 'active' : ''}`}
                       onClick={() => setPreviewDevice('phone')}
-                      style={{
-                        border: 'none',
-                        background: previewDevice === 'phone' ? 'var(--color-surface-muted)' : 'transparent',
-                        fontSize: '11px',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        color: previewDevice === 'phone' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                      }}
                     >
                       Phone
                     </button>
                     <button
                       type="button"
+                      className={`tp-device-btn ${previewDevice === 'desktop' ? 'active' : ''}`}
                       onClick={() => setPreviewDevice('desktop')}
-                      style={{
-                        border: 'none',
-                        background: previewDevice === 'desktop' ? 'var(--color-surface-muted)' : 'transparent',
-                        fontSize: '11px',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        color: previewDevice === 'desktop' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                      }}
                     >
                       Desktop
                     </button>
@@ -1273,14 +1317,14 @@ export default function TemplatesPage() {
 
                 {/* CRM Contact Variable Resolution Picker */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  <label style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                  <label style={{ fontSize: '11.5px', color: 'var(--tp-slate-600)', fontWeight: 600 }}>
                     Preview with CRM Contact:
                   </label>
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <select
                       value={contactId}
                       onChange={(e) => setContactId(e.target.value)}
-                      style={{ flex: 1, height: '32px', borderRadius: '6px', border: '1px solid var(--color-border)', fontSize: '11.5px', padding: '0 6px' }}
+                      className="tp-filter-select"
                     >
                       <option value="">Select CRM Contact…</option>
                       {contacts.map((c) => (
@@ -1296,104 +1340,100 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Realistic WhatsApp Chat Bubble Container */}
-                <div className="whatsapp-preview">
+                <div className={`whatsapp-preview ${previewDevice === 'desktop' ? 'desktop-mode' : ''}`}>
                   <div className="wa-preview-top">
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#FFFFFF', color: '#075E54', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: '13px' }}>
-                      M
+                    <div className="wa-avatar">
+                      {businessInitial}
                     </div>
                     <div>
-                      <strong style={{ fontSize: '13px', display: 'block' }}>M2W Realty</strong>
-                      <span style={{ fontSize: '10px', opacity: 0.85 }}>WhatsApp Business Advisory</span>
+                      <strong style={{ fontSize: '13px', display: 'block', color: '#FFFFFF' }}>{businessDisplayName}</strong>
+                      <span style={{ fontSize: '10px', opacity: 0.85, color: '#E2E8F0' }}>{industryName} · Template Preview</span>
                     </div>
                   </div>
 
                   <div className="wa-chat-bg">
-                    <div style={{ alignSelf: 'center', background: 'rgba(255, 255, 255, 0.95)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', color: '#54656F', fontWeight: 600 }}>
+                    <div className="wa-preview-pill">
                       TEMPLATE PREVIEW · NOT SENT
                     </div>
 
-                    <div className="wa-bubble">
-                      {/* HEADER PREVIEW */}
-                      {draft.headerType === 'TEXT' && (preview?.header || draft.header) && (
-                        <b style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: '#111B21' }}>
-                          {preview?.header || draft.header}
-                        </b>
-                      )}
-
-                      {draft.headerType === 'IMAGE' && (
-                        <div style={{ marginBottom: '8px', borderRadius: '6px', overflow: 'hidden', background: '#F0F2F5', maxHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {draft.headerMediaUrl ? (
-                            <img src={draft.headerMediaUrl} alt="Header Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                          ) : (
-                            <div style={{ padding: '24px', color: '#8696A0', fontSize: '11px', textAlign: 'center' }}>
-                              <ImageIcon size={24} style={{ margin: '0 auto 4px' }} />
-                              [Image Header Asset]
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {draft.headerType === 'VIDEO' && (
-                        <div style={{ marginBottom: '8px', borderRadius: '6px', overflow: 'hidden', background: '#000', maxHeight: '160px' }}>
-                          {draft.headerMediaUrl ? (
-                            <video src={draft.headerMediaUrl} controls style={{ width: '100%', maxHeight: '160px' }} />
-                          ) : (
-                            <div style={{ padding: '24px', color: '#FFF', fontSize: '11px', textAlign: 'center' }}>
-                              <Video size={24} style={{ margin: '0 auto 4px' }} />
-                              [Video Header Asset]
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {draft.headerType === 'DOCUMENT' && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#F0F2F5', borderRadius: '6px', marginBottom: '8px' }}>
-                          <FileText size={24} color="#D32F2F" />
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <strong style={{ fontSize: '12px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#111B21' }}>
-                              {draft.headerMediaName || 'Property_Brochure.pdf'}
-                            </strong>
-                            <span style={{ fontSize: '10px', color: '#667781' }}>
-                              {formatFileSize(draft.headerMediaSize) || 'PDF Document'}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* BODY PREVIEW */}
-                      <div style={{ whiteSpace: 'pre-wrap', color: '#111B21', fontSize: '12.5px', lineHeight: 1.5 }}>
-                        {preview?.body || draft.body || 'Your message text with personalized contact tokens will render here.'}
+                    {!draft.body.trim() && !draft.header.trim() ? (
+                      <div className="wa-empty-preview-state">
+                        <MessageSquareText size={28} color="#94A3B8" style={{ margin: '0 auto 8px', display: 'block' }} />
+                        <strong style={{ fontSize: '13px', color: '#475569', display: 'block', fontWeight: 600 }}>
+                          Your message preview will appear here
+                        </strong>
+                        <span style={{ fontSize: '11.5px', color: '#64748B', display: 'block', marginTop: '4px', lineHeight: 1.4 }}>
+                          Start typing in the editor or select a template from the library to see the live WhatsApp preview.
+                        </span>
                       </div>
+                    ) : (
+                      <div className="wa-bubble">
+                        {/* HEADER PREVIEW */}
+                        {draft.headerType === 'TEXT' && livePreviewHeader && (
+                          <b className="wa-bubble-header">
+                            {livePreviewHeader}
+                          </b>
+                        )}
 
-                      {/* FOOTER PREVIEW */}
-                      {(preview?.footer || draft.footer) && (
-                        <div style={{ marginTop: '6px', fontSize: '10.5px', color: '#667781', borderTop: '1px solid #E9EDEF', paddingTop: '4px' }}>
-                          {preview?.footer || draft.footer}
+                        {draft.headerType === 'IMAGE' && (
+                          <div style={{ marginBottom: '8px', borderRadius: '6px', overflow: 'hidden', background: '#F0F2F5', maxHeight: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {draft.headerMediaUrl ? (
+                              <img src={draft.headerMediaUrl} alt="Header Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                            ) : (
+                              <div style={{ padding: '24px', color: '#8696A0', fontSize: '11px', textAlign: 'center' }}>
+                                <ImageIcon size={24} style={{ margin: '0 auto 4px' }} />
+                                [Image Header Asset]
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {draft.headerType === 'VIDEO' && (
+                          <div style={{ marginBottom: '8px', borderRadius: '6px', overflow: 'hidden', background: '#000', maxHeight: '160px' }}>
+                            {draft.headerMediaUrl ? (
+                              <video src={draft.headerMediaUrl} controls style={{ width: '100%', maxHeight: '160px' }} />
+                            ) : (
+                              <div style={{ padding: '24px', color: '#FFF', fontSize: '11px', textAlign: 'center' }}>
+                                <Video size={24} style={{ margin: '0 auto 4px' }} />
+                                [Video Header Asset]
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {draft.headerType === 'DOCUMENT' && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#F0F2F5', borderRadius: '6px', marginBottom: '8px' }}>
+                            <FileText size={24} color="#D32F2F" />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <strong style={{ fontSize: '12px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#111B21' }}>
+                                {draft.headerMediaName || 'Property_Brochure.pdf'}
+                              </strong>
+                              <span style={{ fontSize: '10px', color: '#667781' }}>
+                                {formatFileSize(draft.headerMediaSize) || 'PDF Document'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* BODY PREVIEW */}
+                        <div className="wa-bubble-body">
+                          {livePreviewBody}
                         </div>
-                      )}
-                    </div>
+
+                        {/* FOOTER PREVIEW */}
+                        {livePreviewFooter && (
+                          <div className="wa-bubble-footer">
+                            {livePreviewFooter}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* BUTTONS PREVIEW */}
                     {draft.buttons?.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div className="wa-buttons-stack">
                         {draft.buttons.map((b, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              background: '#FFFFFF',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              textAlign: 'center',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              color: '#00A884',
-                              boxShadow: '0 1px 1px rgba(0,0,0,0.1)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
+                          <div key={i} className="wa-btn-pill">
                             {b.type === 'URL' && <ExternalLink size={12} />}
                             {b.type === 'PHONE_NUMBER' && <Phone size={12} />}
                             {b.text}
@@ -1409,17 +1449,19 @@ export default function TemplatesPage() {
                   <div
                     style={{
                       padding: '10px 12px',
-                      background: preview.valid ? 'var(--color-success-soft)' : 'var(--color-warning-soft)',
+                      background: preview.valid ? 'var(--tp-emerald-50)' : 'var(--tp-amber-50)',
                       borderRadius: '8px',
                       fontSize: '11.5px',
+                      border: '1px solid',
+                      borderColor: preview.valid ? '#BBF7D0' : '#FDE68A',
                     }}
                   >
                     {preview.valid ? (
-                      <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--tp-emerald-600)', fontWeight: 600 }}>
                         ✓ All tokens resolved for {preview.contact?.name || 'Contact'}
                       </span>
                     ) : (
-                      <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>
+                      <span style={{ color: 'var(--tp-amber-500)', fontWeight: 600 }}>
                         ⚠ Missing values: {preview.missingVariables?.join(', ')}
                       </span>
                     )}
@@ -1428,7 +1470,7 @@ export default function TemplatesPage() {
 
                 {/* Validation Warnings */}
                 {validation && !validation.valid && (
-                  <div style={{ padding: '10px 12px', background: 'var(--color-danger-soft)', borderRadius: '8px', fontSize: '11.5px', color: 'var(--color-danger)' }}>
+                  <div style={{ padding: '10px 12px', background: 'var(--tp-red-50)', border: '1px solid #FECACA', borderRadius: '8px', fontSize: '11.5px', color: 'var(--tp-red-600)' }}>
                     <b>Validation Findings:</b>
                     <ul style={{ margin: '4px 0 0', paddingLeft: '16px' }}>
                       {validation.errors.map((e, i) => (
@@ -1438,7 +1480,7 @@ export default function TemplatesPage() {
                   </div>
                 )}
 
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textAlign: 'center', padding: '4px 0' }}>
+                <div style={{ fontSize: '11px', color: 'var(--tp-slate-500)', textAlign: 'center', padding: '4px 0' }}>
                   Meta Verification: <b>Not Submitted (Offline Mock)</b>
                 </div>
               </aside>
@@ -1453,44 +1495,34 @@ export default function TemplatesPage() {
       {tab === 'library' && (
         <section className="panel" style={{ padding: '24px' }}>
           <div style={{ marginBottom: '18px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Real Estate Template Library</h2>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '4px 0 0' }}>
-              Pre-configured property templates for launch announcements, farmhouse enquiries, PDF brochures, and site visits.
+            <h2 style={{ fontSize: '18px', fontWeight: 700 }}>{industryName} Template Library</h2>
+            <p style={{ fontSize: '13px', color: 'var(--tp-slate-500)', margin: '4px 0 0' }}>
+              {industryDescription}
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+          {!loading && library.length === 0 && <p role="status">No presets are available for this workspace’s industry. Saved templates remain available in the studio.</p>}
+          <div className="tp-preset-grid">
             {library.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '10px',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  background: '#FFFFFF',
-                }}
-              >
+              <div key={item.id} className="tp-preset-card">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span className="status-badge" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
+                  <span className="status-badge" style={{ backgroundColor: 'var(--tp-blue-50)', color: 'var(--tp-blue-600)', border: '1px solid var(--tp-blue-border)' }}>
                     {item.category}
                   </span>
-                  <small style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                  <small style={{ fontSize: '11px', color: 'var(--tp-slate-400)' }}>
                     {item.headerType !== 'NONE' ? `Header: ${item.headerType}` : 'No Header'} · {item.language}
                   </small>
                 </div>
-                <strong style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>{item.name}</strong>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: 0, fontStyle: 'italic' }}>
+                <strong style={{ fontSize: '14px', color: 'var(--tp-slate-900)' }}>{item.title || item.name}</strong>
+                <p style={{ fontSize: '12px', color: 'var(--tp-slate-500)', margin: 0, fontStyle: 'italic' }}>
                   {item.description}
                 </p>
-                <div style={{ background: 'var(--color-surface-subtle)', padding: '10px', borderRadius: '6px', fontSize: '12px', color: '#111B21', whiteSpace: 'pre-wrap', lineHeight: 1.45 }}>
+                <div className="tp-preset-body">
                   {item.body}
                 </div>
                 <button
                   type="button"
-                  className="outline-btn small"
+                  className="primary-btn small"
                   style={{ alignSelf: 'flex-start', marginTop: 'auto' }}
                   onClick={() => {
                     chooseTemplate({
@@ -1543,7 +1575,7 @@ export default function TemplatesPage() {
                   onChange={(e) => setNewButtonText(e.target.value)}
                   placeholder="e.g. Yes, share details"
                 />
-                <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
+                <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
                   {newButtonText.length}/25 characters
                 </small>
               </label>
@@ -1556,7 +1588,7 @@ export default function TemplatesPage() {
                     onChange={(e) => setNewButtonValue(e.target.value)}
                     placeholder="https://m2wrealty.com/projects"
                   />
-                  <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
+                  <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
                     Must begin with https://
                   </small>
                 </label>
@@ -1570,7 +1602,7 @@ export default function TemplatesPage() {
                     onChange={(e) => setNewButtonValue(e.target.value)}
                     placeholder="+919811122233"
                   />
-                  <small style={{ fontSize: '10.5px', color: 'var(--color-text-muted)' }}>
+                  <small style={{ fontSize: '10.5px', color: 'var(--tp-slate-500)' }}>
                     Format: +[CountryCode][Number]
                   </small>
                 </label>
@@ -1603,7 +1635,7 @@ export default function TemplatesPage() {
             </div>
             <div style={{ padding: '16px 20px', overflowY: 'auto', maxHeight: '450px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {versions.length === 0 && (
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textAlign: 'center', padding: '16px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--tp-slate-500)', textAlign: 'center', padding: '16px' }}>
                   No historical versions saved yet.
                 </div>
               )}
@@ -1612,7 +1644,7 @@ export default function TemplatesPage() {
                   key={v._id}
                   style={{
                     padding: '12px',
-                    border: '1px solid var(--color-border)',
+                    border: '1px solid var(--tp-slate-200)',
                     borderRadius: '8px',
                     background: '#FFFFFF',
                   }}
@@ -1621,19 +1653,19 @@ export default function TemplatesPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <strong style={{ fontSize: '13px' }}>Version {v.versionNumber}</strong>
                       {v.versionNumber === draft.currentVersionNumber && (
-                        <span style={{ fontSize: '10px', background: 'var(--color-primary-soft)', color: 'var(--color-primary)', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+                        <span style={{ fontSize: '10px', background: 'var(--tp-blue-50)', color: 'var(--tp-blue-600)', padding: '1px 6px', borderRadius: '4px', fontWeight: 600, border: '1px solid var(--tp-blue-border)' }}>
                           Current Active
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--tp-slate-500)' }}>
                       {new Date(v.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '4px 0 6px' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--tp-slate-600)', margin: '4px 0 6px' }}>
                     {v.revisionNotes || 'No revision notes provided'}
                   </p>
-                  <div style={{ background: 'var(--color-surface-subtle)', padding: '6px 8px', borderRadius: '4px', fontSize: '11.5px', color: '#111B21', marginBottom: '8px', maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ background: 'var(--tp-slate-50)', border: '1px solid var(--tp-slate-200)', padding: '6px 8px', borderRadius: '4px', fontSize: '11.5px', color: '#111B21', marginBottom: '8px', maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {v.snapshot?.body}
                   </div>
                   <button

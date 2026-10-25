@@ -1,3 +1,5 @@
+import { tenantScope } from '../utils/tenantScope.js';
+import { legacyWorkspaceScope } from '../utils/legacyWorkspaceScope.js';
 import mongoose from 'mongoose';
 import ContactGroup from '../models/ContactGroup.js';
 import Contact from '../models/Contact.js';
@@ -14,7 +16,7 @@ function parseId(id) {
 export async function listGroups(req, res) {
   const ownerId = req.user._id;
   const search = typeof req.query.search === 'string' ? req.query.search.trim().slice(0, 100) : '';
-  const query = { ownerId, isArchived: false };
+  const query = { ...await legacyWorkspaceScope(req), isArchived: false };
   if (search) {
     const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     query.name = new RegExp(escaped, 'i');
@@ -24,7 +26,7 @@ export async function listGroups(req, res) {
   
   // Update and synchronize live member counts accurately
   const counts = await Contact.aggregate([
-    { $match: { ownerId: new mongoose.Types.ObjectId(ownerId), isDeleted: false } },
+    { $match: { ...tenantScope(req), isDeleted: false } },
     { $unwind: '$groups' },
     { $group: { _id: '$groups', count: { $sum: 1 } } }
   ]);
@@ -40,11 +42,11 @@ export async function listGroups(req, res) {
 
 export async function getGroup(req, res) {
   const id = parseId(req.params.id);
-  const group = await ContactGroup.findOne({ _id: id, ownerId: req.user._id, isArchived: false }).lean();
+  const group = await ContactGroup.findOne({ _id: id, ...await legacyWorkspaceScope(req), isArchived: false }).lean();
   if (!group) return res.status(404).json({ message: 'Contact group not found.' });
 
   const contactCount = await Contact.countDocuments({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     groups: id,
     isDeleted: false
   });
@@ -60,17 +62,17 @@ export async function createGroup(req, res) {
 
   const normalizedName = name.toLowerCase();
   const duplicate = await ContactGroup.findOne({
-    ownerId: req.user._id,
+    ...await legacyWorkspaceScope(req),
     normalizedName,
     isArchived: false
   });
   if (duplicate) throw fail('A group with this name already exists in your account.', 409);
 
   const description = String(req.body?.description || '').trim().slice(0, 500);
-  const color = String(req.body?.color || '#0D9488').trim().slice(0, 20);
+  const color = String(req.body?.color || '#2563EB').trim().slice(0, 20);
 
   const group = await ContactGroup.create({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     name,
     normalizedName,
     description,
@@ -83,11 +85,11 @@ export async function createGroup(req, res) {
     const validIds = req.body.contactIds.filter(validId);
     if (validIds.length > 0) {
       await Contact.updateMany(
-        { _id: { $in: validIds }, ownerId: req.user._id, isDeleted: false },
+        { _id: { $in: validIds }, ...tenantScope(req), isDeleted: false },
         { $addToSet: { groups: group._id } }
       );
       group.contactCount = await Contact.countDocuments({
-        ownerId: req.user._id,
+        ...tenantScope(req),
         groups: group._id,
         isDeleted: false
       });
@@ -100,7 +102,7 @@ export async function createGroup(req, res) {
 
 export async function updateGroup(req, res) {
   const id = parseId(req.params.id);
-  const group = await ContactGroup.findOne({ _id: id, ownerId: req.user._id, isArchived: false });
+  const group = await ContactGroup.findOne({ _id: id, ...await legacyWorkspaceScope(req), isArchived: false });
   if (!group) return res.status(404).json({ message: 'Contact group not found.' });
 
   if (req.body?.name !== undefined) {
@@ -111,7 +113,7 @@ export async function updateGroup(req, res) {
     const normalizedName = name.toLowerCase();
     const duplicate = await ContactGroup.findOne({
       _id: { $ne: id },
-      ownerId: req.user._id,
+      ...await legacyWorkspaceScope(req),
       normalizedName,
       isArchived: false
     });
@@ -125,12 +127,12 @@ export async function updateGroup(req, res) {
   }
 
   if (req.body?.color !== undefined) {
-    group.color = String(req.body.color || '#0D9488').trim().slice(0, 20);
+    group.color = String(req.body.color || '#2563EB').trim().slice(0, 20);
   }
 
   await group.save();
   const contactCount = await Contact.countDocuments({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     groups: group._id,
     isDeleted: false
   });
@@ -141,12 +143,12 @@ export async function updateGroup(req, res) {
 
 export async function deleteGroup(req, res) {
   const id = parseId(req.params.id);
-  const group = await ContactGroup.findOneAndDelete({ _id: id, ownerId: req.user._id });
+  const group = await ContactGroup.findOneAndDelete({ _id: id, ...await legacyWorkspaceScope(req) });
   if (!group) return res.status(404).json({ message: 'Contact group not found.' });
 
   // Disassociate group from member contacts without deleting the contacts!
   await Contact.updateMany(
-    { ownerId: req.user._id, groups: id },
+    { ...tenantScope(req), groups: id },
     { $pull: { groups: id } }
   );
 
@@ -155,7 +157,7 @@ export async function deleteGroup(req, res) {
 
 export async function manageMembers(req, res) {
   const id = parseId(req.params.id);
-  const group = await ContactGroup.findOne({ _id: id, ownerId: req.user._id, isArchived: false });
+  const group = await ContactGroup.findOne({ _id: id, ...await legacyWorkspaceScope(req), isArchived: false });
   if (!group) return res.status(404).json({ message: 'Contact group not found.' });
 
   const { action, contactIds } = req.body || {};
@@ -168,18 +170,18 @@ export async function manageMembers(req, res) {
 
   if (action === 'add') {
     await Contact.updateMany(
-      { _id: { $in: uniqueIds }, ownerId: req.user._id, isDeleted: false },
+      { _id: { $in: uniqueIds }, ...tenantScope(req), isDeleted: false },
       { $addToSet: { groups: group._id } }
     );
   } else {
     await Contact.updateMany(
-      { _id: { $in: uniqueIds }, ownerId: req.user._id, isDeleted: false },
+      { _id: { $in: uniqueIds }, ...tenantScope(req), isDeleted: false },
       { $pull: { groups: group._id } }
     );
   }
 
   const newCount = await Contact.countDocuments({
-    ownerId: req.user._id,
+    ...tenantScope(req),
     groups: group._id,
     isDeleted: false
   });
@@ -196,7 +198,7 @@ export async function manageMembers(req, res) {
 
 export async function getGroupMembers(req, res) {
   const id = parseId(req.params.id);
-  const group = await ContactGroup.findOne({ _id: id, ownerId: req.user._id, isArchived: false }).lean();
+  const group = await ContactGroup.findOne({ _id: id, ...await legacyWorkspaceScope(req), isArchived: false }).lean();
   if (!group) return res.status(404).json({ message: 'Contact group not found.' });
 
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -204,12 +206,12 @@ export async function getGroupMembers(req, res) {
   const skip = (page - 1) * limit;
 
   const [members, total] = await Promise.all([
-    Contact.find({ ownerId: req.user._id, groups: id, isDeleted: false })
+    Contact.find({ ...tenantScope(req), groups: id, isDeleted: false })
       .sort({ fullName: 1 })
       .skip(skip)
       .limit(limit)
       .lean(),
-    Contact.countDocuments({ ownerId: req.user._id, groups: id, isDeleted: false })
+    Contact.countDocuments({ ...tenantScope(req), groups: id, isDeleted: false })
   ]);
 
   res.json({

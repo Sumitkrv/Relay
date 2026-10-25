@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const ruleExecutionSchema = new mongoose.Schema({
+  workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', index: true },
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

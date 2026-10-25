@@ -2,6 +2,7 @@ import Workspace from '../models/Workspace.js';
 import WorkspaceMembership from '../models/WorkspaceMembership.js';
 import { provisionWorkspaceInternal } from '../services/workspaceContextService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { inspectWorkspaceStarterData, provisionWorkspaceStarterData } from '../services/industryStarterProvisioningService.js';
 
 /**
  * GET /api/workspaces/current
@@ -95,4 +96,47 @@ export const provisionWorkspace = asyncHandler(async (req, res) => {
     workspace: result.workspace,
     membership: result.membership,
   });
+});
+
+/**
+ * GET /api/workspaces/current/starter-provisioning
+ * Read-only: provisioning lifecycle + verified saved counts for the authorized workspace.
+ */
+export const getStarterProvisioningStatus = asyncHandler(async (req, res) => {
+  const ws = req.workspace;
+  let inventory = null;
+  try {
+    inventory = await inspectWorkspaceStarterData(ws._id, ws.industryKey);
+  } catch (err) {
+    inventory = { error: err.code || 'INSPECTION_FAILED', message: err.message };
+  }
+  res.json({
+    workspaceId: ws._id,
+    industryKey: ws.industryKey,
+    // null => legacy workspace created before automatic provisioning; never auto-seeded.
+    starterProvisioning: ws.starterProvisioning || null,
+    inventory,
+  });
+});
+
+/**
+ * POST /api/workspaces/current/starter-provisioning/retry
+ * Owner/Admin only. Resumes a PENDING/FAILED/interrupted provisioning; inserts only
+ * missing starter records and never overwrites edits. Legacy workspaces are refused.
+ */
+export const retryStarterProvisioning = asyncHandler(async (req, res) => {
+  const ws = req.workspace;
+  const role = req.workspaceMembership?.role;
+  if (!['OWNER', 'ADMIN'].includes(role)) {
+    return res.status(403).json({ code: 'INSUFFICIENT_ROLE', message: 'Only workspace owners or admins can retry provisioning.' });
+  }
+  if (!ws.starterProvisioning) {
+    return res.status(409).json({ code: 'LEGACY_WORKSPACE', message: 'This workspace predates automatic provisioning. Use the explicit backfill tool instead.' });
+  }
+  if (ws.starterProvisioning.status === 'COMPLETED') {
+    return res.json({ status: 'COMPLETED', skipped: true, counts: ws.starterProvisioning.counts });
+  }
+  const ownerId = ws.createdBy || req.user._id;
+  const result = await provisionWorkspaceStarterData({ workspaceId: ws._id, ownerId, industryKey: ws.industryKey });
+  res.json(result);
 });

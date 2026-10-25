@@ -80,16 +80,9 @@ test('Prompt 4 - Real Estate Variable Toolbar & Personalization Tokens', () => {
   const pagePath = path.resolve(__dirname, '../src/pages/TemplatesPage.jsx');
   const code = fs.readFileSync(pagePath, 'utf8');
 
-  // Verify variable groups
-  assert.ok(code.includes('Contact Profile'), 'Contact Profile group must exist');
-  assert.ok(code.includes('Real Estate Preferences'), 'Real Estate group must exist');
-  assert.ok(code.includes('M2W Realty Business'), 'Business profile group must exist');
-
-  // Verify specific real estate tokens
-  const realEstateTokens = ['property_type', 'project', 'preferred_location', 'budget'];
-  for (const token of realEstateTokens) {
-    assert.ok(code.includes(`key: '${token}'`), `Toolbar must provide ${token} variable chip`);
-  }
+  assert.ok(code.includes('getTemplateVariables()'), 'Toolbar must request the workspace variable API');
+  assert.ok(code.includes('variables.categories.map'), 'Every API group must be rendered');
+  assert.ok(!code.includes('const VARIABLE_GROUPS'), 'No competing frontend variable catalog');
 
   // Verify token insertion logic
   assert.ok(code.includes('insertVariable'), 'insertVariable handler must exist');

@@ -19,6 +19,7 @@ const fail = (message, status = 400, code = 'MESSAGE_ERROR') => {
  * Lists messages with server-side filters, search, and pagination.
  */
 export async function listMessages(ownerId, {
+  workspaceId = null,
   status = null,
   campaignId = null,
   campaignRunId = null,
@@ -29,7 +30,7 @@ export async function listMessages(ownerId, {
   sortBy = 'createdAt',
   sortOrder = -1
 } = {}) {
-  const q = { ownerId };
+  const q = { ownerId, ...(workspaceId ? { workspaceId } : {}) };
 
   if (status && status !== 'all') {
     q.status = status;
@@ -84,8 +85,8 @@ export async function listMessages(ownerId, {
 /**
  * Returns single message by ID with owner authorization check.
  */
-export async function getMessage(messageId, ownerId) {
-  const message = await Message.findOne({ _id: messageId, ownerId })
+export async function getMessage(messageId, ownerId, workspaceId = null) {
+  const message = await Message.findOne({ _id: messageId, ownerId, ...(workspaceId ? { workspaceId } : {}) })
     .populate('contactId', 'fullName phoneNumber email city interestedPropertyType interestedProject')
     .populate('campaignId', 'name category')
     .populate('templateId', 'name category language')
@@ -101,8 +102,8 @@ export async function getMessage(messageId, ownerId) {
 /**
  * Manually retries a failed message if recipient is still eligible.
  */
-export async function retryMessage(messageId, ownerId) {
-  const message = await Message.findOne({ _id: messageId, ownerId });
+export async function retryMessage(messageId, ownerId, workspaceId = null) {
+  const message = await Message.findOne({ _id: messageId, ownerId, ...(workspaceId ? { workspaceId } : {}) });
   if (!message) {
     throw fail('Message not found.', 404, 'MESSAGE_NOT_FOUND');
   }
@@ -112,7 +113,7 @@ export async function retryMessage(messageId, ownerId) {
   }
 
   // Check contact eligibility before retry
-  const contact = await Contact.findOne({ _id: message.contactId, ownerId }).lean();
+  const contact = await Contact.findOne({ _id: message.contactId, ownerId, ...(message.workspaceId ? { workspaceId: message.workspaceId } : {}) }).lean();
   if (!contact || contact.isDeleted || contact.isArchived) {
     throw fail('Cannot retry: contact is deleted or archived.', 400, 'INVALID_CONTACT');
   }
@@ -152,8 +153,8 @@ export async function retryMessage(messageId, ownerId) {
 /**
  * Cancels a pending or scheduled message.
  */
-export async function cancelMessage(messageId, ownerId, reason = 'Cancelled by user') {
-  const message = await Message.findOne({ _id: messageId, ownerId });
+export async function cancelMessage(messageId, ownerId, reason = 'Cancelled by user', workspaceId = null) {
+  const message = await Message.findOne({ _id: messageId, ownerId, ...(workspaceId ? { workspaceId } : {}) });
   if (!message) {
     throw fail('Message not found.', 404, 'MESSAGE_NOT_FOUND');
   }

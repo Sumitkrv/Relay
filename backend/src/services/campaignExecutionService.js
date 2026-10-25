@@ -11,6 +11,8 @@ import {resolveTemplate} from '../utils/templateEngine.js';
 import {validateCampaignAudience} from './eligibilityValidationService.js';
 import {recordCampaignActivity} from './campaignActivityService.js';
 import Message from '../models/Message.js';
+import Conversation from '../models/Conversation.js';
+import ConversationMessage from '../models/ConversationMessage.js';
 import { recordMessageEvent } from './messageEventService.js';
 
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
@@ -22,12 +24,12 @@ export async function createCampaignExecution(campaignId,ownerId,actorId,{trigge
  if(campaign.activeExecutionId){if(await CampaignExecution.exists({_id:campaign.activeExecutionId,status:{$in:active}}))throw fail('This campaign already has an active simulation.',409);await Campaign.updateOne({_id:campaign._id,ownerId,activeExecutionId:campaign.activeExecutionId},{$set:{activeExecutionId:null}});}
  const user=await User.findById(ownerId).select('businessName').lean();const validation=await validateCampaignAudience(campaign,{_id:ownerId,businessName:user?.businessName||''});
  const version=await TemplateVersion.findOne({_id:campaign.selectedTemplateVersionId,templateId:campaign.selectedTemplateId,ownerId}).lean();
- const execution=await CampaignExecution.create({ownerId,campaignId,mode:'mock',trigger,audienceSnapshotVersion:campaign.audienceSnapshotVersion,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,totalJobs:counts,status:'queued',scheduledFor,summary:{validated:validation.counts.total,locallyEligible:validation.counts.eligible}});
+ const execution=await CampaignExecution.create({ownerId,workspaceId:campaign.workspaceId,campaignId,mode:'mock',trigger,audienceSnapshotVersion:campaign.audienceSnapshotVersion,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,totalJobs:counts,status:'queued',scheduledFor,summary:{validated:validation.counts.total,locallyEligible:validation.counts.eligible}});
  try{
    const cursor=CampaignAudience.find({ownerId,campaignId,snapshotVersion:campaign.audienceSnapshotVersion}).select('contactId').cursor();
    let ops=[];
    for await(const member of cursor){
-     ops.push({updateOne:{filter:{ownerId,executionId:execution._id,contactId:member.contactId},update:{$setOnInsert:{ownerId,campaignId,executionId:execution._id,contactId:member.contactId,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,status:'queued'}},upsert:true}});
+     ops.push({updateOne:{filter:{ownerId,executionId:execution._id,contactId:member.contactId},update:{$setOnInsert:{ownerId,workspaceId:campaign.workspaceId,campaignId,executionId:execution._id,contactId:member.contactId,templateId:campaign.selectedTemplateId,templateVersionId:campaign.selectedTemplateVersionId,status:'queued'}},upsert:true}});
      if(ops.length>=500){await CampaignMessageJob.bulkWrite(ops,{ordered:false});ops=[];}
    }
    if(ops.length)await CampaignMessageJob.bulkWrite(ops,{ordered:false});
@@ -44,11 +46,18 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
  const execution=await CampaignExecution.findOne({_id:job.executionId,ownerId:job.ownerId});if(!execution||!['queued','running'].includes(execution.status)){await CampaignMessageJob.updateOne({_id:job._id,leaseOwner:workerId},{$set:{status:execution?.status==='cancelled'?'cancelled':'queued',leaseOwner:'',leaseUntil:null}});return false;}
  if(execution.status==='queued'){execution.status='running';execution.startedAt=new Date();await execution.save();}
  const started=Date.now();let status='simulated_success',error='';const contact=await Contact.findOne({_id:job.contactId,ownerId:job.ownerId,isDeleted:false,isArchived:false}).lean();
- if(!contact) {status='blocked';error='Contact is deleted or archived.';}else if(!/^\+[1-9]\d{7,14}$/.test(contact.phoneNumber||'')){status='blocked';error='Invalid phone number.';}else if(contact.whatsappConsentStatus!=='Opted In'){status='blocked';error=contact.whatsappConsentStatus==='Opted Out'?'Contact opted out.':'No recorded affirmative consent.';}else {
-  const [record,user,campaign,template,version]=await Promise.all([ConsentRecord.findOne({ownerId:job.ownerId,contactId:job.contactId}).sort({recordedAt:-1,_id:-1}).lean(),User.findById(job.ownerId).select('businessName').lean(),Campaign.findOne({_id:job.campaignId,ownerId:job.ownerId}).lean(),MessageTemplate.findOne({_id:job.templateId,ownerId:job.ownerId}).lean(),TemplateVersion.findOne({_id:job.templateVersionId,templateId:job.templateId,ownerId:job.ownerId}).lean()]);
-  const norm=v=>String(v||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();const purpose=norm(campaign?.service||campaign?.customGoal||campaign?.goal);
-  const activeSnapshot = campaign?.templateSnapshot || version?.snapshot;
-  if(record?.status==='Opted Out'){status='blocked';error='Latest consent record is opted out.';}else if(record?.status!=='Opted In'||!record.consentSource||!record.evidenceReference||!record.consentCapturedAt||new Date(record.consentCapturedAt)>new Date()||!user?.businessName||norm(record.consentedBusinessName)!==norm(user.businessName)||!purpose||!norm(record.consentPurpose).includes(purpose)){status='blocked';error='Current evidence-backed consent for this business and purpose is missing.';}else if(!activeSnapshot){status='blocked';error='Pinned template version is unavailable.';}else {const preview=resolveTemplate(activeSnapshot,contact,user);if(!preview.valid){status='blocked';error=`Missing personalization values: ${preview.missingVariables.join(', ')}.`;}}
+ if(!contact) {status='blocked';error='Contact is deleted or archived.';}else if(!/^\+[1-9]\d{7,14}$/.test(contact.phoneNumber||'')){status='blocked';error='Invalid phone number.';}else {
+   const [record,user,campaign,template,version]=await Promise.all([ConsentRecord.findOne({ownerId:job.ownerId,contactId:job.contactId}).sort({recordedAt:-1,_id:-1}).lean(),User.findById(job.ownerId).select('businessName').lean(),Campaign.findOne({_id:job.campaignId,ownerId:job.ownerId}).lean(),MessageTemplate.findOne({_id:job.templateId,ownerId:job.ownerId}).lean(),TemplateVersion.findOne({_id:job.templateVersionId,templateId:job.templateId,ownerId:job.ownerId}).lean()]);
+   const isMockEligible = Boolean((contact.isDemo || contact.demoDatasetId) && (campaign?.executionMode === 'MOCK' || campaign?.executionMode === 'mock'));
+   if(contact.whatsappConsentStatus==='Opted Out'||contact.isSuppressed){
+     status='blocked';error='Contact opted out.';
+   } else if(!isMockEligible && contact.whatsappConsentStatus!=='Opted In'){
+     status='blocked';error='No recorded affirmative consent.';
+   } else {
+     const norm=v=>String(v||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();const purpose=norm(campaign?.service||campaign?.customGoal||campaign?.goal);
+     const activeSnapshot = campaign?.templateSnapshot || version?.snapshot;
+     if(record?.status==='Opted Out'){status='blocked';error='Latest consent record is opted out.';}else if(!isMockEligible && (!record||record.status!=='Opted In'||!record.consentSource||!record.evidenceReference||!record.consentCapturedAt||new Date(record.consentCapturedAt)>new Date()||!user?.businessName||norm(record.consentedBusinessName)!==norm(user.businessName)||!purpose||!norm(record.consentPurpose).includes(purpose))){status='blocked';error='Current evidence-backed consent for this business and purpose is missing.';}else if(!activeSnapshot){status='blocked';error='Pinned template version is unavailable.';}else {const preview=resolveTemplate(activeSnapshot,contact,user);if(!preview.valid){status='blocked';error=`Missing personalization values: ${preview.missingVariables.join(', ')}.`;}}
+   }
  }
   const write=await CampaignMessageJob.updateOne({_id:job._id,status:'processing',leaseOwner:workerId},{$set:{status,error,leaseOwner:'',leaseUntil:null,processedAt:new Date(),processingMs:Date.now()-started,validationStatus:status==='blocked'?'blocked':'eligible'}});if(!write.modifiedCount)return false;
   try {
@@ -59,7 +68,7 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
     const [user, version, campaignDoc] = await Promise.all([
       User.findById(job.ownerId).select('businessName name phone website').lean(),
       TemplateVersion.findOne({ _id: job.templateVersionId, templateId: job.templateId, ownerId: job.ownerId }).lean(),
-      Campaign.findById(job.campaignId).select('templateSnapshot').lean()
+      Campaign.findById(job.campaignId).select('templateSnapshot workspaceId').lean()
     ]);
     const finalSnapshot = campaignDoc?.templateSnapshot || version?.snapshot;
     if (finalSnapshot && contact) {
@@ -78,6 +87,7 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
       {
         $setOnInsert: {
           messageId: `msg_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`,
+          workspaceId: campaignDoc?.workspaceId || job.workspaceId,
           contactId: job.contactId,
           recipientPhone: contact?.phoneNumber || '',
           recipientName: contact?.fullName || '',
@@ -115,6 +125,46 @@ export async function processCampaignJob(jobId,workerId=`campaign-worker-${proce
         correlationId: String(execution._id),
         safeMetadata: { executionId: String(execution._id), campaignId: String(job.campaignId) }
       });
+
+      if (status === 'simulated_success') {
+        try {
+          const finishedAt = new Date();
+          let conversation = await Conversation.findOne({
+            ownerId: job.ownerId,
+            contactId: job.contactId
+          });
+          if (!conversation) {
+            conversation = await Conversation.create({
+              ownerId: job.ownerId,
+              workspaceId: campaignDoc?.workspaceId || job.workspaceId,
+              contactId: job.contactId,
+              lastMessageAt: finishedAt,
+              status: 'Open'
+            });
+          }
+          await ConversationMessage.create({
+            ownerId: job.ownerId,
+            workspaceId: campaignDoc?.workspaceId || job.workspaceId,
+            conversationId: conversation._id,
+            contactId: job.contactId,
+            direction: 'outbound',
+            messageType: 'text',
+            messageSource: 'mock_simulation',
+            trustLevel: 'synthetic',
+            providerMessageId,
+            templateVersionId: job.templateVersionId,
+            messageBody: renderedSnapshot?.body || '',
+            simulationStatus: 'Simulated Success',
+            providerStatus: 'Sent',
+            occurredAt: finishedAt
+          });
+          conversation.lastMessageId = messageDoc._id;
+          conversation.lastActivityAt = finishedAt;
+          await conversation.save();
+        } catch (convErr) {
+          // Non-blocking sync notice
+        }
+      }
     }
   } catch (syncErr) {
     // Non-blocking sync notice

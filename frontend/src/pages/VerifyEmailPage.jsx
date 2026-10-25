@@ -91,17 +91,20 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6 py-16">
+    <div className="min-h-screen bg-[#F4F7FC] flex items-center justify-center p-4 sm:p-6 py-16">
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-10 text-center">
         {/* Brand */}
-        <Link to="/" className="inline-flex items-center gap-1.5 text-xl font-bold tracking-tight text-slate-900 mb-8">
-          RELAY<span className="text-teal-600">.</span>
+        <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-slate-900 mb-8">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-sm shadow">
+            R
+          </div>
+          <span>RELAY<span className="text-blue-600">.</span></span>
         </Link>
 
         {/* 1. Verifying State */}
         {status === 'verifying' && (
           <div className="space-y-4 py-6">
-            <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
             <h2 className="text-xl font-bold text-slate-900">Verifying Your Email</h2>
             <p className="text-xs text-slate-500">Checking your security token with Relay server...</p>
           </div>
@@ -110,7 +113,7 @@ export default function VerifyEmailPage() {
         {/* 2. Success State */}
         {status === 'success' && (
           <div className="space-y-5 py-4">
-            <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-200 shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200 shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div>
@@ -122,7 +125,7 @@ export default function VerifyEmailPage() {
             <div className="pt-2">
               <Link
                 to="/login"
-                className="w-full py-3.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
               >
                 <span>Continue to Sign In</span>
                 <ArrowRight className="w-4 h-4" />
@@ -145,7 +148,7 @@ export default function VerifyEmailPage() {
             </div>
 
             {resendMessage && (
-              <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs">
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs">
                 {resendMessage}
               </div>
             )}
@@ -157,12 +160,12 @@ export default function VerifyEmailPage() {
                 placeholder="Enter your registered email"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="submit"
                 disabled={resendBusy || cooldown > 0}
-                className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-[#0B1220] hover:bg-[#111827] text-white font-bold text-xs shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <RotateCw className={`w-3.5 h-3.5 ${resendBusy ? 'animate-spin' : ''}`} />
                 <span>{cooldown > 0 ? `Wait ${cooldown}s` : 'Send Fresh Verification Email'}</span>
@@ -180,7 +183,7 @@ export default function VerifyEmailPage() {
         {/* 4. Already Used State */}
         {status === 'already_used' && (
           <div className="space-y-5 py-4">
-            <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-200">
+            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200">
               <Sparkles className="w-8 h-8" />
             </div>
             <div>
@@ -192,7 +195,7 @@ export default function VerifyEmailPage() {
             <div className="pt-2">
               <Link
                 to="/login"
-                className="w-full py-3.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
               >
                 <span>Sign In to Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -215,7 +218,7 @@ export default function VerifyEmailPage() {
             </div>
 
             {resendMessage && (
-              <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs">
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs">
                 {resendMessage}
               </div>
             )}
@@ -227,12 +230,12 @@ export default function VerifyEmailPage() {
                 placeholder="Enter your registered email"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="submit"
                 disabled={resendBusy || cooldown > 0}
-                className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-[#0B1220] hover:bg-[#111827] text-white font-bold text-xs shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <RotateCw className={`w-3.5 h-3.5 ${resendBusy ? 'animate-spin' : ''}`} />
                 <span>{cooldown > 0 ? `Wait ${cooldown}s` : 'Send Verification Email'}</span>
@@ -250,7 +253,7 @@ export default function VerifyEmailPage() {
         {/* 6. Idle Resend / Verification Pending State */}
         {status === 'idle_resend' && (
           <div className="space-y-5 py-2">
-            <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-200">
+            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200">
               <Mail className="w-8 h-8" />
             </div>
             <div>
@@ -261,7 +264,7 @@ export default function VerifyEmailPage() {
             </div>
 
             {resendMessage && (
-              <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs">
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs">
                 {resendMessage}
               </div>
             )}
@@ -278,12 +281,12 @@ export default function VerifyEmailPage() {
                 placeholder="Enter your registered business email"
                 value={resendEmail}
                 onChange={(e) => setResendEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <button
                 type="submit"
                 disabled={resendBusy || cooldown > 0}
-                className="w-full py-3.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <RotateCw className={`w-4 h-4 ${resendBusy ? 'animate-spin' : ''}`} />
                 <span>{cooldown > 0 ? `Wait ${cooldown}s` : 'Resend Verification Email'}</span>

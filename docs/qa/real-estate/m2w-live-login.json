@@ -1,0 +1,101 @@
+{
+  "reset": {
+    "authorized": true,
+    "performedAt": "2026-10-23T17:57:01.367Z",
+    "accountEmail": "owner.m2w@relay-demo.test",
+    "userId": "6adaf2ccbaacf0587d451aca",
+    "workspaceId": "6adaf2ccbaacf0587d451ae6",
+    "updatedAccounts": 1,
+    "oldSessionsRevoked": 0,
+    "authVersionIncreased": true,
+    "suppliedPasswordVerified": true,
+    "businessCollectionsUnchanged": 74,
+    "businessRecordsUnchanged": 297,
+    "otherAccountsUnchanged": 6,
+    "passwordOrHashIncluded": false
+  },
+  "browser": {
+    "performedAt": "2026-10-23T17:57:55.021Z",
+    "target": "Existing local relay_demo M2W account",
+    "accountEmail": "owner.m2w@relay-demo.test",
+    "checks": [
+      {
+        "check": "Existing M2W browser login and authenticated /auth/me",
+        "status": "PASS",
+        "loginHttpStatus": 200,
+        "meHttpStatus": 200
+      },
+      {
+        "check": "Existing M2W identity survives /app navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /contacts navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /templates navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /campaigns navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /inbox navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /reports navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "Existing M2W identity survives /settings navigation and refresh",
+        "status": "PASS"
+      },
+      {
+        "check": "M2W dashboard fits 1525x1024",
+        "status": "PASS"
+      },
+      {
+        "check": "M2W dashboard fits 1280x800",
+        "status": "PASS"
+      },
+      {
+        "check": "M2W dashboard fits 430x932",
+        "status": "PASS"
+      },
+      {
+        "check": "Authenticated tab uses an HttpOnly session cookie",
+        "status": "PASS"
+      }
+    ],
+    "uncaughtBrowserErrors": [],
+    "authenticatedHttpFailures": [],
+    "crmRecordsCreatedOrEditedByCheck": 0,
+    "normalAuthenticationWrites": [
+      "lastLoginAt",
+      "AuthSession creation",
+      "login_success audit"
+    ]
+  },
+  "finalPreservationCheck": {
+    "performedAt": "2026-10-23T17:58:28.783Z",
+    "businessCollectionsUnchanged": 74,
+    "businessRecordsUnchanged": 297,
+    "otherAccountsUnchanged": 6
+  },
+  "regressionChecks": {
+    "frontendTests": {
+      "command": "npm --prefix frontend test",
+      "passed": 142,
+      "failed": 0
+    },
+    "frontendBuild": {
+      "command": "npm --prefix frontend run build",
+      "status": "PASS",
+      "warning": "Existing JavaScript chunk exceeds 500 kB"
+    }
+  },
+  "applicationSourceFilesModifiedInThisFollowUp": []
+}

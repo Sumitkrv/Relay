@@ -1,10 +1,11 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, LogOut } from 'lucide-react';
 
 export default function ProtectedRoute() {
   const { user, loading, authState, logout } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -56,6 +57,24 @@ export default function ProtectedRoute() {
   // Unverified users must verify email
   if (authState === 'EMAIL_VERIFICATION_REQUIRED') {
     return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email)}`} replace />;
+  }
+
+  // Platform Admin route authorization
+  if (location.pathname.startsWith('/admin')) {
+    if (!user.isPlatformAdmin) {
+      return <Navigate to="/app" replace />;
+    }
+    return <Outlet />;
+  }
+
+  // Agency Portal route access
+  if (location.pathname.startsWith('/agency')) {
+    return <Outlet />;
+  }
+
+  // Platform Super Admins accessing root /app go to /admin by default if they have no business workspace
+  if (user.isPlatformAdmin && !user.defaultWorkspaceId && authState === 'AUTHENTICATED_NO_WORKSPACE') {
+    return <Navigate to="/admin" replace />;
   }
 
   // Verified users without a workspace are redirected to the onboarding handoff boundary

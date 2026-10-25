@@ -27,6 +27,7 @@ const fail = (message, status = 400, code = 'INVALID_REQUEST') => {
 export async function list(req, res) {
   const { status, campaignId, campaignRunId, contactId, search, page, limit, sortBy, sortOrder } = req.query;
   const result = await messageService.listMessages(req.user._id, {
+    workspaceId: req.workspaceId,
     status,
     campaignId: isId(campaignId) ? campaignId : null,
     campaignRunId: isId(campaignRunId) ? campaignRunId : null,
@@ -41,7 +42,7 @@ export async function list(req, res) {
 }
 
 export async function stats(req, res) {
-  const health = await getQueueHealth(req.user._id);
+  const health = await getQueueHealth(req.user._id, req.workspaceId);
   res.json({
     stats: health.queueStats,
     health
@@ -50,14 +51,14 @@ export async function stats(req, res) {
 
 export async function get(req, res) {
   if (!isId(req.params.id)) throw fail('Message ID is invalid.');
-  const message = await messageService.getMessage(req.params.id, req.user._id);
+  const message = await messageService.getMessage(req.params.id, req.user._id, req.workspaceId);
   res.json({ message });
 }
 
 export async function events(req, res) {
   if (!isId(req.params.id)) throw fail('Message ID is invalid.');
   // Verify message belongs to owner
-  await messageService.getMessage(req.params.id, req.user._id);
+  await messageService.getMessage(req.params.id, req.user._id, req.workspaceId);
   const records = await getMessageEvents(req.params.id, req.user._id);
   res.json({ records });
 }
@@ -75,12 +76,13 @@ export async function prepare(req, res) {
   }
 
   const { message, isExisting } = await prepareMessageIntent({
+    workspaceId: req.workspaceId,
     ownerId: req.user._id,
     contactId,
     templateId: isId(templateId) ? templateId : null,
     templateVersionId: isId(templateVersionId) ? templateVersionId : null,
     campaignId: isId(campaignId) ? campaignId : null,
-    purpose: purpose || 'General Real Estate Enquiry',
+    purpose: purpose || 'General Enquiry',
     scheduledAt,
     idempotencyKey,
     metadata
@@ -91,19 +93,19 @@ export async function prepare(req, res) {
 
 export async function retry(req, res) {
   if (!isId(req.params.id)) throw fail('Message ID is invalid.');
-  const message = await messageService.retryMessage(req.params.id, req.user._id);
+  const message = await messageService.retryMessage(req.params.id, req.user._id, req.workspaceId);
   res.json({ message, notice: 'Message re-queued for simulation.' });
 }
 
 export async function cancel(req, res) {
   if (!isId(req.params.id)) throw fail('Message ID is invalid.');
   const reason = req.body?.reason || 'Cancelled by user via dashboard';
-  const message = await messageService.cancelMessage(req.params.id, req.user._id, reason);
+  const message = await messageService.cancelMessage(req.params.id, req.user._id, reason, req.workspaceId);
   res.json({ message, notice: 'Message cancelled successfully.' });
 }
 
 export async function systemStatus(req, res) {
-  const health = await getQueueHealth(req.user._id);
+  const health = await getQueueHealth(req.user._id, req.workspaceId);
   res.json(health);
 }
 
@@ -138,6 +140,7 @@ export async function devTestResults(req, res) {
   }
 
   const records = await messageService.listMessages(req.user._id, {
+    workspaceId: req.workspaceId,
     limit: 20,
     sortBy: 'createdAt',
     sortOrder: -1
@@ -156,7 +159,7 @@ export async function devSimulateInbound(req, res) {
   const { contactId, conversationId, body: rawBody, messageText } = req.body || {};
   const body = (rawBody || messageText || 'Hi, please send the brochure.').trim();
   const ownerId = req.user._id;
-  await seedDefaultRules(ownerId).catch(() => {});
+
 
   let targetContact = null;
   let targetConversation = null;
@@ -401,7 +404,7 @@ export async function devRunCampaignWorker(req, res) {
   }
 
   const processedCount = await messageWorkerTick(`dev-test-worker-${process.pid}`);
-  const health = await getQueueHealth(req.user._id);
+  const health = await getQueueHealth(req.user._id, req.workspaceId);
 
   res.json({
     success: true,

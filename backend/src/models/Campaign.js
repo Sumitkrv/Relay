@@ -18,8 +18,11 @@ const campaignSchema=new mongoose.Schema({
   activeExecutionId:{type:mongoose.Schema.Types.ObjectId,ref:'CampaignExecution',default:null,index:true},
   mockSchedule:{type:mongoose.Schema.Types.Mixed,default:null},
   validationSummary:{type:mongoose.Schema.Types.Mixed,default:{}},wizardStep:{type:Number,min:1,max:6,default:1},createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},
-  archivedAt:{type:Date,default:null}
+  archivedAt:{type:Date,default:null},
+  starterPresetKey:{type:String,trim:true,default:null},starterPackVersion:{type:String,trim:true,default:null},provisioningSource:{type:String,trim:true,default:null}
 },{timestamps:true});
 campaignSchema.index({ownerId:1,status:1,updatedAt:-1});campaignSchema.index({ownerId:1,name:1});
 campaignSchema.index({ownerId:1,'mockSchedule.status':1,'mockSchedule.startAt':1});
+// One provisioned copy of each industry starter draft per workspace (new field: no legacy conflicts).
+campaignSchema.index({workspaceId:1,starterPresetKey:1},{unique:true,partialFilterExpression:{starterPresetKey:{$type:'string'}}});
 export default mongoose.model('Campaign',campaignSchema);

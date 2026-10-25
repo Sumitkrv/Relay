@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Workspace, { VALID_INDUSTRIES } from '../models/Workspace.js';
 import WorkspaceMembership from '../models/WorkspaceMembership.js';
 import User from '../models/User.js';
+import { provisionNewWorkspaceSafely } from './industryStarterProvisioningService.js';
 
 /**
  * Custom Authorization Error class
@@ -200,5 +201,11 @@ export async function provisionWorkspaceInternal({
     await user.save();
   }
 
-  return { workspace, membership, isExisting: false };
+  const starterProvisioning = await provisionNewWorkspaceSafely({
+    workspaceId: workspace._id,
+    ownerId: user._id,
+    industryKey: workspace.industryKey,
+  });
+
+  return { workspace, membership, isExisting: false, starterProvisioning };
 }

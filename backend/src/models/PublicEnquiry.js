@@ -26,8 +26,8 @@ const publicEnquirySchema = new mongoose.Schema(
     },
     industry: {
       type: String,
-      enum: ['real_estate', 'gym', 'clinic', 'education', 'salon', 'automobile', 'other'],
-      default: 'other',
+      enum: ['real_estate', 'gym', 'clinic', 'education', 'salon', 'automobile', 'travel_tourism', 'travel', 'restaurant_food', 'restaurants_food', 'professional_services', 'professional', 'generic_business', 'generic', 'other'],
+      default: 'generic_business',
     },
     contactReason: {
       type: String,

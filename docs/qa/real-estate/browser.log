@@ -1,0 +1,66 @@
+Browser checkpoint 1
+Browser checkpoint 2
+Browser checkpoint 3
+Browser checkpoint 4
+Browser checkpoint 5
+Browser checkpoint 6
+Browser checkpoint 7
+Browser checkpoint 8
+Browser checkpoint 9
+Browser checkpoint 12
+{
+  "checks": [
+    {
+      "check": "real_estate browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "real_estate independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "clinic browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "clinic independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "gym browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "gym independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "Preset selection, editor, explicit save, refresh, update and versioning",
+      "result": "PASS"
+    },
+    {
+      "check": "Campaign starter opens wizard, saves a draft and never schedules/sends automatically",
+      "result": "PASS"
+    },
+    {
+      "check": "Eight quick replies, five disabled rules, protected STOP and refresh without duplicate IDs",
+      "result": "PASS"
+    },
+    {
+      "check": "Compact preview drawer opens and closes through reachable controls",
+      "result": "PASS"
+    },
+    {
+      "check": "Mobile editor and preview controls",
+      "result": "PASS"
+    },
+    {
+      "check": "Independent logout in one shared browser context",
+      "result": "PASS"
+    }
+  ],
+  "layoutChecks": 70,
+  "overflow": [],
+  "errors": [],
+  "networkFailures": []
+}

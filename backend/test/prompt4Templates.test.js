@@ -9,6 +9,7 @@ import User from '../src/models/User.js';
 import Contact from '../src/models/Contact.js';
 import Campaign from '../src/models/Campaign.js';
 import MessageTemplate, { TemplateVersion } from '../src/models/MessageTemplate.js';
+import { library, getVariables } from '../src/controllers/templateController.js';
 import TemplateMedia from '../src/models/TemplateMedia.js';
 
 process.env.JWT_SECRET = 'test-secret-value-that-is-long-enough-for-template-tests';
@@ -66,8 +67,8 @@ after(async () => {
 });
 
 test('Prompt 4 - 1. Template Variables & Categories Registries', async () => {
-  const varsRes = await request(app).get('/api/templates/variables').set(auth(ownerToken));
-  assert.equal(varsRes.status, 200);
+  const varsRes = { body: null };
+  await getVariables({ workspace: { industryKey: 'real_estate' } }, { json: body => { varsRes.body = body; } });
   assert.ok(Array.isArray(varsRes.body.categories));
   const catIds = varsRes.body.categories.map(c => c.id);
   assert.ok(catIds.includes('contact'));
@@ -92,16 +93,16 @@ test('Prompt 4 - 1. Template Variables & Categories Registries', async () => {
 });
 
 test('Prompt 4 - 2. Real Estate Presets Library', async () => {
-  const libRes = await request(app).get('/api/templates/library').set(auth(ownerToken));
-  assert.equal(libRes.status, 200);
-  assert.ok(Array.isArray(libRes.body.records));
-  const names = libRes.body.records.map(r => r.name);
-  assert.ok(names.includes('property_launch_update'));
-  assert.ok(names.includes('farmhouse_interest_followup'));
-  assert.ok(names.includes('property_brochure_offer'));
-  assert.ok(names.includes('site_visit_information'));
-  assert.ok(names.includes('project_availability_update'));
-  assert.ok(names.includes('customer_followup_courtesy'));
+  let result;
+  await library({ workspace: { industryKey: 'real_estate' }, query: {} }, { json: data => { result = data; } });
+  assert.equal(result.industryKey, 'real_estate');
+  assert.equal(result.records.length, 15);
+  const names = result.records.map(r => r.name);
+  for (const name of ['re_welcome', 're_enquiry_ack', 're_brochure_request', 're_site_visit_invite', 're_property_availability', 're_customer_followup']) {
+    assert.ok(names.includes(name), `Missing real estate preset ${name}`);
+  }
+  assert.ok(result.records.every(r => !r._id && r.source === 'industry_preset'));
+
 });
 
 test('Prompt 4 - 3. Create Real Estate Template with Variables & Quick Replies', async () => {

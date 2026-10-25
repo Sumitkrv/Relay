@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const S=JSON.parse(fs.readFileSync(new URL('./audit-session.json',import.meta.url)));
+const c=async(k,m,p,b)=>{const r=await fetch('http://localhost:5000/api'+p,{method:m,headers:{'Content-Type':'application/json',Authorization:'Bearer '+S[k].token},body:b?JSON.stringify(b):undefined});let j;try{j=await r.json()}catch{};return {s:r.status,j}};
+const sh=(o,n=700)=>String(JSON.stringify(o)).slice(0,n);
+let r=await c('gym','GET','/templates?limit=50');console.log(r.j.total,r.j.records.map(t=>t.name+'|'+t.status+'|'+t.category).join('; '));console.log(sh(r.j.records[0],900));
+r=await c('gym','GET','/campaigns');console.log(sh(r.j.records.map(x=>({n:x.name,s:x.status,t:x.selectedTemplateId,id:x._id,ex:x.mockSchedule})),900));
+const cid=r.j.records[0]._id;
+r=await c('gym','GET','/campaigns/'+cid+'/executions');console.log('execs',r.s,sh(r.j,500));
+r=await c('gym','GET','/campaigns/'+cid+'/audience');console.log('aud',r.s,sh(r.j,500));
+r=await c('gym','GET','/inbox/auto-reply-rules');console.log(sh(r.j.records.map(x=>({n:x.name,k:x.keywords||x.triggerKeyword,e:x.enabled,id:x._id})),900));console.log(sh(r.j.records[0],900));
+r=await c('gym','GET','/messages/status');console.log(r.s);

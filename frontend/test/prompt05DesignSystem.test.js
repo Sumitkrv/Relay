@@ -31,16 +31,18 @@ test('Shared Components: PageHeader is exported and standardized', () => {
   assert.ok(code.includes('page-header-actions'), 'Must contain page-header-actions class');
 });
 
-test('Overview: Dashboard displays exact 4 primary KPIs and quick actions', () => {
+test('Overview: Dashboard displays exact 4 primary KPIs and quick actions', async () => {
   const pagePath = path.resolve(__dirname, '../src/pages/Dashboard.jsx');
   const code = fs.readFileSync(pagePath, 'utf8');
 
   assert.ok(code.includes('label="Total Contacts"'), 'Must display Total Contacts KPI');
   assert.ok(code.includes('label="Verified Opted-in Contacts"'), 'Must display Verified Opted-in Contacts KPI');
   assert.ok(code.includes('label="Scheduled / Active Campaigns"'), 'Must display Scheduled / Active Campaigns KPI');
-  assert.ok(code.includes('label="Verified Customer Replies"'), 'Must display Customer Replies with Mock state context');
+  assert.ok(code.includes('label="Open Conversations"'), 'Must display Open Conversations as the 4th primary KPI (live verified replies live in the Inbox summary)');
   assert.ok(code.includes('quick-actions-bar'), 'Must display Quick Actions bar');
-  assert.ok(code.includes('Import Contacts'), 'Must include Import Contacts quick action');
+  assert.ok(code.includes('industryConfig.ui.contactAction'), 'Must render backend configured contact quick action');
+  const { getStrictIndustryConfig } = await import('../../backend/src/config/industries/industryRegistry.js');
+  assert.equal(getStrictIndustryConfig('real_estate').ui.contactAction.title, 'Import Contacts');
   assert.ok(code.includes('Create Template'), 'Must include Create Template quick action');
   assert.ok(code.includes('Create Campaign'), 'Must include Create Campaign quick action');
   assert.ok(code.includes('Open Inbox'), 'Must include Open Inbox quick action');

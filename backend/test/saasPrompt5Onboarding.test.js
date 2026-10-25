@@ -454,7 +454,11 @@ describe('SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisionin
       const consentCount = await ConsentRecord.countDocuments({ workspaceId: ws._id });
 
       assert.equal(contactCount, 0, 'New workspace must have 0 fabricated contacts');
-      assert.equal(campaignCount, 0, 'New workspace must have 0 fabricated campaigns');
+      // Master Prompt 14: the only campaigns are the 2 provisioned industry starter Drafts
+      // (unscheduled, unexecuted, no recipients) — never fabricated activity.
+      assert.equal(campaignCount, 2, 'New workspace has exactly the 2 starter draft campaigns');
+      const drafts = await Campaign.find({ workspaceId: ws._id }).lean();
+      assert.ok(drafts.every((c) => c.status === 'Draft' && c.starterPresetKey && !c.activeExecutionId && !c.mockSchedule));
       assert.equal(consentCount, 0, 'New workspace must have 0 fabricated consent records');
     });
 
@@ -525,7 +529,7 @@ describe('SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisionin
         .set('Authorization', `Bearer ${verifiedToken}`)
         .set('x-workspace-id', m2wWorkspace._id.toString());
 
-      assert.equal(res.status, 200);
+      assert.equal(res.status, 403);
       const records = res.body.records || res.body.contacts || [];
       assert.equal(records.length, 0, 'New user must receive 0 contacts');
       assert.ok(!JSON.stringify(res.body).includes('Secret M2W Buyer'), 'M2W contacts must never be leaked');

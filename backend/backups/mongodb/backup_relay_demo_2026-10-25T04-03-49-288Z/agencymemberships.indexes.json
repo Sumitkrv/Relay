@@ -1,0 +1,1 @@
+[{"v":2,"key":{"_id":1},"name":"_id_"},{"v":2,"key":{"agencyId":1},"name":"agencyId_1","background":true},{"v":2,"key":{"userId":1},"name":"userId_1","background":true},{"v":2,"key":{"agencyId":1,"userId":1},"name":"agencyId_1_userId_1","background":true,"unique":true}]

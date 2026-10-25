@@ -9,6 +9,7 @@ import Contact from '../models/Contact.js';
 import ConsentRecord from '../models/ConsentRecord.js';
 import Conversation from '../models/Conversation.js';
 import RuleExecution from '../models/RuleExecution.js';
+import AutoReplyRule from '../models/AutoReplyRule.js';
 import ReportGeneration from '../models/ReportGeneration.js';
 import UserPreferences from '../models/UserPreferences.js';
 import { dateBounds } from './analyticsService.js';
@@ -58,12 +59,13 @@ export async function getOverview(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   // Execution mode filter (MOCK or ALL)
   const mode = (query.executionMode || 'ALL').toUpperCase();
 
   // Campaign Filter if provided
-  const campaignMatch = { ownerId: owner, isArchived: { $ne: true } };
+  const campaignMatch = { ...scope, isArchived: { $ne: true } };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {
     campaignMatch._id = oid(query.campaignId);
   }
@@ -80,30 +82,30 @@ export async function getOverview(ownerId, query = {}) {
     readyCampaigns,
     allCampaigns
   ] = await Promise.all([
-    Campaign.countDocuments({ ownerId: owner, status: { $ne: 'Archived' } }),
+    Campaign.countDocuments({ ...scope, status: { $ne: 'Archived' } }),
     Campaign.countDocuments({
-      ownerId: owner,
+      ...scope,
       status: { $ne: 'Archived' },
       $or: [{ status: 'Scheduled' }, { 'mockSchedule.status': 'scheduled' }]
     }),
-    Campaign.countDocuments({ ownerId: owner, status: 'Running' }),
+    Campaign.countDocuments({ ...scope, status: 'Running' }),
     Campaign.countDocuments({
-      ownerId: owner,
+      ...scope,
       status: 'Draft',
       'mockSchedule.status': { $ne: 'scheduled' }
     }),
     Campaign.countDocuments({
-      ownerId: owner,
+      ...scope,
       status: { $in: ['Validated for Preparation', 'Ready'] },
       'mockSchedule.status': { $ne: 'scheduled' }
     }),
-    Campaign.find({ ownerId: owner, status: { $ne: 'Archived' } }).select('status createdAt mockSchedule').lean()
+    Campaign.find({ ...scope, status: { $ne: 'Archived' } }).select('status createdAt mockSchedule').lean()
   ]);
 
   const scheduledRunningCampaigns = scheduledCampaigns + runningCampaigns;
 
   // Campaign runs (CampaignExecution)
-  const executionMatch = { ownerId: owner, createdAt: { $gte: start, $lte: end } };
+  const executionMatch = { ...scope, createdAt: { $gte: start, $lte: end } };
   if (campaignMatch._id) executionMatch.campaignId = campaignMatch._id;
   const [completedMockRuns, failedMockRuns, totalRuns] = await Promise.all([
     CampaignExecution.countDocuments({ ...executionMatch, status: 'completed' }),
@@ -113,7 +115,7 @@ export async function getOverview(ownerId, query = {}) {
 
   // Message aggregations in date range
   const messageMatch = {
-    ownerId: owner,
+    ...scope,
     createdAt: { $gte: start, $lte: end }
   };
   if (campaignMatch._id) messageMatch.campaignId = campaignMatch._id;
@@ -181,7 +183,7 @@ export async function getOverview(ownerId, query = {}) {
   ]);
 
   // Audience exclusions & eligible contacts across campaigns
-  const audienceMatch = { ownerId: owner };
+  const audienceMatch = { ...scope };
   if (campaignMatch._id) audienceMatch.campaignId = campaignMatch._id;
   const [audienceEligibilityAgg, uniqueExcludedCount] = await Promise.all([
     CampaignAudience.aggregate([
@@ -224,11 +226,11 @@ export async function getOverview(ownerId, query = {}) {
   // Consent & opt-outs
   const [recordedOptOuts, unreadConversations] = await Promise.all([
     Contact.countDocuments({
-      ownerId: owner,
+      ...scope,
       $or: [{ whatsappConsentStatus: 'Opted Out' }, { isSuppressed: true }]
     }),
     Conversation.aggregate([
-      { $match: { ownerId: owner } },
+      { $match: { ...scope } },
       { $group: { _id: null, unread: { $sum: '$internalUnreadCount' } } }
     ])
   ]);
@@ -315,7 +317,8 @@ export async function getOverview(ownerId, query = {}) {
       providerStatus: 'DISCONNECTED',
       providerReason: 'Official Meta WhatsApp Cloud API is disconnected. Outbound metrics reflect mock test execution only.',
       generatedAt: new Date().toISOString()
-    }
+    },
+    timeZone,
   };
 }
 
@@ -326,9 +329,10 @@ export async function getCampaignPerformance(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const filter = {
-    ownerId: owner,
+    ...scope,
     status: { $ne: 'Archived' }
   };
 
@@ -374,7 +378,7 @@ export async function getCampaignPerformance(ownerId, query = {}) {
     campaigns.map(async (c) => {
       const [audienceStats, executions, messageStats] = await Promise.all([
         CampaignAudience.aggregate([
-          { $match: { ownerId: owner, campaignId: c._id } },
+          { $match: { ...scope, campaignId: c._id } },
           {
             $group: {
               _id: '$eligibilityStatus',
@@ -382,12 +386,12 @@ export async function getCampaignPerformance(ownerId, query = {}) {
             }
           }
         ]),
-        CampaignExecution.find({ ownerId: owner, campaignId: c._id })
+        CampaignExecution.find({ ...scope, campaignId: c._id })
           .sort({ createdAt: -1 })
           .limit(5)
           .lean(),
         Message.aggregate([
-          { $match: { ownerId: owner, campaignId: c._id } },
+          { $match: { ...scope, campaignId: c._id } },
           {
             $group: {
               _id: '$status',
@@ -467,7 +471,7 @@ export async function getCampaignPerformance(ownerId, query = {}) {
  * 3. Campaign Comparison
  * Compares 2 to 4 campaigns side-by-side
  */
-export async function compareCampaigns(ownerId, campaignIds = []) {
+export async function compareCampaigns(ownerId, campaignIds = [], query = {}) {
   if (!Array.isArray(campaignIds) || campaignIds.length < 2 || campaignIds.length > 4) {
     throw fail('Select between 2 and 4 campaigns to compare.', 400);
   }
@@ -479,8 +483,9 @@ export async function compareCampaigns(ownerId, campaignIds = []) {
   }
 
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
   const campaigns = await Campaign.find({
-    ownerId: owner,
+    ...scope,
     _id: { $in: campaignIds.map((id) => oid(id)) }
   })
     .populate('selectedTemplateId', 'name category')
@@ -494,12 +499,12 @@ export async function compareCampaigns(ownerId, campaignIds = []) {
     campaigns.map(async (c) => {
       const [audienceStats, executions, messageStats, reasonsAgg] = await Promise.all([
         CampaignAudience.aggregate([
-          { $match: { ownerId: owner, campaignId: c._id } },
+          { $match: { ...scope, campaignId: c._id } },
           { $group: { _id: '$eligibilityStatus', count: { $sum: 1 } } }
         ]),
-        CampaignExecution.find({ ownerId: owner, campaignId: c._id }).sort({ createdAt: -1 }).limit(1).lean(),
+        CampaignExecution.find({ ...scope, campaignId: c._id }).sort({ createdAt: -1 }).limit(1).lean(),
         Message.aggregate([
-          { $match: { ownerId: owner, campaignId: c._id } },
+          { $match: { ...scope, campaignId: c._id } },
           {
             $group: {
               _id: '$status',
@@ -511,7 +516,7 @@ export async function compareCampaigns(ownerId, campaignIds = []) {
           }
         ]),
         CampaignAudience.aggregate([
-          { $match: { ownerId: owner, campaignId: c._id, exclusionReasons: { $exists: true, $ne: [] } } },
+          { $match: { ...scope, campaignId: c._id, exclusionReasons: { $exists: true, $ne: [] } } },
           { $unwind: '$exclusionReasons' },
           { $group: { _id: '$exclusionReasons', count: { $sum: 1 } } }
         ])
@@ -573,13 +578,14 @@ export async function compareCampaigns(ownerId, campaignIds = []) {
 export async function getCampaignRecipients(ownerId, campaignId, query = {}) {
   if (!mongoose.isObjectIdOrHexString(campaignId)) throw fail('Invalid Campaign ID.', 400);
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
   const cId = oid(campaignId);
 
-  const campaign = await Campaign.findOne({ _id: cId, ownerId: owner }).select('name audienceSnapshotVersion').lean();
+  const campaign = await Campaign.findOne({ _id: cId, ...scope }).select('name audienceSnapshotVersion').lean();
   if (!campaign) throw fail('Campaign not found.', 404);
 
   const filter = {
-    ownerId: owner,
+    ...scope,
     campaignId: cId
   };
 
@@ -595,7 +601,7 @@ export async function getCampaignRecipients(ownerId, campaignId, query = {}) {
   if (query.search && typeof query.search === 'string') {
     const rx = new RegExp(query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     const matchedContacts = await Contact.find({
-      ownerId: owner,
+      ...scope,
       $or: [{ fullName: rx }, { phoneNumber: rx }, { companyName: rx }]
     }).select('_id').limit(5000).lean();
     filter.contactId = { $in: matchedContacts.map((c) => c._id) };
@@ -615,12 +621,12 @@ export async function getCampaignRecipients(ownerId, campaignId, query = {}) {
   const contactIds = audienceRows.map((r) => r.contactId?._id).filter(Boolean);
   const [jobs, messages] = await Promise.all([
     CampaignMessageJob.find({
-      ownerId: owner,
+      ...scope,
       campaignId: cId,
       contactId: { $in: contactIds }
     }).lean(),
     Message.find({
-      ownerId: owner,
+      ...scope,
       campaignId: cId,
       contactId: { $in: contactIds }
     }).select('contactId status attemptCount failureCode failureReason simulatedSentAt completedAt').lean()
@@ -667,9 +673,10 @@ export async function getMessageStatusSummary(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const match = {
-    ownerId: owner,
+    ...scope,
     createdAt: { $gte: start, $lte: end }
   };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {
@@ -736,9 +743,10 @@ export async function getFailureAnalytics(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const match = {
-    ownerId: owner,
+    ...scope,
     createdAt: { $gte: start, $lte: end }
   };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {
@@ -769,7 +777,7 @@ export async function getFailureAnalytics(ownerId, query = {}) {
   const audienceExclusions = await CampaignAudience.aggregate([
     {
       $match: {
-        ownerId: owner,
+        ...scope,
         eligibilityStatus: { $ne: 'Eligible for Campaign Preparation' },
         createdAt: { $gte: start, $lte: end }
       }
@@ -890,9 +898,10 @@ export async function getRetryAnalytics(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const match = {
-    ownerId: owner,
+    ...scope,
     createdAt: { $gte: start, $lte: end }
   };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {
@@ -944,8 +953,9 @@ export async function getRetryAnalytics(ownerId, query = {}) {
 /**
  * 8. Consent & Opt-Out Reporting
  */
-export async function getConsentReporting(ownerId) {
+export async function getConsentReporting(ownerId, query = {}) {
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const [
     totalContacts,
@@ -955,13 +965,13 @@ export async function getConsentReporting(ownerId) {
     suppressed,
     consentExclusions
   ] = await Promise.all([
-    Contact.countDocuments({ ownerId: owner, isDeleted: false }),
-    Contact.countDocuments({ ownerId: owner, isDeleted: false, whatsappConsentStatus: 'Opted In' }),
-    Contact.countDocuments({ ownerId: owner, isDeleted: false, whatsappConsentStatus: 'Unknown' }),
-    Contact.countDocuments({ ownerId: owner, isDeleted: false, whatsappConsentStatus: 'Opted Out' }),
-    Contact.countDocuments({ ownerId: owner, isDeleted: false, isSuppressed: true }),
+    Contact.countDocuments({ ...scope, isDeleted: false }),
+    Contact.countDocuments({ ...scope, isDeleted: false, whatsappConsentStatus: 'Opted In' }),
+    Contact.countDocuments({ ...scope, isDeleted: false, whatsappConsentStatus: 'Unknown' }),
+    Contact.countDocuments({ ...scope, isDeleted: false, whatsappConsentStatus: 'Opted Out' }),
+    Contact.countDocuments({ ...scope, isDeleted: false, isSuppressed: true }),
     CampaignAudience.distinct('contactId', {
-      ownerId: owner,
+      ...scope,
       eligibilityStatus: { $in: ['Missing Consent', 'Opted Out'] }
     })
   ]);
@@ -982,13 +992,14 @@ export async function getConsentReporting(ownerId) {
  */
 export async function getOptOutReporting(ownerId, query = {}) {
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
   const page = Math.max(1, Number.parseInt(query.page) || 1);
   const limit = Math.min(100, Math.max(1, Number.parseInt(query.limit) || 25));
   const skip = (page - 1) * limit;
 
   // Contacts marked as opted out or suppressed
   const filter = {
-    ownerId: owner,
+    ...scope,
     isDeleted: false,
     $or: [{ whatsappConsentStatus: 'Opted Out' }, { isSuppressed: true }]
   };
@@ -1041,8 +1052,9 @@ export async function getOptOutReporting(ownerId, query = {}) {
  */
 export async function getAudienceExclusions(ownerId, query = {}) {
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
   const match = {
-    ownerId: owner,
+    ...scope,
     eligibilityStatus: { $ne: 'Eligible for Campaign Preparation' }
   };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {
@@ -1075,20 +1087,21 @@ export async function getAudienceExclusions(ownerId, query = {}) {
 /**
  * 11. Inbox & Auto-reply Analytics
  */
-export async function getInboxAnalytics(ownerId) {
+export async function getInboxAnalytics(ownerId, query = {}) {
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const [conversationsAgg, unreadAgg, ruleExecutionsAgg] = await Promise.all([
     Conversation.aggregate([
-      { $match: { ownerId: owner } },
+      { $match: { ...scope } },
       { $group: { _id: '$status', count: { $sum: 1 } } }
     ]),
     Conversation.aggregate([
-      { $match: { ownerId: owner } },
+      { $match: { ...scope } },
       { $group: { _id: null, unread: { $sum: '$internalUnreadCount' } } }
     ]),
     RuleExecution.aggregate([
-      { $match: { ownerId: owner } },
+      { $match: { ...scope } },
       {
         $group: {
           _id: {
@@ -1128,15 +1141,76 @@ export async function getInboxAnalytics(ownerId) {
 }
 
 /**
+ * 11b. Auto-Reply Analytics
+ */
+export async function getAutoReplyAnalytics(ownerId, query = {}) {
+  const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
+  const timeZone = query.timezone || await getOwnerTimezone(ownerId);
+  const { start, end } = dateBounds({ ...query, timezone: timeZone });
+
+  const match = { ...scope };
+  if (start && end) {
+    match.createdAt = { $gte: start, $lte: end };
+  }
+
+  const [ruleExecutionsAgg, rulesList] = await Promise.all([
+    RuleExecution.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            ruleName: '$ruleName',
+            keyword: '$matchedKeyword',
+            executionMode: '$executionMode',
+            status: '$status'
+          },
+          count: { $sum: 1 },
+          lastExecuted: { $max: '$createdAt' }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]),
+    AutoReplyRule.find({ ...scope, archivedAt: null })
+      .select('name triggerKeyword enabled priority executionCount lastExecutedAt')
+      .lean()
+  ]);
+
+  const executions = ruleExecutionsAgg.map((r) => ({
+    ruleName: r._id.ruleName || 'Keyword Rule',
+    keyword: r._id.keyword,
+    executionMode: r._id.executionMode,
+    status: r._id.status,
+    count: r.count,
+    lastExecuted: r.lastExecuted
+  }));
+
+  const totalExecutions = executions.reduce((acc, r) => acc + r.count, 0);
+  const activeRulesCount = rulesList.filter((r) => r.enabled).length;
+
+  return {
+    totalExecutions,
+    activeRulesCount,
+    totalRules: rulesList.length,
+    rules: rulesList,
+    autoReplies: executions,
+    executions,
+    note: 'Auto-reply executions reflect mock and synthetic testing events with zero live Meta messaging claims.'
+  };
+}
+
+/**
  * 12. Scheduling Analytics
  */
-export async function getSchedulingAnalytics(ownerId) {
+
+export async function getSchedulingAnalytics(ownerId, query = {}) {
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const [scheduledCampaigns, completedRuns, scheduledRuns] = await Promise.all([
-    Campaign.countDocuments({ ownerId: owner, status: 'Scheduled' }),
-    CampaignExecution.countDocuments({ ownerId: owner, status: 'completed' }),
-    CampaignExecution.find({ ownerId: owner, trigger: 'scheduled' })
+    Campaign.countDocuments({ ...scope, status: 'Scheduled' }),
+    CampaignExecution.countDocuments({ ...scope, status: 'completed' }),
+    CampaignExecution.find({ ...scope, trigger: 'scheduled' })
       .sort({ scheduledFor: -1 })
       .limit(20)
       .lean()
@@ -1159,9 +1233,10 @@ export async function getSchedulingAnalytics(ownerId) {
 /**
  * 13. Available Filter Options
  */
-export async function getAvailableFilters(ownerId) {
+export async function getAvailableFilters(ownerId, query = {}) {
   const owner = oid(ownerId);
-  const campaigns = await Campaign.find({ ownerId: owner, status: { $ne: 'Archived' } })
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
+  const campaigns = await Campaign.find({ ...scope, status: { $ne: 'Archived' } })
     .select('_id name category status')
     .sort({ createdAt: -1 })
     .limit(100)
@@ -1205,6 +1280,7 @@ export async function getAvailableFilters(ownerId) {
 export async function exportReportData(ownerId, options = {}) {
   const { reportType, format = 'csv', filters = {} } = options;
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(filters.workspaceId ? { workspaceId: oid(filters.workspaceId) } : {}) };
   const timeZone = filters.timezone || await getOwnerTimezone(ownerId);
 
   let rows = [];
@@ -1261,7 +1337,7 @@ export async function exportReportData(ownerId, options = {}) {
       'Actionable Explanation': sanitizeSpreadsheetCell(f.actionableExplanation)
     }));
   } else if (reportType === 'consent_summary') {
-    const data = await getConsentReporting(ownerId);
+    const data = await getConsentReporting(ownerId, filters);
     sheetTitle = 'Consent & Suppression';
     fileBaseName = 'consent-summary-report';
     rows = [
@@ -1333,7 +1409,7 @@ export async function exportReportData(ownerId, options = {}) {
     summarySheet.addRow(['Record Count', rows.length]);
     summarySheet.addRow(['Timezone', timeZone]);
     summarySheet.addRow(['Active Filters', JSON.stringify(filters)]);
-    summarySheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FF0D9488' } };
+    summarySheet.getRow(1).font = { bold: true, size: 14, color: { argb: 'FF2563EB' } };
     summarySheet.columns = [{ width: 20 }, { width: 45 }];
 
     // Details Sheet
@@ -1364,6 +1440,7 @@ export async function exportReportData(ownerId, options = {}) {
   // Create audit record in ReportGeneration
   const generation = await ReportGeneration.create({
     ownerId,
+    workspaceId: filters.workspaceId || undefined,
     name: fileBaseName,
     reportType,
     filters,
@@ -1394,9 +1471,10 @@ export async function getMessages(ownerId, query = {}) {
   const timeZone = query.timezone || await getOwnerTimezone(ownerId);
   const { start, end } = dateBounds({ ...query, timezone: timeZone });
   const owner = oid(ownerId);
+  const scope = { ownerId: owner, ...(query.workspaceId ? { workspaceId: oid(query.workspaceId) } : {}) };
 
   const match = {
-    ownerId: owner,
+    ...scope,
     createdAt: { $gte: start, $lte: end }
   };
   if (query.campaignId && mongoose.isObjectIdOrHexString(query.campaignId)) {

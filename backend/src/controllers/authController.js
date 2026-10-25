@@ -3,9 +3,14 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import WorkspaceMembership from '../models/WorkspaceMembership.js';
 import SecurityAuditLog from '../models/SecurityAuditLog.js';
+import Agency from '../models/Agency.js';
+import AgencyMembership from '../models/AgencyMembership.js';
 import { cookieOptions } from '../utils/cookies.js';
 import * as authSecurity from '../services/authSecurityService.js';
 import * as emailService from '../services/emailService.js';
+import { isDemoAutoVerifyAllowed } from '../config/demoSafety.js';
+import AuthSession from '../models/AuthSession.js';
+import { sessionCookieName, requestToken } from '../utils/sessionCookie.js';
 
 export const publicUser = (user) => ({
   id: user._id,
@@ -20,6 +25,7 @@ export const publicUser = (user) => ({
   createdAt: user.createdAt,
   lastLoginAt: user.lastLoginAt || null,
   passwordChangedAt: user.passwordChangedAt || null,
+  isPlatformAdmin: Boolean(user.isPlatformAdmin),
 });
 
 export const getPublicAppUrl = () => {
@@ -30,13 +36,15 @@ export const getPublicAppUrl = () => {
   ).replace(/\/+$/, '');
 };
 
-export const issue = (user, res, status = 200, extra = {}) => {
+export const issue = async (user, res, status = 200, extra = {}) => {
+  const cookieName = sessionCookieName(res.req);
+  const session = await AuthSession.create({ userId: user._id, expiresAt: new Date(Date.now() + cookieOptions().maxAge) });
   const token = jwt.sign(
-    { sub: user._id.toString(), ver: user.authVersion || 1 },
+    { sub: user._id.toString(), ver: user.authVersion || 1, sid: String(session._id) },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
-  res.cookie('session', token, cookieOptions());
+  res.cookie(cookieName, token, cookieOptions());
   res.status(status).json({
     user: publicUser(user),
     token,
@@ -73,6 +81,8 @@ export async function register(req, res) {
   const normalized = email.trim().toLowerCase();
 
   // 2. Duplicate check (prevent race conditions via unique index on email)
+  // Wait for the unique index before admitting concurrent registrations on a fresh DB.
+  await User.init();
   const existingUser = await User.findOne({ email: normalized });
   if (existingUser) {
     return res.status(409).json({
@@ -81,8 +91,9 @@ export async function register(req, res) {
     });
   }
 
-  // 3. Create unverified user record (server-managed fields; no body spreading)
+  // 3. Create user record (with strict demo auto-verification policy)
   const passwordHash = await bcrypt.hash(password, 12);
+  const autoVerify = isDemoAutoVerifyAllowed();
   let user;
   try {
     user = await User.create({
@@ -90,9 +101,9 @@ export async function register(req, res) {
       email: normalized,
       passwordHash,
       role: 'owner',
-      accountStatus: 'PENDING_EMAIL_VERIFICATION',
-      isEmailVerified: false,
-      emailVerifiedAt: null,
+      accountStatus: autoVerify ? 'ACTIVE' : 'PENDING_EMAIL_VERIFICATION',
+      isEmailVerified: autoVerify,
+      emailVerifiedAt: autoVerify ? new Date() : null,
       verificationEmailLastSentAt: new Date(),
       authVersion: 1,
       defaultWorkspaceId: null,
@@ -114,7 +125,7 @@ export async function register(req, res) {
     userAgent: req.get('user-agent') || '',
   });
 
-  // 5. Send transactional verification email
+  // 5. Send transactional verification email (intercepted in memory when mock provider is used)
   const verificationUrl = `${getPublicAppUrl()}/verify-email?token=${rawToken}`;
   let emailSent = false;
   try {
@@ -127,7 +138,7 @@ export async function register(req, res) {
     emailSent = true;
   } catch (emailErr) {
     console.error('Transactional email delivery failure:', emailErr.message);
-    // User is created safely in pending status; email delivery failure is reported
+    // User is created safely; email delivery failure is reported
   }
 
   await SecurityAuditLog.create({
@@ -136,8 +147,18 @@ export async function register(req, res) {
     action: 'account_registered',
     ipAddress: rawIp,
     userAgent: req.get('user-agent') || '',
-    metadata: { email: normalized, emailSent },
+    metadata: { email: normalized, emailSent, autoVerified: autoVerify },
   }).catch(() => {});
+
+  if (autoVerify) {
+    // In demo environment, issue authenticated session directly
+    return issue(user, res, 201, {
+      success: true,
+      message: 'Account registered and auto-verified for local demo.',
+      autoVerified: true,
+      hasWorkspace: false,
+    });
+  }
 
   // Note: We do NOT issue a session cookie here. Unverified users must verify their email first.
   res.status(201).json({
@@ -317,14 +338,21 @@ export async function login(req, res) {
     });
   }
 
-  // Email verification check with trusted legacy transition policy
+  // Email verification check with trusted legacy transition policy and demo auto-verification
   const isVerifiedOrLegacy = await authSecurity.isLegacyOrAuthorizedUser(user);
   if (!isVerifiedOrLegacy && user.accountStatus === 'PENDING_EMAIL_VERIFICATION') {
-    return res.status(403).json({
-      code: 'EMAIL_NOT_VERIFIED',
-      message: 'Please verify your email address before signing in. Check your inbox for the verification link.',
-      email: user.email,
-    });
+    if (isDemoAutoVerifyAllowed()) {
+      user.isEmailVerified = true;
+      user.emailVerifiedAt = new Date();
+      user.accountStatus = 'ACTIVE';
+      await user.save();
+    } else {
+      return res.status(403).json({
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'Please verify your email address before signing in. Check your inbox for the verification link.',
+        email: user.email,
+      });
+    }
   }
 
   user.lastLoginAt = new Date();
@@ -356,9 +384,18 @@ export async function login(req, res) {
     metadata: { method: 'password' },
   }).catch(() => {});
 
-  issue(user, res, 200, {
+  const agencyMembership = await AgencyMembership.findOne({ userId: user._id, status: 'ACTIVE' }).lean();
+  const ownedAgency = !agencyMembership ? await Agency.findOne({ ownerId: user._id, status: 'ACTIVE' }).lean() : null;
+  const isAgencyOperator = Boolean(agencyMembership || ownedAgency);
+
+  return issue(user, res, 200, {
     workspaces,
     hasWorkspace: workspaces.length > 0,
+    isAgencyOperator,
+    user: {
+      ...publicUser(user),
+      isAgencyOperator,
+    },
   });
 }
 
@@ -367,6 +404,17 @@ export async function login(req, res) {
  * Clears session cookie and logs audit event.
  */
 export async function logout(req, res) {
+  // Revoke only this session, including copied bearer credentials. Other tabs stay signed in.
+  const cookieName = sessionCookieName(req);
+  const token = requestToken(req);
+  if (token) {
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET);
+      if (payload.sid) await AuthSession.updateOne({ _id: payload.sid, userId: payload.sub || payload.id }, { $set: { revokedAt: new Date() } });
+    } catch (error) {
+      if (!['TokenExpiredError', 'JsonWebTokenError'].includes(error.name)) throw error;
+    }
+  }
   if (req.user) {
     const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
     await SecurityAuditLog.create({
@@ -378,7 +426,7 @@ export async function logout(req, res) {
     }).catch(() => {});
   }
 
-  res.clearCookie('session', {
+  res.clearCookie(cookieName, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -409,10 +457,18 @@ export async function me(req, res) {
       isDefault: m.isDefaultWorkspace,
     }));
 
+  const agencyMembership = await AgencyMembership.findOne({ userId: req.user._id, status: 'ACTIVE' }).lean();
+  const ownedAgency = !agencyMembership ? await Agency.findOne({ ownerId: req.user._id, status: 'ACTIVE' }).lean() : null;
+  const isAgencyOperator = Boolean(agencyMembership || ownedAgency);
+
   res.json({
-    user: publicUser(req.user),
+    user: {
+      ...publicUser(req.user),
+      isAgencyOperator,
+    },
     workspaces,
     hasWorkspace: workspaces.length > 0,
+    isAgencyOperator,
   });
 }
 
@@ -603,5 +659,5 @@ export async function updatePassword(req, res) {
   }).catch(() => {});
 
   // Rotate session with updated authVersion
-  issue(user, res);
+  return issue(user, res);
 }

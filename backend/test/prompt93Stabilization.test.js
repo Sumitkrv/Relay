@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'd2573fbca6add62c63544430a55abf9d47dc0c4ee829fa6cc2847f90f2ee73c3';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-for-relay-crm-development-only-minimum-32-chars-long';
 
 import request from 'supertest';
 import mongoose from 'mongoose';

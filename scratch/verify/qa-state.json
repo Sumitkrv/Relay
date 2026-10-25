@@ -1,0 +1,24 @@
+{
+ "real_estate": {
+  "contactIds": [
+   "6add835dab30e6a836df4910",
+   "6add835dab30e6a836df4927",
+   "6add835dab30e6a836df493e"
+  ],
+  "groupId": "6add835eab30e6a836df4983",
+  "importJobId": "6add835eab30e6a836df49c1",
+  "templateId": "6add835eab30e6a836df4a11",
+  "quickReplyId": "6add835eab30e6a836df4a6e",
+  "ruleId": "6add835eab30e6a836df4a85",
+  "conversationId": "6add835eab30e6a836df4a8d",
+  "run": "981860",
+  "campaignId": "6add84a5b772ad9bb228b9b0",
+  "executionId": "6add84a5b772ad9bb228ba76",
+  "campaign2Id": "6add84a5b772ad9bb228bb04",
+  "run3": "309008",
+  "campaignContactIds": [
+   "6add84a5b772ad9bb228b97f",
+   "6add84a5b772ad9bb228b996"
+  ]
+ }
+}

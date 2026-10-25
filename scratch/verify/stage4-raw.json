@@ -1,0 +1,486 @@
+{
+ "dbc": {
+  "contacts": 7,
+  "templates": 18,
+  "campaigns": 6,
+  "conversations": 3,
+  "rules": 6,
+  "quickReplies": 9
+ },
+ "overview": {
+  "businessContext": {
+   "businessName": "QA real estate A Co",
+   "timezone": "Asia/Kolkata",
+   "industry": "real_estate",
+   "industryKey": "real_estate",
+   "workspaceId": "6add82ed203325bf4265224b",
+   "slug": "qa-real-estate-a-co"
+  },
+  "contacts": {
+   "total": 7,
+   "verifiedOptedIn": 3,
+   "optedOut": 1,
+   "unknownConsent": 3,
+   "newLeads": 6,
+   "interestedLeads": 1,
+   "convertedLeads": 0,
+   "growth": [
+    {
+     "contacts": 7,
+     "day": "Oct 25"
+    }
+   ]
+  },
+  "templates": {
+   "total": 17
+  },
+  "campaigns": {
+   "total": 6,
+   "draft": 2,
+   "readyForPreparation": 0,
+   "awaitingApproval": 0,
+   "needsReview": 0,
+   "scheduled": 2,
+   "running": 0,
+   "paused": 0,
+   "completed": 4,
+   "completedRuns": 4,
+   "totalRuns": 4,
+   "failed": 0,
+   "archived": 0,
+   "recent": [
+    {
+     "_id": "6add84a5b772ad9bb228b9b0",
+     "name": "QA Campaign 309008",
+     "audience": 2,
+     "template": "qa_tpl_981860",
+     "requiresTemplate": false,
+     "schedule": null,
+     "timezone": "Asia/Kolkata",
+     "status": "Completed",
+     "rawStatus": "Completed",
+     "updatedAt": "2026-10-25T04:25:10.265Z"
+    },
+    {
+     "_id": "6add84a5b772ad9bb228bb04",
+     "name": "QA Campaign 309008 B",
+     "audience": 2,
+     "template": "qa_tpl_981860",
+     "requiresTemplate": false,
+     "schedule": "2026-10-26T04:25:09.175Z",
+     "timezone": "Asia/Kolkata",
+     "status": "Scheduled (Mock)",
+     "rawStatus": "Cancelled",
+     "updatedAt": "2026-10-25T04:25:09.785Z"
+    },
+    {
+     "_id": "6add8482b772ad9bb228b62f",
+     "name": "QA Campaign 274588",
+     "audience": 2,
+     "template": "qa_tpl_981860",
+     "requiresTemplate": false,
+     "schedule": null,
+     "timezone": "Asia/Kolkata",
+     "status": "Completed",
+     "rawStatus": "Completed",
+     "updatedAt": "2026-10-25T04:24:36.222Z"
+    },
+    {
+     "_id": "6add8483b772ad9bb228b769",
+     "name": "QA Campaign 274588 B",
+     "audience": 2,
+     "template": "qa_tpl_981860",
+     "requiresTemplate": false,
+     "schedule": "2026-10-26T04:24:34.786Z",
+     "timezone": "Asia/Kolkata",
+     "status": "Scheduled (Mock)",
+     "rawStatus": "Cancelled",
+     "updatedAt": "2026-10-25T04:24:35.448Z"
+    },
+    {
+     "_id": "cf6128b87d5a91ce5cba59c2",
+     "name": "New Property Enquiry Follow-up",
+     "audience": 0,
+     "template": "First Customer Follow-up",
+     "requiresTemplate": false,
+     "schedule": null,
+     "timezone": "Asia/Kolkata",
+     "status": "Draft",
+     "rawStatus": "Draft",
+     "updatedAt": "2026-10-25T04:17:49.080Z"
+    }
+   ]
+  },
+  "upcomingCampaigns": [
+   {
+    "_id": "6add8483b772ad9bb228b769",
+    "name": "QA Campaign 274588 B",
+    "scheduledStartAt": "2026-10-26T04:24:34.786Z",
+    "timezone": "Asia/Kolkata",
+    "audienceSize": 2,
+    "executionMode": "Mock Simulation",
+    "status": "Scheduled (Mock)",
+    "templateName": "qa_tpl_981860",
+    "requiresTemplate": false
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb04",
+    "name": "QA Campaign 309008 B",
+    "scheduledStartAt": "2026-10-26T04:25:09.175Z",
+    "timezone": "Asia/Kolkata",
+    "audienceSize": 2,
+    "executionMode": "Mock Simulation",
+    "status": "Scheduled (Mock)",
+    "templateName": "qa_tpl_981860",
+    "requiresTemplate": false
+   }
+  ],
+  "inbox": {
+   "totalConversations": 3,
+   "openConversations": 3,
+   "needsReview": 0,
+   "internalUnread": 2,
+   "autoReplyExecutions": 2,
+   "verifiedReplies": null,
+   "verifiedRepliesAvailable": false,
+   "readinessNotice": "Connect WhatsApp to see verified customer replies."
+  },
+  "mockMessages": {
+   "total": 8,
+   "sent": 4,
+   "delivered": 0,
+   "read": 0,
+   "failed": 0
+  },
+  "autoReplyExecutions": 2,
+  "provider": {
+   "providerName": "Official WhatsApp Cloud API",
+   "connectionStatus": "Disconnected",
+   "executionMode": "Mock Mode (Safe)",
+   "businessNumber": null,
+   "lastVerifiedAt": null,
+   "webhookStatus": "Not Available",
+   "templateSync": "Not Available",
+   "notes": "External WhatsApp Cloud API sending is disabled in safe sandbox mode."
+  },
+  "system": {
+   "backendHealth": "CRM Online",
+   "databaseHealth": "MongoDB Connected",
+   "workerHealth": "Mock Engine Active",
+   "workerRunning": true,
+   "workerLastHeartbeat": "2026-10-25T04:25:28.250Z",
+   "mode": "Single-Owner Real Estate Automation"
+  },
+  "activity": [
+   {
+    "_id": "6add84a6b772ad9bb228bb99",
+    "module": "Campaigns",
+    "eventType": "simulation_completed",
+    "title": "simulation completed",
+    "description": "Mock simulation completed.",
+    "timestamp": "2026-10-25T04:25:10.267Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb3f",
+    "module": "Campaigns",
+    "eventType": "simulation_cancelled",
+    "title": "simulation cancelled",
+    "description": "Campaign and mock simulation cancelled.",
+    "timestamp": "2026-10-25T04:25:09.785Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb34",
+    "module": "Campaigns",
+    "eventType": "simulation_scheduled",
+    "title": "simulation scheduled",
+    "description": "Mock simulation scheduled.",
+    "timestamp": "2026-10-25T04:25:09.779Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb2a",
+    "module": "Campaigns",
+    "eventType": "validated",
+    "title": "validated",
+    "description": "Campaign preparation validation completed.",
+    "timestamp": "2026-10-25T04:25:09.774Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb1a",
+    "module": "Campaigns",
+    "eventType": "audience_modified",
+    "title": "audience modified",
+    "description": "Campaign audience snapshot updated with 2 contacts.",
+    "timestamp": "2026-10-25T04:25:09.767Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bb06",
+    "module": "Campaigns",
+    "eventType": "created",
+    "title": "created",
+    "description": "Campaign draft created.",
+    "timestamp": "2026-10-25T04:25:09.757Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bafa",
+    "module": "Campaigns",
+    "eventType": "simulation_started",
+    "title": "simulation started",
+    "description": "Mock simulation queued.",
+    "timestamp": "2026-10-25T04:25:09.751Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228bab6",
+    "module": "Campaigns",
+    "eventType": "simulation_completed",
+    "title": "simulation completed",
+    "description": "Mock simulation completed.",
+    "timestamp": "2026-10-25T04:25:09.260Z",
+    "source": "Campaign Engine"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228b99b",
+    "module": "Contacts",
+    "eventType": "consent_changed",
+    "title": "consent changed",
+    "description": "WhatsApp consent changed from Unknown to Opted In",
+    "timestamp": "2026-10-25T04:25:09.083Z",
+    "source": "Contacts CRM"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228b99d",
+    "module": "Contacts",
+    "eventType": "created",
+    "title": "created",
+    "description": "Contact created",
+    "timestamp": "2026-10-25T04:25:09.083Z",
+    "source": "Contacts CRM"
+   }
+  ],
+  "alerts": [
+   {
+    "id": "alert_provider_disconnected",
+    "severity": "info",
+    "module": "Settings",
+    "title": "Live WhatsApp not connected",
+    "message": "Optional: Relay is running in Mock Mode, so no live WhatsApp messages are sent.",
+    "actionPath": "/settings?tab=channels",
+    "actionLabel": "Integration settings",
+    "optional": true
+   }
+  ],
+  "onboarding": {
+   "isComplete": false,
+   "completedCount": 5,
+   "totalSteps": 6,
+   "steps": [
+    {
+     "id": "profile",
+     "label": "Complete Business Profile",
+     "completed": true,
+     "path": "/settings?tab=business",
+     "description": "Add legal trading name, phone and office address."
+    },
+    {
+     "id": "contacts",
+     "label": "Import Contacts",
+     "completed": true,
+     "path": "/import",
+     "description": "Upload property enquiry leads via Excel or CSV."
+    },
+    {
+     "id": "consent",
+     "label": "Review Consent Records",
+     "completed": true,
+     "path": "/contacts?whatsappConsentStatus=Opted%20In",
+     "description": "Verify affirmative WhatsApp messaging consent."
+    },
+    {
+     "id": "template",
+     "label": "Create WhatsApp Template",
+     "completed": true,
+     "path": "/templates",
+     "description": "Draft personalized property brochure or enquiry templates."
+    },
+    {
+     "id": "campaign",
+     "label": "Prepare Campaign",
+     "completed": true,
+     "path": "/campaigns/new",
+     "description": "Select audience and preview property messages."
+    },
+    {
+     "id": "provider",
+     "label": "Review WhatsApp Integration Readiness",
+     "completed": false,
+     "path": "/settings?tab=channels",
+     "description": "Verify official WhatsApp Business Account credentials."
+    }
+   ]
+  }
+ },
+ "reports": {
+  "kpis": {
+   "totalCampaigns": 6,
+   "scheduledRunningCampaigns": 2,
+   "mockMessagesProcessed": 4,
+   "verifiedMessagesSent": null,
+   "measurementAvailability": {
+    "totalCampaigns": "AVAILABLE",
+    "scheduledRunningCampaigns": "AVAILABLE",
+    "mockMessagesProcessed": "AVAILABLE",
+    "verifiedMessagesSent": "UNAVAILABLE"
+   }
+  },
+  "secondaryMetrics": {
+   "draftCampaigns": 2,
+   "readyCampaigns": 0,
+   "scheduledCampaigns": 2,
+   "runningCampaigns": 0,
+   "completedMockRuns": 4,
+   "failedMockRuns": 0,
+   "totalRuns": 4,
+   "excludedRecipients": 4,
+   "retryAttempts": 8,
+   "messagesWithRetries": 8,
+   "unreadConversations": 2,
+   "verifiedCustomerReplies": null,
+   "recordedOptOuts": 1,
+   "mockMessageBreakdown": {
+    "intended": 8,
+    "eligible": 0,
+    "blocked": 12,
+    "queued": 0,
+    "processing": 0,
+    "completedMockAttempts": 4,
+    "simulatedSent": 4,
+    "simulatedDelivered": 0,
+    "simulatedRead": 0,
+    "failed": 0,
+    "cancelled": 0,
+    "retried": 8
+   }
+  },
+  "charts": {
+   "campaignStatusDistribution": [
+    {
+     "status": "Scheduled (Mock)",
+     "count": 2
+    },
+    {
+     "status": "Completed",
+     "count": 2
+    },
+    {
+     "status": "Draft",
+     "count": 2
+    }
+   ],
+   "messageTrend": [
+    {
+     "date": "2026-10-25",
+     "simulatedSent": 4,
+     "failed": 0,
+     "queued": 0,
+     "total": 8
+    }
+   ],
+   "failureBreakdown": [
+    {
+     "reason": "BLOCKED",
+     "count": 2
+    },
+    {
+     "reason": "MISSING_CONSENT",
+     "count": 2
+    }
+   ],
+   "audienceBreakdown": {
+    "totalAudienceSnapshots": 8,
+    "eligible": 0,
+    "excluded": 8
+   }
+  },
+  "meta": {
+   "period": {
+    "start": "2026-09-25T18:30:00.000Z",
+    "end": "2026-10-25T18:29:59.999Z",
+    "range": "30d"
+   },
+   "timeZone": "Asia/Kolkata",
+   "executionMode": "ALL",
+   "providerStatus": "DISCONNECTED",
+   "providerReason": "Official Meta WhatsApp Cloud API is disconnected. Outbound metrics reflect mock test execution only.",
+   "generatedAt": "2026-10-25T04:25:28.352Z"
+  },
+  "timeZone": "Asia/Kolkata"
+ },
+ "stats": {
+  "stats": {
+   "contactTotal": 7,
+   "eligibleTotal": 3,
+   "newLeads": 6,
+   "interestedLeads": 1,
+   "convertedLeads": 0,
+   "totalCampaigns": 6,
+   "draftCampaigns": 2,
+   "validatedCampaigns": 0,
+   "campaignsRequiringAttention": 0
+  },
+  "recentCampaigns": [
+   {
+    "_id": "6add84a5b772ad9bb228bb04",
+    "name": "QA Campaign 309008 B",
+    "category": "Lead Follow-up",
+    "status": "Cancelled",
+    "createdAt": "2026-10-25T04:25:09.757Z",
+    "updatedAt": "2026-10-25T04:25:09.785Z"
+   },
+   {
+    "_id": "6add84a5b772ad9bb228b9b0",
+    "name": "QA Campaign 309008",
+    "category": "Lead Follow-up",
+    "status": "Completed",
+    "createdAt": "2026-10-25T04:25:09.093Z",
+    "updatedAt": "2026-10-25T04:25:10.265Z"
+   },
+   {
+    "_id": "6add8483b772ad9bb228b769",
+    "name": "QA Campaign 274588 B",
+    "category": "Lead Follow-up",
+    "status": "Cancelled",
+    "createdAt": "2026-10-25T04:24:35.410Z",
+    "updatedAt": "2026-10-25T04:24:35.448Z"
+   },
+   {
+    "_id": "6add8482b772ad9bb228b62f",
+    "name": "QA Campaign 274588",
+    "category": "Lead Follow-up",
+    "status": "Completed",
+    "createdAt": "2026-10-25T04:24:34.643Z",
+    "updatedAt": "2026-10-25T04:24:36.222Z"
+   },
+   {
+    "_id": "cf6128b87d5a91ce5cba59c2",
+    "category": "real_estate",
+    "createdAt": "2026-10-25T04:17:49.080Z",
+    "name": "New Property Enquiry Follow-up",
+    "status": "Draft",
+    "updatedAt": "2026-10-25T04:17:49.080Z"
+   }
+  ],
+  "campaignPerformance": [],
+  "contactGrowth": [
+   {
+    "contacts": 7,
+    "day": "Oct 25"
+   }
+  ]
+ }
+}

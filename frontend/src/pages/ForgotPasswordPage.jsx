@@ -31,16 +31,19 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6 py-16">
+    <div className="min-h-screen bg-[#F4F7FC] flex items-center justify-center p-4 sm:p-6 py-16">
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-10 text-center">
         {/* Brand */}
-        <Link to="/" className="inline-flex items-center gap-1.5 text-xl font-bold tracking-tight text-slate-900 mb-8">
-          RELAY<span className="text-teal-600">.</span>
+        <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-slate-900 mb-8">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-sm shadow">
+            R
+          </div>
+          <span>RELAY<span className="text-blue-600">.</span></span>
         </Link>
 
         {isSubmitted ? (
           <div className="space-y-5 py-4">
-            <div className="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border border-teal-200 shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-200 shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
@@ -63,7 +66,7 @@ export default function ForgotPasswordPage() {
             <div className="pt-2">
               <Link
                 to="/login"
-                className="w-full py-3.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-6 rounded-xl bg-[#0B1220] hover:bg-[#111827] text-white font-bold text-sm shadow transition-all flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Return to Login</span>
@@ -73,7 +76,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <div>
             <div className="mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-4 border border-teal-200">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4 border border-blue-200 shadow-sm">
                 <Mail className="w-6 h-6" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900">Forgot Password?</h1>
@@ -101,14 +104,14 @@ export default function ForgotPasswordPage() {
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full py-3.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {isSubmitting ? (
                   <>

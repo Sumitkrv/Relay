@@ -34,6 +34,7 @@ export const deleteInboxNote = (id) => api.delete(`/inbox/notes/${id}`);
 
 // Quick Replies Library
 export const listQuickReplies = (params) => api.get('/inbox/quick-replies', { params });
+export const installStarterQuickReplies = () => api.post('/inbox/quick-replies/starter-pack');
 export const createQuickReply = (body) => api.post('/inbox/quick-replies', body);
 export const getQuickReply = (id) => api.get(`/inbox/quick-replies/${id}`);
 export const updateQuickReply = (id, body) => api.patch(`/inbox/quick-replies/${id}`, body);
@@ -42,6 +43,7 @@ export const duplicateQuickReply = (id) => api.post(`/inbox/quick-replies/${id}/
 
 // Auto-Reply Keyword Rules & Engine
 export const listAutoReplyRules = () => api.get('/inbox/auto-reply-rules');
+export const installStarterRules = () => api.post('/inbox/auto-reply-rules/starter-pack');
 export const createAutoReplyRule = (body) => api.post('/inbox/auto-reply-rules', body);
 export const getAutoReplyRule = (id) => api.get(`/inbox/auto-reply-rules/${id}`);
 export const updateAutoReplyRule = (id, body) => api.patch(`/inbox/auto-reply-rules/${id}`, body);

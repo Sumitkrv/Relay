@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
+import { resolveWorkspaceContext } from '../middleware/requireWorkspace.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import * as c from '../controllers/inboxController.js';
 
 const r = Router();
 r.use(requireAuth);
+r.use(resolveWorkspaceContext);
 
 // Top level stats & status
 r.get('/stats', asyncHandler(c.stats));
@@ -14,6 +16,7 @@ r.delete('/demo-data', asyncHandler(c.clearDemoData));
 
 // Quick Replies Routes
 r.get('/quick-replies', asyncHandler(c.listQuickReplies));
+r.post('/quick-replies/starter-pack', asyncHandler(c.installStarterQuickReplies));
 r.post('/quick-replies', asyncHandler(c.createQuickReply));
 r.get('/quick-replies/:id', asyncHandler(c.getQuickReply));
 r.patch('/quick-replies/:id', asyncHandler(c.updateQuickReply));
@@ -22,6 +25,7 @@ r.post('/quick-replies/:id/duplicate', asyncHandler(c.duplicateQuickReply));
 
 // Auto-reply Keyword Rules Routes (static before param)
 r.get('/auto-reply-rules', asyncHandler(c.listAutoReplyRules));
+r.post('/auto-reply-rules/starter-pack', asyncHandler(c.installStarterRules));
 r.post('/auto-reply-rules', asyncHandler(c.createAutoReplyRule));
 r.post('/auto-reply-rules/test-match', asyncHandler(c.testMatchAllRules));
 r.get('/auto-reply-rules/history', asyncHandler(c.ruleExecutionHistory));

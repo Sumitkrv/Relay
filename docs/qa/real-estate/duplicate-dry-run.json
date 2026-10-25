@@ -1,0 +1,76 @@
+{
+  "mode": "DRY_RUN_READ_ONLY",
+  "recordsInspected": 15,
+  "groups": [
+    {
+      "name": "Brochure & Master Plan Link",
+      "ownerId": "6adaf2ccbaacf0587d451aca",
+      "workspaceId": null,
+      "identicalBusinessFields": true,
+      "count": 3,
+      "candidateKeeper": "6adaf741d14a0aabf1a89c70",
+      "reviewArchiveCandidates": [
+        "6adaf741d14a0aabf1a89c76",
+        "6adaf741d14a0aabf1a89c7c"
+      ],
+      "ruleReferences": [],
+      "proposedAction": "After explicit authorization: verify tenant mapping, preserve referenced replies and usage history, then archive exact redundant definitions. No update or deletion performed."
+    },
+    {
+      "name": "Pricing & Flexible Payment Plan",
+      "ownerId": "6adaf2ccbaacf0587d451aca",
+      "workspaceId": null,
+      "identicalBusinessFields": true,
+      "count": 3,
+      "candidateKeeper": "6adaf741d14a0aabf1a89c71",
+      "reviewArchiveCandidates": [
+        "6adaf741d14a0aabf1a89c77",
+        "6adaf741d14a0aabf1a89c7d"
+      ],
+      "ruleReferences": [],
+      "proposedAction": "After explicit authorization: verify tenant mapping, preserve referenced replies and usage history, then archive exact redundant definitions. No update or deletion performed."
+    },
+    {
+      "name": "Experience Center & Site Visit",
+      "ownerId": "6adaf2ccbaacf0587d451aca",
+      "workspaceId": null,
+      "identicalBusinessFields": true,
+      "count": 3,
+      "candidateKeeper": "6adaf741d14a0aabf1a89c72",
+      "reviewArchiveCandidates": [
+        "6adaf741d14a0aabf1a89c78",
+        "6adaf741d14a0aabf1a89c7e"
+      ],
+      "ruleReferences": [],
+      "proposedAction": "After explicit authorization: verify tenant mapping, preserve referenced replies and usage history, then archive exact redundant definitions. No update or deletion performed."
+    },
+    {
+      "name": "Location & Key Connectivity",
+      "ownerId": "6adaf2ccbaacf0587d451aca",
+      "workspaceId": null,
+      "identicalBusinessFields": true,
+      "count": 3,
+      "candidateKeeper": "6adaf741d14a0aabf1a89c73",
+      "reviewArchiveCandidates": [
+        "6adaf741d14a0aabf1a89c79",
+        "6adaf741d14a0aabf1a89c7f"
+      ],
+      "ruleReferences": [],
+      "proposedAction": "After explicit authorization: verify tenant mapping, preserve referenced replies and usage history, then archive exact redundant definitions. No update or deletion performed."
+    },
+    {
+      "name": "Thank You & Callback Request",
+      "ownerId": "6adaf2ccbaacf0587d451aca",
+      "workspaceId": null,
+      "identicalBusinessFields": true,
+      "count": 3,
+      "candidateKeeper": "6adaf741d14a0aabf1a89c74",
+      "reviewArchiveCandidates": [
+        "6adaf741d14a0aabf1a89c7a",
+        "6adaf741d14a0aabf1a89c80"
+      ],
+      "ruleReferences": [],
+      "proposedAction": "After explicit authorization: verify tenant mapping, preserve referenced replies and usage history, then archive exact redundant definitions. No update or deletion performed."
+    }
+  ]
+}

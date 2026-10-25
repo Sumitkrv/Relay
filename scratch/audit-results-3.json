@@ -1,0 +1,572 @@
+[
+ {
+  "id": "gym:campaign-launch-mock",
+  "ok": true,
+  "note": "execution already started earlier in this audit/history"
+ },
+ {
+  "id": "gym:queue-worker-processes-to-terminal",
+  "ok": true,
+  "note": "status=completed"
+ },
+ {
+  "id": "gym:jobs-all-owned-by-workspace-owner",
+  "ok": true,
+  "note": "jobs=5"
+ },
+ {
+  "id": "gym:messages-persisted-one-per-recipient",
+  "ok": true,
+  "note": "messages=5 {\"SIMULATED_SENT\":5}"
+ },
+ {
+  "id": "gym:messages-not-labelled-live",
+  "ok": true,
+  "note": "provider="
+ },
+ {
+  "id": "gym:no-duplicate-lifecycle-events",
+  "ok": true,
+  "note": "events=41"
+ },
+ {
+  "id": "gym:report-mock-processed-matches-db",
+  "ok": true,
+  "note": "report=5 db=5 (before=5)"
+ },
+ {
+  "id": "gym:report-changed-after-execution",
+  "ok": true,
+  "note": "5 -> 5"
+ },
+ {
+  "id": "gym:dashboard-total-matches-db",
+  "ok": true,
+  "note": "dash=5 db=5"
+ },
+ {
+  "id": "gym:campaign-status-completed-after-run",
+  "ok": true,
+  "note": "Completed"
+ },
+ {
+  "id": "gym:relaunch-while-active-or-done-handled",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:duplicate-launch-not-silent-dup",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "gym:inbox-conversation-create",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "gym:inbound-simulated-persisted",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "gym:disabled-rule-does-not-fire",
+  "ok": true,
+  "note": "execs for TRIAL=4 rule.enabled=false"
+ },
+ {
+  "id": "gym:rule-activate",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:rule-activation-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:enabled-rule-fires-once",
+  "ok": true,
+  "note": "ruleExecutions 8 -> 9; eval={\"matched\":true,\"executed\":true,\"rule\":{\"_id\":\"6ada1e2e2c691eeac0f38832\",\"ownerId\":\"6ada1628863c2065e365d586\",\"workspaceId\":\"6ada1628863c2065e365d589\",\"name\":\"T"
+ },
+ {
+  "id": "gym:thread-has-inbound-and-mock-outbound",
+  "ok": true,
+  "note": "inbound,inbound,outbound"
+ },
+ {
+  "id": "gym:auto-reply-uses-correct-business-name-or-text",
+  "ok": true,
+  "note": "\"Hello Rahul Verma, thank you for asking about a trial session at FitZone Gym. Please shar"
+ },
+ {
+  "id": "gym:cooldown-prevents-rapid-duplicate-reply",
+  "ok": false,
+  "note": "ruleExecutions 9 -> 10"
+ },
+ {
+  "id": "gym:manual-takeover-pauses-autoreply",
+  "ok": false,
+  "note": "takeover status 200; execs 10->11"
+ },
+ {
+  "id": "gym:rule-deactivate-and-persist",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-autoreply-count-matches-db",
+  "ok": true,
+  "note": "report=11 db=11"
+ },
+ {
+  "id": "gym:dashboard-autoreply-matches-db",
+  "ok": true,
+  "note": "dash=11 db=11"
+ },
+ {
+  "id": "gym:dashboard-conversations-match-db",
+  "ok": true,
+  "note": "dash=6 db=6"
+ },
+ {
+  "id": "gym:report-filter:today",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-filter:7d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-filter:30d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-filter:this_month",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-filter:custom",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "gym:report-filter:custom-reversed-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "gym:report-filter:invalid-range-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "gym:report-filter:operator-injection-safe",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "gym:stop-sets-opt-out-with-synthetic-provenance",
+  "ok": true,
+  "note": "contact=Opted Out consentSource=undefined status=Opted Out"
+ },
+ {
+  "id": "gym:stop-contact-ineligible-for-campaign",
+  "ok": true,
+  "note": "{\"contactId\":\"6ada1628863c2065e365d59e\",\"eligible\":false,\"reasons\":[\"Contact is suppressed / Do Not Contact (WhatsApp STOP simulation (demo)"
+ },
+ {
+  "id": "gym:NOTE-stop-contact",
+  "ok": true,
+  "note": "contact Priya Bansal (6ada1628863c2065e365d59e) left Opted Out from the STOP test"
+ },
+ {
+  "id": "m2w:campaign-launch-mock",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "m2w:queue-worker-processes-to-terminal",
+  "ok": true,
+  "note": "status=completed"
+ },
+ {
+  "id": "m2w:jobs-all-owned-by-workspace-owner",
+  "ok": true,
+  "note": "jobs=5"
+ },
+ {
+  "id": "m2w:messages-persisted-one-per-recipient",
+  "ok": true,
+  "note": "messages=5 {\"SIMULATED_SENT\":5}"
+ },
+ {
+  "id": "m2w:messages-not-labelled-live",
+  "ok": true,
+  "note": "provider="
+ },
+ {
+  "id": "m2w:no-duplicate-lifecycle-events",
+  "ok": true,
+  "note": "events=10"
+ },
+ {
+  "id": "m2w:report-mock-processed-matches-db",
+  "ok": true,
+  "note": "report=5 db=5 (before=0)"
+ },
+ {
+  "id": "m2w:report-changed-after-execution",
+  "ok": true,
+  "note": "0 -> 5"
+ },
+ {
+  "id": "m2w:dashboard-total-matches-db",
+  "ok": true,
+  "note": "dash=5 db=5"
+ },
+ {
+  "id": "m2w:campaign-status-completed-after-run",
+  "ok": true,
+  "note": "Completed"
+ },
+ {
+  "id": "m2w:relaunch-while-active-or-done-handled",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:duplicate-launch-not-silent-dup",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "m2w:inbox-conversation-create",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "m2w:inbound-simulated-persisted",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "m2w:disabled-rule-does-not-fire",
+  "ok": true,
+  "note": "execs for PRICE=4 rule.enabled=false"
+ },
+ {
+  "id": "m2w:rule-activate",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:rule-activation-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:enabled-rule-fires-once",
+  "ok": true,
+  "note": "ruleExecutions 8 -> 9; eval={\"matched\":true,\"executed\":true,\"rule\":{\"_id\":\"6ada192fcb515d1fc0ca1823\",\"ownerId\":\"6ada1628863c2065e365d517\",\"name\":\"Property Price Enquiry\",\"triggerKeyword\":\""
+ },
+ {
+  "id": "m2w:thread-has-inbound-and-mock-outbound",
+  "ok": true,
+  "note": "inbound,inbound,outbound"
+ },
+ {
+  "id": "m2w:auto-reply-uses-correct-business-name-or-text",
+  "ok": true,
+  "note": "\"Hello Dev Khanna, thank you for your interest in M2W Realty. Please share your preferred "
+ },
+ {
+  "id": "m2w:cooldown-prevents-rapid-duplicate-reply",
+  "ok": false,
+  "note": "ruleExecutions 9 -> 10"
+ },
+ {
+  "id": "m2w:manual-takeover-pauses-autoreply",
+  "ok": false,
+  "note": "takeover status 200; execs 10->11"
+ },
+ {
+  "id": "m2w:rule-deactivate-and-persist",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-autoreply-count-matches-db",
+  "ok": true,
+  "note": "report=11 db=11"
+ },
+ {
+  "id": "m2w:dashboard-autoreply-matches-db",
+  "ok": true,
+  "note": "dash=11 db=11"
+ },
+ {
+  "id": "m2w:dashboard-conversations-match-db",
+  "ok": true,
+  "note": "dash=6 db=6"
+ },
+ {
+  "id": "m2w:report-filter:today",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-filter:7d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-filter:30d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-filter:this_month",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-filter:custom",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "m2w:report-filter:custom-reversed-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "m2w:report-filter:invalid-range-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "m2w:report-filter:operator-injection-safe",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "m2w:stop-sets-opt-out-with-synthetic-provenance",
+  "ok": true,
+  "note": "contact=Opted Out consentSource=undefined status=Opted Out"
+ },
+ {
+  "id": "m2w:stop-contact-ineligible-for-campaign",
+  "ok": true,
+  "note": "{\"contactId\":\"6ada1628863c2065e365d552\",\"eligible\":false,\"reasons\":[\"Contact is suppressed / Do Not Contact (WhatsApp STOP simulation (demo)"
+ },
+ {
+  "id": "m2w:NOTE-stop-contact",
+  "ok": true,
+  "note": "contact Riya Malhotra (6ada1628863c2065e365d552) left Opted Out from the STOP test"
+ },
+ {
+  "id": "clinic:campaign-launch-mock",
+  "ok": true,
+  "note": "status 201 "
+ },
+ {
+  "id": "clinic:queue-worker-processes-to-terminal",
+  "ok": true,
+  "note": "status=completed"
+ },
+ {
+  "id": "clinic:jobs-all-owned-by-workspace-owner",
+  "ok": true,
+  "note": "jobs=5"
+ },
+ {
+  "id": "clinic:messages-persisted-one-per-recipient",
+  "ok": true,
+  "note": "messages=5 {\"SIMULATED_SENT\":5}"
+ },
+ {
+  "id": "clinic:messages-not-labelled-live",
+  "ok": true,
+  "note": "provider="
+ },
+ {
+  "id": "clinic:no-duplicate-lifecycle-events",
+  "ok": true,
+  "note": "events=5"
+ },
+ {
+  "id": "clinic:report-mock-processed-matches-db",
+  "ok": true,
+  "note": "report=5 db=5 (before=0)"
+ },
+ {
+  "id": "clinic:report-changed-after-execution",
+  "ok": true,
+  "note": "0 -> 5"
+ },
+ {
+  "id": "clinic:dashboard-total-matches-db",
+  "ok": true,
+  "note": "dash=5 db=5"
+ },
+ {
+  "id": "clinic:campaign-status-completed-after-run",
+  "ok": true,
+  "note": "Completed"
+ },
+ {
+  "id": "clinic:relaunch-while-active-or-done-handled",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:duplicate-launch-not-silent-dup",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "clinic:inbox-conversation-create",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "clinic:inbound-simulated-persisted",
+  "ok": true,
+  "note": "status 201"
+ },
+ {
+  "id": "clinic:disabled-rule-does-not-fire",
+  "ok": true,
+  "note": "execs for APPOINTMENT=4 rule.enabled=false"
+ },
+ {
+  "id": "clinic:rule-activate",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:rule-activation-persisted",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:enabled-rule-fires-once",
+  "ok": true,
+  "note": "ruleExecutions 4 -> 5; eval={\"matched\":true,\"executed\":true,\"rule\":{\"_id\":\"6ada1e2e2c691eeac0f38852\",\"ownerId\":\"6ada1628863c2065e365d5d2\",\"workspaceId\":\"6ada1628863c2065e365d5d5\",\"name\":\"A"
+ },
+ {
+  "id": "clinic:thread-has-inbound-and-mock-outbound",
+  "ok": true,
+  "note": "inbound,inbound,outbound"
+ },
+ {
+  "id": "clinic:auto-reply-uses-correct-business-name-or-text",
+  "ok": true,
+  "note": "\"Hello Pooja Sharma, thank you for contacting CarePlus Clinic. Please share your preferred"
+ },
+ {
+  "id": "clinic:cooldown-prevents-rapid-duplicate-reply",
+  "ok": false,
+  "note": "ruleExecutions 5 -> 6"
+ },
+ {
+  "id": "clinic:manual-takeover-pauses-autoreply",
+  "ok": false,
+  "note": "takeover status 200; execs 6->7"
+ },
+ {
+  "id": "clinic:rule-deactivate-and-persist",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-autoreply-count-matches-db",
+  "ok": true,
+  "note": "report=7 db=7"
+ },
+ {
+  "id": "clinic:dashboard-autoreply-matches-db",
+  "ok": true,
+  "note": "dash=7 db=7"
+ },
+ {
+  "id": "clinic:dashboard-conversations-match-db",
+  "ok": true,
+  "note": "dash=6 db=6"
+ },
+ {
+  "id": "clinic:report-filter:today",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-filter:7d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-filter:30d",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-filter:this_month",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-filter:custom",
+  "ok": true,
+  "note": ""
+ },
+ {
+  "id": "clinic:report-filter:custom-reversed-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "clinic:report-filter:invalid-range-rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "clinic:report-filter:operator-injection-safe",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "clinic:stop-sets-opt-out-with-synthetic-provenance",
+  "ok": true,
+  "note": "contact=Opted Out consentSource=undefined status=Opted Out"
+ },
+ {
+  "id": "clinic:stop-contact-ineligible-for-campaign",
+  "ok": true,
+  "note": "{\"contactId\":\"6ada1628863c2065e365d5ea\",\"eligible\":false,\"reasons\":[\"Contact is suppressed / Do Not Contact (WhatsApp STOP simulation (demo)"
+ },
+ {
+  "id": "clinic:NOTE-stop-contact",
+  "ok": true,
+  "note": "contact Nikhil Anand (6ada1628863c2065e365d5ea) left Opted Out from the STOP test"
+ },
+ {
+  "id": "m2w:db-all-messages-in-own-workspace",
+  "ok": true,
+  "note": "messages=10 otherWs=0"
+ },
+ {
+  "id": "gym:db-all-messages-in-own-workspace",
+  "ok": true,
+  "note": "messages=10 otherWs=0"
+ },
+ {
+  "id": "clinic:db-all-messages-in-own-workspace",
+  "ok": true,
+  "note": "messages=10 otherWs=0"
+ }
+]

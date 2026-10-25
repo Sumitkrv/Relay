@@ -1,0 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire('/Users/sumitthakur/Desktop/Relay/backend/package.json');
+const mongoose = require('mongoose');
+await mongoose.connect('mongodb://127.0.0.1:27017', { serverSelectionTimeoutMS: 5000 });
+const db = mongoose.connection.client.db('relay_demo');
+const ws = Object.fromEntries((await db.collection('workspaces').find({}).toArray()).map(w=>[String(w._id),w.name]));
+const cs = await db.collection('contacts').find({}).sort({workspaceId:1,createdAt:1}).toArray();
+for (const c of cs) console.log(`${(ws[String(c.workspaceId)]||'<<NO WORKSPACE>>').padEnd(30)} | ${String(c.fullName||'').padEnd(24)} | ${String(c.phoneNumber||'').padEnd(15)} | ${String(c.email||'').padEnd(30)} | isDemo=${c.isDemo} src=${c.source||c.leadSource||''} del=${c.isDeleted} created=${c.createdAt?.toISOString?.().slice(0,10)}`);
+const keys = new Set(); cs.forEach(c=>Object.keys(c).forEach(k=>keys.add(k))); console.log('\nfields:', [...keys].join(','));
+await mongoose.disconnect();

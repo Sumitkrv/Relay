@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const schema=new mongoose.Schema({
-  ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
+  workspaceId:{type:mongoose.Schema.Types.ObjectId,ref:'Workspace',index:true},ownerId:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
   campaignId:{type:mongoose.Schema.Types.ObjectId,ref:'Campaign',required:true,index:true},
   mode:{type:String,enum:['mock'],default:'mock'},
   trigger:{type:String,enum:['manual','scheduled'],default:'manual'},

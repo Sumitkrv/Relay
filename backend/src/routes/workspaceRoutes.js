@@ -17,4 +17,8 @@ router.post('/internal-provision', workspaceController.provisionWorkspace);
 // Current authorized workspace details (requires active workspace membership verification)
 router.get('/current', requireWorkspace, workspaceController.getCurrentWorkspace);
 
+// Starter provisioning status (read-only) and owner-only safe retry
+router.get('/current/starter-provisioning', requireWorkspace, workspaceController.getStarterProvisioningStatus);
+router.post('/current/starter-provisioning/retry', requireWorkspace, workspaceController.retryStarterProvisioning);
+
 export default router;

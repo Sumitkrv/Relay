@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import api from '../services/api';
+import { clearWorkspaceSelection, getTabSessionId, startTabLogin } from '../services/tabSession';
 
 const AuthContext = createContext(null);
 
@@ -11,17 +12,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
+    const initialSessionId = getTabSessionId();
     api
       .get('/auth/me')
       .then(({ data }) => {
-        if (mounted) {
+        if (mounted && initialSessionId === getTabSessionId()) {
           setUser(data.user);
           setWorkspaces(data.workspaces || []);
           setHasWorkspace(Boolean(data.hasWorkspace || (data.workspaces && data.workspaces.length > 0)));
         }
       })
       .catch(() => {
-        if (mounted) {
+        if (mounted && initialSessionId === getTabSessionId()) {
           setUser(null);
           setWorkspaces([]);
           setHasWorkspace(false);
@@ -35,11 +37,11 @@ export function AuthProvider({ children }) {
     const interceptor = api.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 && error.config?.headers?.['x-relay-session-id'] === getTabSessionId()) {
           const url = error.config?.url || '';
           // Don't trigger auto-logout on failed login attempt or initial me check
           if (!url.includes('/auth/login') && !url.includes('/auth/register') && !url.includes('/auth/verify-email')) {
-            try { localStorage.removeItem('relay_auth_token'); } catch {}
+            clearWorkspaceSelection();
             setUser(null);
             setWorkspaces([]);
             setHasWorkspace(false);
@@ -61,10 +63,8 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (payload) => {
+    startTabLogin();
     const { data } = await api.post('/auth/login', payload);
-    if (data.token) {
-      try { localStorage.setItem('relay_auth_token', data.token); } catch {}
-    }
     setUser(data.user);
     const userWorkspaces = data.workspaces || [];
     setWorkspaces(userWorkspaces);
@@ -79,11 +79,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } finally {
-      try { localStorage.removeItem('relay_auth_token'); } catch {}
-      try { localStorage.removeItem('relay_active_workspace_id'); } catch {}
+    await api.post('/auth/logout');
+    {
+      clearWorkspaceSelection();
       setUser(null);
       setWorkspaces([]);
       setHasWorkspace(false);

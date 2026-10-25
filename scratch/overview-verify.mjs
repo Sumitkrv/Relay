@@ -1,0 +1,43 @@
+// Verifies /api/dashboard/overview for the 3 demo owners against relay_demo (read-only). Never prints passwords.
+import fs from 'node:fs';
+import mongoose from '../backend/node_modules/mongoose/index.js';
+import dotenv from '../backend/node_modules/dotenv/lib/main.js';
+dotenv.config({ path: 'backend/.env' });
+const pw = JSON.parse(fs.readFileSync('scratch/.demo-passwords.json', 'utf8'));
+const BASE = 'http://localhost:5000/api';
+await mongoose.connect(process.env.MONGODB_URI);
+if (mongoose.connection.name !== 'relay_demo') throw new Error('not relay_demo');
+const db = mongoose.connection.db;
+const emails = { m2w: 'owner.m2w@relay-demo.test', gym: 'owner.gym@relay-demo.test', clinic: 'owner.clinic@relay-demo.test' };
+let fails = 0;
+const chk = (n, ok, d = '') => { if (!ok) fails++; console.log(`${ok ? 'PASS' : 'FAIL'}  ${n} ${d}`); };
+for (const [k, email] of Object.entries(emails)) {
+  const lr = await fetch(`${BASE}/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password: pw[email] }) });
+  const token = (await lr.json()).token;
+  const res = await fetch(`${BASE}/dashboard/overview`, { headers: { authorization: `Bearer ${token}` } });
+  const o = await res.json();
+  const user = await db.collection('users').findOne({ email });
+  const ownerId = user._id;
+  const dbMsg = await db.collection('messages').aggregate([{ $match: { ownerId } }, { $group: { _id: '$status', n: { $sum: 1 } } }]).toArray();
+  const m = Object.fromEntries(dbMsg.map((x) => [x._id, x.n]));
+  const sent = (m.SIMULATED_SENT || 0) + (m.SIMULATED_DELIVERED || 0) + (m.SIMULATED_READ || 0);
+  const contacts = await db.collection('contacts').countDocuments({ ownerId, isDeleted: false });
+  const convOpen = await db.collection('conversations').countDocuments({ ownerId, status: 'Open' });
+  const execDone = await db.collection('campaignexecutions').countDocuments({ ownerId, status: 'completed' });
+  const rules = await db.collection('ruleexecutions').countDocuments({ ownerId });
+  const text = JSON.stringify(o.alerts) + JSON.stringify(o.onboarding?.steps);
+  console.log(`--- ${k}: ${o.businessContext.businessName} (${o.businessContext.industryKey})`);
+  chk(`${k}:status 200`, res.status === 200);
+  chk(`${k}:simulated sent == DB`, o.mockMessages.sent === sent, `api=${o.mockMessages.sent} db=${sent}`);
+  chk(`${k}:delivered/read cumulative`, o.mockMessages.delivered === (m.SIMULATED_DELIVERED || 0) + (m.SIMULATED_READ || 0) && o.mockMessages.read === (m.SIMULATED_READ || 0));
+  chk(`${k}:contacts == DB`, o.contacts.total === contacts, `api=${o.contacts.total} db=${contacts}`);
+  chk(`${k}:open conversations == DB`, o.inbox.openConversations === convOpen, `api=${o.inbox.openConversations} db=${convOpen}`);
+  chk(`${k}:completed runs == DB executions`, o.campaigns.completedRuns === execDone, `api=${o.campaigns.completedRuns} db=${execDone}`);
+  chk(`${k}:auto-reply == DB`, o.autoReplyExecutions === rules, `api=${o.autoReplyExecutions} db=${rules}`);
+  chk(`${k}:worker status real`, o.system.workerRunning === true, o.system.workerHealth);
+  chk(`${k}:no property wording leak`, k === 'm2w' || !/property/i.test(text), '');
+  console.log('   alerts:', o.alerts.map((a) => `${a.id}[${a.severity}${a.optional ? ',optional' : ''}]`).join(', '));
+}
+await mongoose.disconnect();
+console.log(fails ? `${fails} FAILED` : 'ALL PASS');
+process.exit(fails ? 1 : 0);

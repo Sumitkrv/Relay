@@ -1,16 +1,21 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import AuthSession from '../models/AuthSession.js';
+import { requestToken } from '../utils/sessionCookie.js';
+import { resolveWorkspaceContext } from './requireWorkspace.js';
 
 export async function requireAuth(req, res, next) {
   try {
-    const token =
-      req.cookies?.session || req.get('authorization')?.replace(/^Bearer\s+/i, '');
+    const token = requestToken(req);
     if (!token) {
       return res.status(401).json({ message: 'Authentication required.' });
     }
 
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const userId = payload.sub || payload.id;
+    if (payload.sid && !await AuthSession.exists({ _id: payload.sid, userId, revokedAt: null, expiresAt: { $gt: new Date() } })) {
+      return res.status(401).json({ message: 'Session has been revoked. Please sign in again.' });
+    }
     const user = await User.findById(userId);
     if (!user) {
       return res.status(401).json({ message: 'Session is no longer valid.' });
@@ -40,7 +45,8 @@ export async function requireAuth(req, res, next) {
     }
 
     req.user = user;
-    next();
+    req.authSessionId = payload.sid || null;
+    return resolveWorkspaceContext(req, res, next);
   } catch (err) {
     if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: 'Please sign in again.' });

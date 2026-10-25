@@ -1,0 +1,704 @@
+[
+  {
+    "area": "m2w",
+    "name": "brand header shows Relay only (no business name)",
+    "pass": true,
+    "detail": "relay."
+  },
+  {
+    "area": "m2w",
+    "name": "workspace card = business name + industry",
+    "pass": true,
+    "detail": "M2W Realty Real Estate"
+  },
+  {
+    "area": "m2w",
+    "name": "no other business identity leaked in shell",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "m2w",
+    "name": "account footer shows person, not business-only identity",
+    "pass": true,
+    "detail": "MO M2W Realty Owner owner.m2w@relay-demo.test"
+  },
+  {
+    "area": "m2w",
+    "name": "nav groups",
+    "pass": true,
+    "detail": "WORKSPACE | INSIGHTS & MANAGEMENT"
+  },
+  {
+    "area": "m2w",
+    "name": "seven nav items in order",
+    "pass": true,
+    "detail": "Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings"
+  },
+  {
+    "area": "m2w",
+    "name": "only Overview active at /app",
+    "pass": true,
+    "detail": "Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)"
+  },
+  {
+    "area": "m2w",
+    "name": "sidebar 252px, topbar 68px white",
+    "pass": true,
+    "detail": "sb=252 top=68 bg=rgb(255, 255, 255)"
+  },
+  {
+    "area": "m2w",
+    "name": "breadcrumb \"Workspace > Overview\"",
+    "pass": true,
+    "detail": "Workspace Overview"
+  },
+  {
+    "area": "m2w",
+    "name": "status chip + Mock Mode badge",
+    "pass": true,
+    "detail": "System operational | Mock Mode"
+  },
+  {
+    "area": "m2w",
+    "name": "footer fully inside viewport",
+    "pass": true,
+    "detail": "963/963"
+  },
+  {
+    "area": "m2w",
+    "name": "no horizontal overflow",
+    "pass": true,
+    "detail": "0"
+  },
+  {
+    "area": "m2w",
+    "name": "account menu: name, email, backend role, Sign out",
+    "pass": true,
+    "detail": "MO M2W Realty Owner owner.m2w@relay-demo.test OWNER Profile & Settings Activity Logs Sign out"
+  },
+  {
+    "area": "m2w",
+    "name": "Escape closes account menu",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "m2w",
+    "name": "workspace logo or blue-initials fallback",
+    "pass": true,
+    "detail": "logo image"
+  },
+  {
+    "area": "m2w",
+    "name": "long business/user/email truncate without overflow; Sign out stays visible",
+    "pass": true,
+    "detail": "{\"sidebarScroll\":0,\"pageOverflow\":0,\"ellipsis\":\"ellipsis\",\"signOutVisible\":true}"
+  },
+  {
+    "area": "m2w",
+    "name": "no console errors/warnings",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "gym",
+    "name": "brand header shows Relay only (no business name)",
+    "pass": true,
+    "detail": "relay."
+  },
+  {
+    "area": "gym",
+    "name": "workspace card = business name + industry",
+    "pass": true,
+    "detail": "FG FitZone Gym Gym"
+  },
+  {
+    "area": "gym",
+    "name": "no other business identity leaked in shell",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "gym",
+    "name": "account footer shows person, not business-only identity",
+    "pass": true,
+    "detail": "FO FitZone Gym Owner owner.gym@relay-demo.test"
+  },
+  {
+    "area": "gym",
+    "name": "nav groups",
+    "pass": true,
+    "detail": "WORKSPACE | INSIGHTS & MANAGEMENT"
+  },
+  {
+    "area": "gym",
+    "name": "seven nav items in order",
+    "pass": true,
+    "detail": "Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings"
+  },
+  {
+    "area": "gym",
+    "name": "only Overview active at /app",
+    "pass": true,
+    "detail": "Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)"
+  },
+  {
+    "area": "gym",
+    "name": "sidebar 252px, topbar 68px white",
+    "pass": true,
+    "detail": "sb=252 top=68 bg=rgb(255, 255, 255)"
+  },
+  {
+    "area": "gym",
+    "name": "breadcrumb \"Workspace > Overview\"",
+    "pass": true,
+    "detail": "Workspace Overview"
+  },
+  {
+    "area": "gym",
+    "name": "status chip + Mock Mode badge",
+    "pass": true,
+    "detail": "System operational | Mock Mode"
+  },
+  {
+    "area": "gym",
+    "name": "footer fully inside viewport",
+    "pass": true,
+    "detail": "963/963"
+  },
+  {
+    "area": "gym",
+    "name": "no horizontal overflow",
+    "pass": true,
+    "detail": "0"
+  },
+  {
+    "area": "gym",
+    "name": "account menu: name, email, backend role, Sign out",
+    "pass": true,
+    "detail": "FO FitZone Gym Owner owner.gym@relay-demo.test OWNER Profile & Settings Activity Logs Sign out"
+  },
+  {
+    "area": "gym",
+    "name": "Escape closes account menu",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "gym",
+    "name": "workspace logo or blue-initials fallback",
+    "pass": true,
+    "detail": "{\"text\":\"FG\",\"bg\":\"rgb(30, 58, 138)\"}"
+  },
+  {
+    "area": "gym",
+    "name": "long business/user/email truncate without overflow; Sign out stays visible",
+    "pass": true,
+    "detail": "{\"sidebarScroll\":0,\"pageOverflow\":0,\"ellipsis\":\"ellipsis\",\"signOutVisible\":true}"
+  },
+  {
+    "area": "gym",
+    "name": "no console errors/warnings",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "clinic",
+    "name": "brand header shows Relay only (no business name)",
+    "pass": true,
+    "detail": "relay."
+  },
+  {
+    "area": "clinic",
+    "name": "workspace card = business name + industry",
+    "pass": true,
+    "detail": "CC CarePlus Clinic Clinic"
+  },
+  {
+    "area": "clinic",
+    "name": "no other business identity leaked in shell",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "clinic",
+    "name": "account footer shows person, not business-only identity",
+    "pass": true,
+    "detail": "CO CarePlus Clinic Owner owner.clinic@relay-demo.test"
+  },
+  {
+    "area": "clinic",
+    "name": "nav groups",
+    "pass": true,
+    "detail": "WORKSPACE | INSIGHTS & MANAGEMENT"
+  },
+  {
+    "area": "clinic",
+    "name": "seven nav items in order",
+    "pass": true,
+    "detail": "Overview, Contacts, Templates, Campaigns, Inbox & Auto-reply, Reports, Settings"
+  },
+  {
+    "area": "clinic",
+    "name": "only Overview active at /app",
+    "pass": true,
+    "detail": "Overview bg=rgb(23, 37, 84) color=rgb(219, 234, 254)"
+  },
+  {
+    "area": "clinic",
+    "name": "sidebar 252px, topbar 68px white",
+    "pass": true,
+    "detail": "sb=252 top=68 bg=rgb(255, 255, 255)"
+  },
+  {
+    "area": "clinic",
+    "name": "breadcrumb \"Workspace > Overview\"",
+    "pass": true,
+    "detail": "Workspace Overview"
+  },
+  {
+    "area": "clinic",
+    "name": "status chip + Mock Mode badge",
+    "pass": true,
+    "detail": "System operational | Mock Mode"
+  },
+  {
+    "area": "clinic",
+    "name": "footer fully inside viewport",
+    "pass": true,
+    "detail": "963/963"
+  },
+  {
+    "area": "clinic",
+    "name": "no horizontal overflow",
+    "pass": true,
+    "detail": "0"
+  },
+  {
+    "area": "clinic",
+    "name": "account menu: name, email, backend role, Sign out",
+    "pass": true,
+    "detail": "CO CarePlus Clinic Owner owner.clinic@relay-demo.test OWNER Profile & Settings Activity Logs Sign out"
+  },
+  {
+    "area": "clinic",
+    "name": "Escape closes account menu",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "clinic",
+    "name": "workspace logo or blue-initials fallback",
+    "pass": true,
+    "detail": "{\"text\":\"CC\",\"bg\":\"rgb(30, 58, 138)\"}"
+  },
+  {
+    "area": "clinic",
+    "name": "long business/user/email truncate without overflow; Sign out stays visible",
+    "pass": true,
+    "detail": "{\"sidebarScroll\":0,\"pageOverflow\":0,\"ellipsis\":\"ellipsis\",\"signOutVisible\":true}"
+  },
+  {
+    "area": "clinic",
+    "name": "no console errors/warnings",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "route",
+    "name": "Overview: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/app active=Overview crumb=\"Workspace Overview\""
+  },
+  {
+    "area": "route",
+    "name": "Contacts: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/contacts active=Contacts crumb=\"Workspace Contacts\""
+  },
+  {
+    "area": "route",
+    "name": "Templates: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/templates active=Templates crumb=\"Workspace Templates\""
+  },
+  {
+    "area": "route",
+    "name": "Campaigns: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/campaigns active=Campaigns crumb=\"Workspace Campaigns\""
+  },
+  {
+    "area": "route",
+    "name": "Inbox & Auto-reply: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/inbox active=Inbox & Auto-reply crumb=\"Workspace Inbox & Auto-reply\""
+  },
+  {
+    "area": "route",
+    "name": "Reports: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/reports active=Reports crumb=\"Workspace Reports\""
+  },
+  {
+    "area": "route",
+    "name": "Settings: url, single active item, breadcrumb",
+    "pass": true,
+    "detail": "/settings active=Settings crumb=\"Workspace Settings\""
+  },
+  {
+    "area": "route",
+    "name": "Back -> Reports active",
+    "pass": true,
+    "detail": "/reports Reports"
+  },
+  {
+    "area": "route",
+    "name": "Back -> Inbox active",
+    "pass": true,
+    "detail": "/inbox Inbox & Auto-reply"
+  },
+  {
+    "area": "route",
+    "name": "Forward -> Reports active",
+    "pass": true,
+    "detail": "/reports Reports"
+  },
+  {
+    "area": "route",
+    "name": "direct load /templates",
+    "pass": true,
+    "detail": "active=Templates crumb=\"Workspace Templates\""
+  },
+  {
+    "area": "route",
+    "name": "direct load /app/contacts",
+    "pass": true,
+    "detail": "active=Contacts crumb=\"Workspace Contacts\""
+  },
+  {
+    "area": "route",
+    "name": "direct load /campaigns/new",
+    "pass": true,
+    "detail": "active=Campaigns crumb=\"Workspace Campaigns New Campaign\""
+  },
+  {
+    "area": "route",
+    "name": "direct load /import",
+    "pass": true,
+    "detail": "active=Contacts crumb=\"Workspace Contacts Import Contacts\""
+  },
+  {
+    "area": "route",
+    "name": "direct load /activity",
+    "pass": true,
+    "detail": "active=Settings crumb=\"Workspace Settings Activity Logs\""
+  },
+  {
+    "area": "route",
+    "name": "refresh keeps session + active state",
+    "pass": true,
+    "detail": "/activity Settings"
+  },
+  {
+    "area": "route",
+    "name": "real campaign id available for nested-route test",
+    "pass": true,
+    "detail": "6ada1e2e2c691eeac0f3880c"
+  },
+  {
+    "area": "route",
+    "name": "campaign details: Campaigns active + \"Workspace / Campaigns / Campaign Details\"",
+    "pass": true,
+    "detail": "active=Campaigns crumb=\"Workspace Campaigns Campaign Details\""
+  },
+  {
+    "area": "route",
+    "name": "campaign edit: Campaigns active + 4-level breadcrumb",
+    "pass": true,
+    "detail": "active=Campaigns crumb=\"Workspace Campaigns Campaign Details Edit\""
+  },
+  {
+    "area": "route",
+    "name": "no console errors across navigation",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "responsive",
+    "name": "1920px expanded: layout",
+    "pass": true,
+    "detail": "sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1600px expanded: layout",
+    "pass": true,
+    "detail": "sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1440px expanded: layout",
+    "pass": true,
+    "detail": "sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1280px expanded: layout",
+    "pass": true,
+    "detail": "sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1024px expanded: layout",
+    "pass": true,
+    "detail": "sb=252@0 vis=true main@252 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "768px expanded: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "390px expanded: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "375px expanded: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "320px expanded: layout",
+    "pass": true,
+    "detail": "sb=275@-275 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1920px collapsed: layout",
+    "pass": true,
+    "detail": "sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1920px rail: no labels, centered icons, aria-labels, signout+avatar kept",
+    "pass": true,
+    "detail": "{\"labelsHidden\":true,\"itemsCentered\":true,\"activeBar\":true,\"signOut\":true,\"avatar\":true,\"ariaLabels\":true}"
+  },
+  {
+    "area": "responsive",
+    "name": "1600px collapsed: layout",
+    "pass": true,
+    "detail": "sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1600px rail: no labels, centered icons, aria-labels, signout+avatar kept",
+    "pass": true,
+    "detail": "{\"labelsHidden\":true,\"itemsCentered\":true,\"activeBar\":true,\"signOut\":true,\"avatar\":true,\"ariaLabels\":true}"
+  },
+  {
+    "area": "responsive",
+    "name": "1440px collapsed: layout",
+    "pass": true,
+    "detail": "sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1440px rail: no labels, centered icons, aria-labels, signout+avatar kept",
+    "pass": true,
+    "detail": "{\"labelsHidden\":true,\"itemsCentered\":true,\"activeBar\":true,\"signOut\":true,\"avatar\":true,\"ariaLabels\":true}"
+  },
+  {
+    "area": "responsive",
+    "name": "1280px collapsed: layout",
+    "pass": true,
+    "detail": "sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1280px rail: no labels, centered icons, aria-labels, signout+avatar kept",
+    "pass": true,
+    "detail": "{\"labelsHidden\":true,\"itemsCentered\":true,\"activeBar\":true,\"signOut\":true,\"avatar\":true,\"ariaLabels\":true}"
+  },
+  {
+    "area": "responsive",
+    "name": "1024px collapsed: layout",
+    "pass": true,
+    "detail": "sb=72@0 vis=true main@72 burger=none toggle=true overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "1024px rail: no labels, centered icons, aria-labels, signout+avatar kept",
+    "pass": true,
+    "detail": "{\"labelsHidden\":true,\"itemsCentered\":true,\"activeBar\":true,\"signOut\":true,\"avatar\":true,\"ariaLabels\":true}"
+  },
+  {
+    "area": "responsive",
+    "name": "768px collapsed: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "390px collapsed: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "375px collapsed: layout",
+    "pass": true,
+    "detail": "sb=288@-288 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "320px collapsed: layout",
+    "pass": true,
+    "detail": "sb=275@-275 vis=false main@0 burger=grid toggle=false overflowX=0 top=68"
+  },
+  {
+    "area": "responsive",
+    "name": "short 520h: footer + Sign out reachable",
+    "pass": true,
+    "detail": "foot=520/520 navScrolls=true signOutVisible=true"
+  },
+  {
+    "area": "responsive",
+    "name": "short 560h: footer + Sign out reachable",
+    "pass": true,
+    "detail": "foot=560/560 navScrolls=true signOutVisible=true"
+  },
+  {
+    "area": "responsive",
+    "name": "zoom125 (1920x963/1.25): footer + Sign out reachable",
+    "pass": true,
+    "detail": "foot=770/770 navScrolls=false signOutVisible=true"
+  },
+  {
+    "area": "responsive",
+    "name": "zoom90 (1920x963/0.9): footer + Sign out reachable",
+    "pass": true,
+    "detail": "foot=1070/1070 navScrolls=false signOutVisible=true"
+  },
+  {
+    "area": "collapse",
+    "name": "keyboard Enter on header toggle collapses (aria-expanded=false, persisted)",
+    "pass": true,
+    "detail": "w=72 stored=true"
+  },
+  {
+    "area": "collapse",
+    "name": "rail tooltip appears on hover",
+    "pass": true,
+    "detail": "Campaigns"
+  },
+  {
+    "area": "collapse",
+    "name": "collapsed state survives reload",
+    "pass": true,
+    "detail": "72"
+  },
+  {
+    "area": "collapse",
+    "name": "expand restores 252px",
+    "pass": true,
+    "detail": "252"
+  },
+  {
+    "area": "collapse",
+    "name": "navigate while collapsed (Templates active, still rail)",
+    "pass": true,
+    "detail": "/templates  w=72"
+  },
+  {
+    "area": "drawer",
+    "name": "closed drawer is hidden from focus/AT (visibility:hidden)",
+    "pass": true,
+    "detail": "hidden"
+  },
+  {
+    "area": "drawer",
+    "name": "opens: dialog semantics, Relay brand, workspace, 7 links, sign out, no collapse btn",
+    "pass": true,
+    "detail": "{\"open\":true,\"role\":\"dialog\",\"modal\":\"true\",\"brand\":\"relay.\",\"workspace\":\"M2W Realty Real Estate\",\"links\":7,\"signOut\":true,\"collapseHidden\":true,\"scrim\":true}"
+  },
+  {
+    "area": "drawer",
+    "name": "body scroll locked + focus moved into drawer + footer visible",
+    "pass": true,
+    "detail": "overflow=hidden focus=Close navigation menu foot=700/700"
+  },
+  {
+    "area": "drawer",
+    "name": "Tab focus is trapped inside the open drawer (16 Tabs)",
+    "pass": true,
+    "detail": ""
+  },
+  {
+    "area": "drawer",
+    "name": "Escape closes drawer, restores scroll, returns focus to hamburger",
+    "pass": true,
+    "detail": "vis=false overflow=\"\" focus=Open navigation menu"
+  },
+  {
+    "area": "drawer",
+    "name": "backdrop click closes drawer",
+    "pass": true,
+    "detail": "vis=false"
+  },
+  {
+    "area": "drawer",
+    "name": "selecting a link navigates and closes drawer; mobile breadcrumb shows only current page",
+    "pass": true,
+    "detail": "/contacts vis=false crumbs=[\"Contacts\"]"
+  },
+  {
+    "area": "drawer",
+    "name": "resize to desktop with drawer open: no stale scroll lock, sidebar docked",
+    "pass": true,
+    "detail": "overflow=\"\" sb=252"
+  },
+  {
+    "area": "responsive",
+    "name": "320px status popover stays inside viewport",
+    "pass": true,
+    "detail": "{\"left\":12,\"right\":308,\"vw\":320}"
+  },
+  {
+    "area": "responsive",
+    "name": "320px notifications popover stays inside viewport",
+    "pass": true,
+    "detail": "{\"left\":12,\"right\":308,\"vw\":320}"
+  },
+  {
+    "area": "responsive",
+    "name": "320px account popover stays inside viewport",
+    "pass": true,
+    "detail": "{\"left\":12,\"right\":308,\"vw\":320}"
+  },
+  {
+    "area": "logout",
+    "name": "sidebar Sign out returns to /login",
+    "pass": true,
+    "detail": "/login"
+  },
+  {
+    "area": "logout",
+    "name": "protected route redirects to /login after logout",
+    "pass": true,
+    "detail": "/login"
+  },
+  {
+    "area": "logout",
+    "name": "account-menu Sign out returns to /login",
+    "pass": true,
+    "detail": "/login"
+  }
+]

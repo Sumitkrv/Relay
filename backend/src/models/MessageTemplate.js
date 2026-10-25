@@ -57,11 +57,16 @@ const templateSchema = new mongoose.Schema({
   sampleValues: { type: mongoose.Schema.Types.Mixed, default: {} },
   fallbackValues: { type: mongoose.Schema.Types.Mixed, default: {} },
   usageReferences: { type: [String], default: [] },
-  isArchived: { type: Boolean, default: false, index: true }
+  isArchived: { type: Boolean, default: false, index: true },
+  starterPresetKey: { type: String, trim: true, default: null },
+  starterPackVersion: { type: String, trim: true, default: null },
+  provisioningSource: { type: String, trim: true, default: null }
 }, { timestamps: true });
 templateSchema.index({ ownerId: 1, isArchived: 1, updatedAt: -1 });
 templateSchema.index({ ownerId: 1, businessCategory: 1, intendedService: 1 });
 templateSchema.index({ ownerId: 1, name: 1 });
+// One provisioned copy of each industry starter per workspace (new field: no legacy conflicts).
+templateSchema.index({ workspaceId: 1, starterPresetKey: 1 }, { unique: true, partialFilterExpression: { starterPresetKey: { $type: 'string' } } });
 
 export const TemplateVersion = mongoose.model('TemplateVersion', versionSchema);
 export default mongoose.model('MessageTemplate', templateSchema);

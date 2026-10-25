@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Terminal,
   ShieldCheck,
@@ -280,7 +281,7 @@ export default function DeveloperTestingCenter() {
       <div style={{ borderBottom: '1px solid var(--color-border-subtle)', paddingBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '16px', background: 'rgba(13, 148, 136, 0.1)', color: 'var(--color-primary-dark)', fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '16px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563EB', fontSize: '12px', fontWeight: 600, marginBottom: '8px' }}>
               <Terminal size={14} /> RELAY MOCK TESTING CENTER
             </div>
             <h2 style={{ fontSize: '20px', fontWeight: 700, margin: '4px 0', color: 'var(--color-text-primary)' }} id="tab-developer">
@@ -290,15 +291,25 @@ export default function DeveloperTestingCenter() {
               Test WhatsApp automation internally without sending real messages. Official Meta API remains safely disconnected.
             </p>
           </div>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={loadAllStatus}
-            disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Status
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link
+              to="/dev/industry-preview"
+              className="btn btn-secondary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#2563EB', fontWeight: 600, textDecoration: 'none' }}
+              title="Inspect Universal Industry Packs (Read-Only)"
+            >
+              <Layers size={14} /> Universal Industry Inspector &rarr;
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={loadAllStatus}
+              disabled={loading}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Status
+            </button>
+          </div>
         </div>
       </div>
 

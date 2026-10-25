@@ -18,7 +18,11 @@ import { useAuth } from '../context/AuthContext';
 
 export default function AuthPage({ mode = 'login' }) {
   const isRegister = mode === 'register';
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
@@ -55,7 +59,11 @@ export default function AuthPage({ mode = 'login' }) {
       } else {
         const result = await login({ email: form.email, password: form.password });
         toast.success('Welcome back to Relay.');
-        if (result && result.hasWorkspace) {
+        if (result?.user?.isPlatformAdmin) {
+          navigate('/admin');
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
+          navigate('/agency');
+        } else if (result && result.hasWorkspace) {
           navigate('/app');
         } else {
           navigate('/onboarding');
@@ -93,37 +101,38 @@ export default function AuthPage({ mode = 'login' }) {
       {/* Visual Brand Panel */}
       <div className="auth-visual">
         <div className="brand auth-brand">
-          <img src="/logo.png" alt="M2W Realty" className="brand-logo-img-lg" />
-          <span>
-            M2W Realty<span className="brand-dot">.</span>
+          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-lg shadow-md shadow-blue-500/20">
+            R
+          </div>
+          <span className="text-xl font-bold tracking-tight text-white">
+            Relay<span className="text-blue-500">.</span>
           </span>
         </div>
 
         <div className="visual-copy">
           <div className="eyebrow">
-            <Sparkles size={14} /> REAL ESTATE WHATSAPP AUTOMATION
+            <Sparkles size={14} /> MULTI-INDUSTRY SAAS AUTOMATION
           </div>
           <h1>
-            Property leads,
+            Your business.
             <br />
-            automated on
+            Your conversations.
             <br />
-            <em>WhatsApp.</em>
+            <em>One workspace.</em>
           </h1>
           <p>
-            Engage property buyers instantly, schedule site visits, and nurture client relationships
-            seamlessly from one unified single-operator workspace.
+            Organize contacts, automate follow-ups and manage customer engagement from one platform.
           </p>
           <div className="visual-proof">
             <div className="proof-check">
               <Check size={14} />
             </div>
-            <span>Single-Operator Real Estate Platform</span>
+            <span>Single-Operator Multi-Tenant Architecture</span>
           </div>
         </div>
 
         <div className="visual-footer">
-          Reliable real estate outreach. <span>© M2W Realty WhatsApp Automation</span>
+          Isolated multi-tenant SaaS. <span>© {new Date().getFullYear()} Relay Automation Inc.</span>
         </div>
       </div>
 
@@ -131,20 +140,22 @@ export default function AuthPage({ mode = 'login' }) {
       <div className="auth-form-side">
         <div className="auth-form-wrap">
           <div className="auth-mobile-brand brand">
-            <img src="/logo.png" alt="M2W Realty" className="brand-logo-img" />
-            <span>
-              M2W Realty<span className="brand-dot">.</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-base shadow">
+              R
+            </div>
+            <span className="text-xl font-black tracking-tight text-slate-900">
+              Relay<span className="text-blue-600">.</span>
             </span>
           </div>
 
           <div className="form-kicker">
-            {isRegister ? 'SINGLE OPERATOR PROVISIONING' : 'OWNER AUTHENTICATION'}
+            {isRegister ? 'WORKSPACE REGISTRATION' : 'SECURE AUTHENTICATION'}
           </div>
-          <h2>{isRegister ? 'Create owner account' : 'Welcome back'}</h2>
+          <h2>{isRegister ? 'Create business account' : 'Welcome back'}</h2>
           <p className="form-subtitle">
             {isRegister
-              ? 'Provision your single-operator real estate workspace.'
-              : 'Sign in to access your properties, inbox, and campaigns.'}
+              ? 'Register your account to begin business onboarding.'
+              : 'Sign in to continue to your Relay workspace.'}
           </p>
 
           {/* Email Unverified Warning Banner */}
@@ -161,7 +172,7 @@ export default function AuthPage({ mode = 'login' }) {
                   type="button"
                   disabled={resendBusy || resendSent}
                   onClick={handleResendUnverified}
-                  className="font-bold text-teal-700 hover:text-teal-900 underline flex items-center gap-1 disabled:opacity-50"
+                  className="font-bold text-blue-700 hover:text-blue-900 underline flex items-center gap-1 disabled:opacity-50"
                 >
                   <RotateCw className={`w-3 h-3 ${resendBusy ? 'animate-spin' : ''}`} />
                   <span>{resendSent ? 'Verification Email Dispatched' : 'Resend Verification Email'}</span>
@@ -177,6 +188,48 @@ export default function AuthPage({ mode = 'login' }) {
             </div>
           )}
 
+          {!isRegister && import.meta.env.DEV && (
+            <div
+              style={{
+                marginBottom: '1.25rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '10px',
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af' }}>
+                  🏢 M2W Realty Demo Account
+                </div>
+                <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>
+                  Password: <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>password123</code>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm({ name: '', email: 'owner.m2w@relay-demo.test', password: 'password123' })}
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #93c5fd',
+                  background: '#ffffff',
+                  color: '#1d4ed8',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Auto-fill
+              </button>
+            </div>
+          )}
+
           <form onSubmit={submit} className="auth-form">
             {isRegister && (
               <label>
@@ -187,7 +240,7 @@ export default function AuthPage({ mode = 'login' }) {
                     name="name"
                     value={form.name}
                     onChange={change}
-                    placeholder="e.g. Sumit Thakur"
+                    placeholder="e.g. Rahul Sharma"
                     autoComplete="name"
                     required
                     minLength={2}
@@ -205,7 +258,7 @@ export default function AuthPage({ mode = 'login' }) {
                   name="email"
                   value={form.email}
                   onChange={change}
-                  placeholder="admin@relaycrm.io"
+                  placeholder="name@company.com"
                   autoComplete="email"
                   required
                 />
@@ -218,7 +271,7 @@ export default function AuthPage({ mode = 'login' }) {
                 {!isRegister && (
                   <Link
                     to="/forgot-password"
-                    style={{ fontSize: '11px', color: 'var(--color-primary, #0D9488)', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ fontSize: '12px', color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}
                   >
                     Forgot password?
                   </Link>
@@ -249,7 +302,7 @@ export default function AuthPage({ mode = 'login' }) {
 
             {!isRegister && (
               <div className="form-hint" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={14} style={{ color: 'var(--color-primary)' }} />
+                <ShieldCheck size={14} style={{ color: '#2563EB' }} />
                 <span>Protected by single-owner session authentication and rate limiting.</span>
               </div>
             )}
@@ -273,7 +326,7 @@ export default function AuthPage({ mode = 'login' }) {
           </div>
 
           <div className="auth-legal">
-            Single-operator workspace. © Relay Real Estate WhatsApp Automation.
+            Single-Operator secure workspace. © {new Date().getFullYear()} Relay Automation Inc.
           </div>
         </div>
       </div>

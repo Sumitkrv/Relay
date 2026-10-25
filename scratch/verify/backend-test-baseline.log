@@ -1,0 +1,2066 @@
+
+> freelance-crm-backend@1.0.0 test
+> node qa/runTests.js
+
+Legacy local-database suites excluded: e2eClinicAndM2W.test.js, masterPrompt05SalonIndustry.test.js, masterPrompt06AutomobileIndustry.test.js, masterPrompt07TravelIndustry.test.js, masterPrompt09RestaurantIndustry.test.js, masterPrompt13GenericIndustry.test.js, prompt1DemoSetup.test.js, prompt2MockCampaignAutomation.test.js, prompt3OverviewReportsSettings.test.js, prompt91DryRunE2E.test.js, prompt9MockFinishing.test.js
+TAP version 13
+# Subtest: analytics aggregates actual CRM facts, groups currencies, isolates owners and scoring ignores mock inbox activity
+ok 1 - analytics aggregates actual CRM facts, groups currencies, isolates owners and scoring ignores mock inbox activity
+  ---
+  duration_ms: 4825.197791
+  ...
+# Subtest: campaign planning, immutable template reference, consent validation, segments and tenant isolation
+ok 2 - campaign planning, immutable template reference, consent validation, segments and tenant isolation
+  ---
+  duration_ms: 5409.613875
+  ...
+# Subtest: campaign draft deletion and unique audience membership are enforced
+ok 3 - campaign draft deletion and unique audience membership are enforced
+  ---
+  duration_ms: 8392.17475
+  ...
+# Subtest: campaign mock execution is durable, owner scoped, controllable, and never reports a real send
+ok 4 - campaign mock execution is durable, owner scoped, controllable, and never reports a real send
+  ---
+  duration_ms: 617.192083
+  ...
+# Subtest: chatbot graph validator accepts a complete question flow and rejects missing option branches
+ok 5 - chatbot graph validator accepts a complete question flow and rejects missing option branches
+  ---
+  duration_ms: 1.22275
+  ...
+# Subtest: simulated answers persist only in test session and complete the conversation
+ok 6 - simulated answers persist only in test session and complete the conversation
+  ---
+  duration_ms: 0.347125
+  ...
+# Subtest: unknown condition state ends safely instead of selecting the false branch
+ok 7 - unknown condition state ends safely instead of selecting the false branch
+  ---
+  duration_ms: 0.276917
+  ...
+# Subtest: mock lead qualification is retained in the isolated session only
+ok 8 - mock lead qualification is retained in the isolated session only
+  ---
+  duration_ms: 0.326541
+  ...
+# Subtest: contact CRUD, international normalization, scoped search and pagination
+ok 9 - contact CRUD, international normalization, scoped search and pagination
+  ---
+  duration_ms: 12662.213542
+  ...
+# Subtest: consent audit, eligibility, bulk actions, archive, restore, delete, and exports
+ok 10 - consent audit, eligibility, bulk actions, archive, restore, delete, and exports
+  ---
+  duration_ms: 165.990292
+  ...
+# Subtest: CSV contact import validates, skips normalized duplicates, preserves consent, records activity, and scopes history
+ok 11 - CSV contact import validates, skips normalized duplicates, preserves consent, records activity, and scopes history
+  ---
+  duration_ms: 103.642041
+  ...
+# Subtest: XLSX workbook import detects worksheets, custom mappings and updates only explicitly selected fields
+ok 12 - XLSX workbook import detects worksheets, custom mappings and updates only explicitly selected fields
+  ---
+  duration_ms: 86.90025
+  ...
+# Subtest: import rejects malformed, unsupported, unauthenticated, and over-size uploads safely
+ok 13 - import rejects malformed, unsupported, unauthenticated, and over-size uploads safely
+  ---
+  duration_ms: 338.354667
+  ...
+# Subtest: mapping presets are owner-scoped, custom fields are persisted safely, and templates download
+ok 14 - mapping presets are owner-scoped, custom fields are persisted safely, and templates download
+  ---
+  duration_ms: 92.542459
+  ...
+# Subtest: CSV error reports neutralize formula-like text and imports never accept spreadsheet consent as opt-in
+ok 15 - CSV error reports neutralize formula-like text and imports never accept spreadsheet consent as opt-in
+  ---
+  duration_ms: 69.7155
+  ...
+# Subtest: retry resumes only failed rows and remains idempotent
+ok 16 - retry resumes only failed rows and remains idempotent
+  ---
+  duration_ms: 66.808417
+  ...
+# Subtest: categories are owner scoped with real counts and deterministic import category review
+ok 17 - categories are owner scoped with real counts and deterministic import category review
+  ---
+  duration_ms: 99.254208
+  ...
+# Subtest: RELAY — FINAL SUPER MASTER PROMPT: 100% REAL DATA END-TO-END VALIDATION
+    # Subtest: 1. Contact Creation via Real API persists genuine MongoDB document with zero fake data
+    ok 1 - 1. Contact Creation via Real API persists genuine MongoDB document with zero fake data
+      ---
+      duration_ms: 23.693625
+      ...
+    # Subtest: 2. Contact Update via Real API modifies MongoDB and survives query verification
+    ok 2 - 2. Contact Update via Real API modifies MongoDB and survives query verification
+      ---
+      duration_ms: 17.106334
+      ...
+    # Subtest: 3. Follow-Up Task creation links to Contact and updates Dashboard counts honestly
+    ok 3 - 3. Follow-Up Task creation links to Contact and updates Dashboard counts honestly
+      ---
+      duration_ms: 29.992333
+      ...
+    # Subtest: 4. Template Studio: Create custom template, version snapshot and verify MongoDB document
+    ok 4 - 4. Template Studio: Create custom template, version snapshot and verify MongoDB document
+      ---
+      duration_ms: 12.896084
+      ...
+    # Subtest: 5. Quick Reply: Create, persist, and verify retrieval via API and MongoDB
+    ok 5 - 5. Quick Reply: Create, persist, and verify retrieval via API and MongoDB
+      ---
+      duration_ms: 12.029625
+      ...
+    # Subtest: 6. Auto-Reply Engine: Real keyword evaluation, variable interpolation, mock dispatch and RuleExecution log
+    ok 6 - 6. Auto-Reply Engine: Real keyword evaluation, variable interpolation, mock dispatch and RuleExecution log
+      ---
+      duration_ms: 44.070708
+      ...
+    # Subtest: 7. Mock Campaign Engine: Draft creation, affirmative consent check, job execution and Message document logging
+    ok 7 - 7. Mock Campaign Engine: Draft creation, affirmative consent check, job execution and Message document logging
+      ---
+      duration_ms: 53.479
+      ...
+    # Subtest: 8. Reports Overview reflects genuine MongoDB execution counts with zero fabricated stats
+    ok 8 - 8. Reports Overview reflects genuine MongoDB execution counts with zero fabricated stats
+      ---
+      duration_ms: 137.56025
+      ...
+    # Subtest: 9. Multi-Tenant Isolation: Another workspace user cannot read or update QA workspace records
+    ok 9 - 9. Multi-Tenant Isolation: Another workspace user cannot read or update QA workspace records
+      ---
+      duration_ms: 527.344667
+      ...
+    1..9
+ok 18 - RELAY — FINAL SUPER MASTER PROMPT: 100% REAL DATA END-TO-END VALIDATION
+  ---
+  duration_ms: 10862.68675
+  type: 'suite'
+  ...
+# Subtest: inbox records are owner-scoped; drafts, notes, manual logs, unread state and follow-ups persist without provider claims
+ok 19 - inbox records are owner-scoped; drafts, notes, manual logs, unread state and follow-ups persist without provider claims
+  ---
+  duration_ms: 4332.263833
+  ...
+# Subtest: legacy Inbox list, details and messages agree on the verified contact workspace without modifying stored records
+ok 20 - legacy Inbox list, details and messages agree on the verified contact workspace without modifying stored records
+  ---
+  duration_ms: 4459.870208
+  ...
+# Subtest: legacy compatibility rejects foreign, unassigned and inconsistent tenant references and stamps new conversations
+ok 21 - legacy compatibility rejects foreign, unassigned and inconsistent tenant references and stamps new conversations
+  ---
+  duration_ms: 107.721083
+  ...
+# Subtest: Master Prompt 01/08 — 1. 13 Target Industry Identifiers registered with metadata
+ok 22 - Master Prompt 01/08 — 1. 13 Target Industry Identifiers registered with metadata
+  ---
+  duration_ms: 0.8665
+  ...
+# Subtest: Master Prompt 01/08 — 2. Real Estate Pack defines exactly 14 CRM Contact field definitions
+ok 23 - Master Prompt 01/08 — 2. Real Estate Pack defines exactly 14 CRM Contact field definitions
+  ---
+  duration_ms: 0.169334
+  ...
+# Subtest: Master Prompt 01/08 — 3. Exactly 15 Real Estate starter message templates exist with complete metadata
+ok 24 - Master Prompt 01/08 — 3. Exactly 15 Real Estate starter message templates exist with complete metadata
+  ---
+  duration_ms: 0.160334
+  ...
+# Subtest: Master Prompt 01/08 — 4. Exactly 8 Quick Replies exist with shortcuts and response text
+ok 25 - Master Prompt 01/08 — 4. Exactly 8 Quick Replies exist with shortcuts and response text
+  ---
+  duration_ms: 0.1155
+  ...
+# Subtest: Master Prompt 01/08 — 5. Exactly 5 Keyword Auto-Reply Rules exist and are disabled by default
+ok 26 - Master Prompt 01/08 — 5. Exactly 5 Keyword Auto-Reply Rules exist and are disabled by default
+  ---
+  duration_ms: 0.211583
+  ...
+# Subtest: Master Prompt 01/08 — 6. Exactly 2 Sample Campaign Drafts defined without execution history
+ok 27 - Master Prompt 01/08 — 6. Exactly 2 Sample Campaign Drafts defined without execution history
+  ---
+  duration_ms: 0.3795
+  ...
+# Subtest: Master Prompt 01/08 — 7. CRM Variables support {{customer_name}}, {{business_name}}, {{property_type}}, {{project_name}}, {{preferred_location}}, {{site_visit_date}}
+ok 28 - Master Prompt 01/08 — 7. CRM Variables support {{customer_name}}, {{business_name}}, {{property_type}}, {{project_name}}, {{preferred_location}}, {{site_visit_date}}
+  ---
+  duration_ms: 0.4905
+  ...
+# Subtest: Master Prompt 01/08 — 8. Configuration loading does not mutate database or trigger live calls
+ok 29 - Master Prompt 01/08 — 8. Configuration loading does not mutate database or trigger live calls
+  ---
+  duration_ms: 1.671834
+  ...
+# Subtest: Master Prompt 02/08 — 1. Registry loads all completed industry packs and identifies planned industries
+ok 30 - Master Prompt 02/08 — 1. Registry loads all completed industry packs and identifies planned industries
+  ---
+  duration_ms: 1.189084
+  ...
+# Subtest: Master Prompt 02/08 — 2. All 5 new industry packs (and Real Estate) load successfully with schema validation
+ok 31 - Master Prompt 02/08 — 2. All 5 new industry packs (and Real Estate) load successfully with schema validation
+  ---
+  duration_ms: 0.868875
+  ...
+# Subtest: Master Prompt 02/08 — 3. Every pack contains exactly 15 message templates (90 total)
+ok 32 - Master Prompt 02/08 — 3. Every pack contains exactly 15 message templates (90 total)
+  ---
+  duration_ms: 1.320334
+  ...
+# Subtest: Master Prompt 02/08 — 4. Every pack contains exactly 8 Quick Replies (48 total)
+ok 33 - Master Prompt 02/08 — 4. Every pack contains exactly 8 Quick Replies (48 total)
+  ---
+  duration_ms: 0.293416
+  ...
+# Subtest: Master Prompt 02/08 — 5. Every pack contains exactly 5 Keyword Auto-Reply Rules disabled by default (+ 1 opt-out compliance rule)
+ok 34 - Master Prompt 02/08 — 5. Every pack contains exactly 5 Keyword Auto-Reply Rules disabled by default (+ 1 opt-out compliance rule)
+  ---
+  duration_ms: 0.335959
+  ...
+# Subtest: Master Prompt 02/08 — 6. Every pack contains exactly 2 Sample Campaign Drafts (12 total, Draft status, no recipients)
+ok 35 - Master Prompt 02/08 — 6. Every pack contains exactly 2 Sample Campaign Drafts (12 total, Draft status, no recipients)
+  ---
+  duration_ms: 0.514375
+  ...
+# Subtest: Master Prompt 02/08 — 7. All 90 Template IDs across all 6 packs are globally unique
+ok 36 - Master Prompt 02/08 — 7. All 90 Template IDs across all 6 packs are globally unique
+  ---
+  duration_ms: 0.215625
+  ...
+# Subtest: Master Prompt 02/08 — 8. Variable Resolution works accurately for each industry with standard and custom tokens
+ok 37 - Master Prompt 02/08 — 8. Variable Resolution works accurately for each industry with standard and custom tokens
+  ---
+  duration_ms: 0.787625
+  ...
+# Subtest: Master Prompt 02/08 — 9. Strict Healthcare safety compliance for Clinics & Dental pack
+ok 38 - Master Prompt 02/08 — 9. Strict Healthcare safety compliance for Clinics & Dental pack
+  ---
+  duration_ms: 0.310292
+  ...
+# Subtest: Master Prompt 02/08 — 10. Alias resolution works for all 5 new industry keys
+ok 39 - Master Prompt 02/08 — 10. Alias resolution works for all 5 new industry keys
+  ---
+  duration_ms: 0.169833
+  ...
+# Subtest: Master Prompt 02/08 — 11. Every catalog industry resolves to its OWN pack (no silent Generic/Real Estate substitution)
+ok 40 - Master Prompt 02/08 — 11. Every catalog industry resolves to its OWN pack (no silent Generic/Real Estate substitution)
+  ---
+  duration_ms: 0.241292
+  ...
+# Subtest: Master Prompt 12/13 — 1. Professional Services Pack Metadata and Aliases
+ok 41 - Master Prompt 12/13 — 1. Professional Services Pack Metadata and Aliases
+  ---
+  duration_ms: 560.388833
+  ...
+# Subtest: Master Prompt 12/13 — 2. Exactly 15 Complete Message Templates
+ok 42 - Master Prompt 12/13 — 2. Exactly 15 Complete Message Templates
+  ---
+  duration_ms: 1.67325
+  ...
+# Subtest: Master Prompt 12/13 — 3. Exactly 8 Complete Quick Replies
+ok 43 - Master Prompt 12/13 — 3. Exactly 8 Complete Quick Replies
+  ---
+  duration_ms: 0.175875
+  ...
+# Subtest: Master Prompt 12/13 — 4. Exactly 5 Starter Keyword Rules (Disabled) + 1 Opt-Out Rule
+ok 44 - Master Prompt 12/13 — 4. Exactly 5 Starter Keyword Rules (Disabled) + 1 Opt-Out Rule
+  ---
+  duration_ms: 0.1595
+  ...
+# Subtest: Master Prompt 12/13 — 5. Exactly 2 Campaign Drafts (Unscheduled, No Recipients)
+ok 45 - Master Prompt 12/13 — 5. Exactly 2 Campaign Drafts (Unscheduled, No Recipients)
+  ---
+  duration_ms: 0.136333
+  ...
+# Subtest: Master Prompt 12/13 — 6. CRM Contact Field Definitions (14 Fields) with Schema Validation
+ok 46 - Master Prompt 12/13 — 6. CRM Contact Field Definitions (14 Fields) with Schema Validation
+  ---
+  duration_ms: 0.223333
+  ...
+# Subtest: Master Prompt 12/13 — 7. Personalization Variable Resolution
+ok 47 - Master Prompt 12/13 — 7. Personalization Variable Resolution
+  ---
+  duration_ms: 0.565208
+  ...
+# Subtest: Master Prompt 12/13 — 8. Multi-Tenant Segregation: Professional Services, Restaurant, and M2W Realty
+ok 48 - Master Prompt 12/13 — 8. Multi-Tenant Segregation: Professional Services, Restaurant, and M2W Realty
+  ---
+  duration_ms: 1773.423459
+  ...
+# Subtest: Master Prompt 14 — Automatic industry provisioning (10 accounts)
+    # Subtest: 1. Ten businesses sign up (8 sequential + 2 concurrent) and each is provisioned
+    ok 1 - 1. Ten businesses sign up (8 sequential + 2 concurrent) and each is provisioned
+      ---
+      duration_ms: 4694.704209
+      ...
+    # Subtest: 2. Each workspace exposes exactly 15/8/5/2 saved records via the API and MongoDB; 0 contacts/conversations/messages
+    ok 2 - 2. Each workspace exposes exactly 15/8/5/2 saved records via the API and MongoDB; 0 contacts/conversations/messages
+      ---
+      duration_ms: 211.138667
+      ...
+    # Subtest: 3. Ten-account totals are exactly 150 / 80 / 50 / 20 = 300 records, all correctly owned
+    ok 3 - 3. Ten-account totals are exactly 150 / 80 / 50 / 20 = 300 records, all correctly owned
+      ---
+      duration_ms: 23.12525
+      ...
+    # Subtest: 4. Cross-industry content is correct (no Real Estate fallback; each workspace gets its own pack)
+    ok 4 - 4. Cross-industry content is correct (no Real Estate fallback; each workspace gets its own pack)
+      ---
+      duration_ms: 6.373792
+      ...
+    # Subtest: 5. Same-industry isolation: Business A edit does not affect Business B or the immutable pack
+    ok 5 - 5. Same-industry isolation: Business A edit does not affect Business B or the immutable pack
+      ---
+      duration_ms: 30.919917
+      ...
+    # Subtest: 6. Repeated completes, retries, install-starter calls and re-provisioning create zero duplicates and keep edits
+    ok 6 - 6. Repeated completes, retries, install-starter calls and re-provisioning create zero duplicates and keep edits
+      ---
+      duration_ms: 409.151666
+      ...
+    # Subtest: 7. Rule enable state persists and is never reset by provisioning
+    ok 7 - 7. Rule enable state persists and is never reset by provisioning
+      ---
+      duration_ms: 20.227791
+      ...
+    # Subtest: 8. Partial failure recovers by inserting only missing records (edits preserved)
+    ok 8 - 8. Partial failure recovers by inserting only missing records (edits preserved)
+      ---
+      duration_ms: 25.669084
+      ...
+    # Subtest: 9. Concurrent provisioning of one workspace is race-safe (unique ids + indexes)
+    ok 9 - 9. Concurrent provisioning of one workspace is race-safe (unique ids + indexes)
+      ---
+      duration_ms: 46.494375
+      ...
+    # Subtest: 10. Concurrent duplicate onboarding submissions create exactly one workspace
+    ok 10 - 10. Concurrent duplicate onboarding submissions create exactly one workspace
+      ---
+      duration_ms: 449.645459
+      ...
+    # Subtest: 11. Invalid industry is rejected; legacy workspaces are never auto-seeded
+    ok 11 - 11. Invalid industry is rejected; legacy workspaces are never auto-seeded
+      ---
+      duration_ms: 448.794417
+      ...
+    # Subtest: 12. Importing the registry / provisioning service performs no database writes
+    ok 12 - 12. Importing the registry / provisioning service performs no database writes
+      ---
+      duration_ms: 7.689292
+      ...
+    1..12
+ok 49 - Master Prompt 14 — Automatic industry provisioning (10 accounts)
+  ---
+  duration_ms: 23091.999542
+  type: 'suite'
+  ...
+# Subtest: Master Prompt 15 — Complete Dynamic CRM Data Integration
+    # Subtest: 1. Contact CRM: Full CRUD, industry fields, lead status, search, and CSV export
+    ok 1 - 1. Contact CRM: Full CRUD, industry fields, lead status, search, and CSV export
+      ---
+      duration_ms: 86.976834
+      ...
+    # Subtest: 2. Contact Groups & Audiences: Create group, assign members, and retrieve counts
+    ok 2 - 2. Contact Groups & Audiences: Create group, assign members, and retrieve counts
+      ---
+      duration_ms: 23.607
+      ...
+    # Subtest: 3. Notes and Follow-ups: Persistence, due dates, completion and status lifecycle
+    ok 3 - 3. Notes and Follow-ups: Persistence, due dates, completion and status lifecycle
+      ---
+      duration_ms: 73.05425
+      ...
+    # Subtest: 4. Message Templates Studio: View saved starters, update draft, insert variables, preview
+    ok 4 - 4. Message Templates Studio: View saved starters, update draft, insert variables, preview
+      ---
+      duration_ms: 91.784084
+      ...
+    # Subtest: 5. Quick Replies: CRUD, search, and composer insertion compatibility
+    ok 5 - 5. Quick Replies: CRUD, search, and composer insertion compatibility
+      ---
+      duration_ms: 28.577167
+      ...
+    # Subtest: 6. Auto-Reply Rules: Enable/Disable, priority sorting, and rule matcher
+    ok 6 - 6. Auto-Reply Rules: Enable/Disable, priority sorting, and rule matcher
+      ---
+      duration_ms: 32.67625
+      ...
+    # Subtest: 7. Campaign Drafts: Persistence, template reference, audience mode, and status
+    ok 7 - 7. Campaign Drafts: Persistence, template reference, audience mode, and status
+      ---
+      duration_ms: 136.414708
+      ...
+    # Subtest: 8. Inbox & Conversations: Real history, mock message persistence, and contact context
+    ok 8 - 8. Inbox & Conversations: Real history, mock message persistence, and contact context
+      ---
+      duration_ms: 23.343791
+      ...
+    # Subtest: 9. Dynamic Dashboard & Reports: Accurate scoped counts and zero fake metrics
+    ok 9 - 9. Dynamic Dashboard & Reports: Accurate scoped counts and zero fake metrics
+      ---
+      duration_ms: 25.624
+      ...
+    # Subtest: 10. Settings Persistence: Profile update, business profile dynamic category, and preferences
+    ok 10 - 10. Settings Persistence: Profile update, business profile dynamic category, and preferences
+      ---
+      duration_ms: 24.296792
+      ...
+    # Subtest: 11. Multi-Tab Session Isolation: Independent session IDs on the same origin
+    ok 11 - 11. Multi-Tab Session Isolation: Independent session IDs on the same origin
+      ---
+      duration_ms: 22.526541
+      ...
+    # Subtest: 12. Tenant Isolation & Rejection: Workspace A cannot access or tamper with Workspace C
+    ok 12 - 12. Tenant Isolation & Rejection: Workspace A cannot access or tamper with Workspace C
+      ---
+      duration_ms: 16.211167
+      ...
+    1..12
+ok 50 - Master Prompt 15 — Complete Dynamic CRM Data Integration
+  ---
+  duration_ms: 9512.008584
+  type: 'suite'
+  ...
+# Subtest: Master Prompt 16 — Real Business Data Validation & Complete Mock Automation Engine
+    # Subtest: 1. Layer A: M2W Realty — Accurate Contacts, Templates, Campaigns and zero fabricated metrics
+    ok 1 - 1. Layer A: M2W Realty — Accurate Contacts, Templates, Campaigns and zero fabricated metrics
+      ---
+      duration_ms: 96.469917
+      ...
+    # Subtest: 2. Layer A: Sharma Clinic — Dedicated Clinic Branding, honest zero campaigns and non-realty fields
+    ok 2 - 2. Layer A: Sharma Clinic — Dedicated Clinic Branding, honest zero campaigns and non-realty fields
+      ---
+      duration_ms: 22.898291
+      ...
+    # Subtest: 3. Layer A: FitZone Gym — 8 Starter Quick Replies, honest empty contacts and Gym branding
+    ok 3 - 3. Layer A: FitZone Gym — 8 Starter Quick Replies, honest empty contacts and Gym branding
+      ---
+      duration_ms: 25.282208
+      ...
+    # Subtest: 4. Auto-Reply Case 1: Inbound message matching enabled rule executes mock reply and logs RuleExecution
+    ok 4 - 4. Auto-Reply Case 1: Inbound message matching enabled rule executes mock reply and logs RuleExecution
+      ---
+      duration_ms: 56.363708
+      ...
+    # Subtest: 5. Auto-Reply Case 2: Inbound message when rule is disabled generates zero automated replies
+    ok 5 - 5. Auto-Reply Case 2: Inbound message when rule is disabled generates zero automated replies
+      ---
+      duration_ms: 40.882375
+      ...
+    # Subtest: 6. Auto-Reply Case 3: Multiple matching rules execute the higher priority rule deterministically
+    ok 6 - 6. Auto-Reply Case 3: Multiple matching rules execute the higher priority rule deterministically
+      ---
+      duration_ms: 54.05975
+      ...
+    # Subtest: 7. Auto-Reply Case 4: Unknown keyword does not fabricate response and increments unread count
+    ok 7 - 7. Auto-Reply Case 4: Unknown keyword does not fabricate response and increments unread count
+      ---
+      duration_ms: 18.972542
+      ...
+    # Subtest: 8. Auto-Reply Case 5: STOP opt-out compliance suppresses contact and creates ConsentRecord
+    ok 8 - 8. Auto-Reply Case 5: STOP opt-out compliance suppresses contact and creates ConsentRecord
+      ---
+      duration_ms: 178.69775
+      ...
+    # Subtest: 9. Auto-Reply Case 7: Cross-workspace isolation prevents Workspace A rules from executing for Workspace B
+    ok 9 - 9. Auto-Reply Case 7: Cross-workspace isolation prevents Workspace A rules from executing for Workspace B
+      ---
+      duration_ms: 22.001083
+      ...
+    # Subtest: 10. Campaign Engine: Draft creation, template version binding, audience snapshotting, and mock execution
+    ok 10 - 10. Campaign Engine: Draft creation, template version binding, audience snapshotting, and mock execution
+      ---
+      duration_ms: 206.050208
+      ...
+    # Subtest: 11. Campaign Scheduling: Future scheduling, worker reconciliation, and duplicate-safe execution
+    ok 11 - 11. Campaign Scheduling: Future scheduling, worker reconciliation, and duplicate-safe execution
+      ---
+      duration_ms: 47.207542
+      ...
+    # Subtest: 12. Security & Tenant Boundaries: Complete rejection of cross-workspace reads, writes, and header forgery
+    ok 12 - 12. Security & Tenant Boundaries: Complete rejection of cross-workspace reads, writes, and header forgery
+      ---
+      duration_ms: 13.6035
+      ...
+    1..12
+ok 51 - Master Prompt 16 — Real Business Data Validation & Complete Mock Automation Engine
+  ---
+  duration_ms: 11737.757791
+  type: 'suite'
+  ...
+# Subtest: 1. Local Dev Mailbox intercepts emails safely and supports retrieval & clear
+ok 52 - 1. Local Dev Mailbox intercepts emails safely and supports retrieval & clear
+  ---
+  duration_ms: 284.213709
+  ...
+# Subtest: 2. Multi-Industry Configuration Registry supports all 7 industries with validation
+ok 53 - 2. Multi-Industry Configuration Registry supports all 7 industries with validation
+  ---
+  duration_ms: 0.498667
+  ...
+# Subtest: 3. Real MongoDB persistence: Users, Bcrypt password hashing, and Workspaces
+ok 54 - 3. Real MongoDB persistence: Users, Bcrypt password hashing, and Workspaces
+  ---
+  duration_ms: 771.337708
+  ...
+# Subtest: 4. Dynamic Contacts CRUD & Keyword Auto-Reply Rule Execution
+ok 55 - 4. Dynamic Contacts CRUD & Keyword Auto-Reply Rule Execution
+  ---
+  duration_ms: 21.132917
+  ...
+# Subtest: 5. Mock Billing Service: Subscription lifecycle, 14-day trial, and test clock advance
+ok 56 - 5. Mock Billing Service: Subscription lifecycle, 14-day trial, and test clock advance
+  ---
+  duration_ms: 60.68075
+  ...
+# Subtest: 6. Agency & Delegated Client Relationships & Custom Domain State Machine
+ok 57 - 6. Agency & Delegated Client Relationships & Custom Domain State Machine
+  ---
+  duration_ms: 125.21675
+  ...
+# Subtest: 7. Cross-Tenant Isolation: Complete segregation of records between workspaces
+ok 58 - 7. Cross-Tenant Isolation: Complete segregation of records between workspaces
+  ---
+  duration_ms: 209.7135
+  ...
+# Subtest: 1. Authentication & Security: login, anti-enumeration, session rotation and logout
+ok 59 - 1. Authentication & Security: login, anti-enumeration, session rotation and logout
+  ---
+  duration_ms: 4470.419667
+  ...
+# Subtest: 2. Owner Profile: read, update and MongoDB persistence
+ok 60 - 2. Owner Profile: read, update and MongoDB persistence
+  ---
+  duration_ms: 18.797875
+  ...
+# Subtest: 3. Real Estate Business Profile: validation, persistence and completeness score
+ok 61 - 3. Real Estate Business Profile: validation, persistence and completeness score
+  ---
+  duration_ms: 170.221875
+  ...
+# Subtest: 4. Security & Password Change: strong policy, session revocation and rotation
+ok 62 - 4. Security & Password Change: strong policy, session revocation and rotation
+  ---
+  duration_ms: 1715.771292
+  ...
+# Subtest: 5. Operational Preferences: timezone, date format, quiet hours and notification flags
+ok 63 - 5. Operational Preferences: timezone, date format, quiet hours and notification flags
+  ---
+  duration_ms: 448.115625
+  ...
+# Subtest: 6. WhatsApp Integration State & System Readiness: truthful status and mock safeguards
+ok 64 - 6. WhatsApp Integration State & System Readiness: truthful status and mock safeguards
+  ---
+  duration_ms: 579.086083
+  ...
+# Subtest: Prompt 2.5 - Check 1: Real Customer Record Protection (Non-Demo contact is preserved)
+ok 65 - Prompt 2.5 - Check 1: Real Customer Record Protection (Non-Demo contact is preserved)
+  ---
+  duration_ms: 2628.233875
+  ...
+# Subtest: Prompt 2.5 - Check 2: Demo Status Endpoint returns isolated counts and safety notice
+ok 66 - Prompt 2.5 - Check 2: Demo Status Endpoint returns isolated counts and safety notice
+  ---
+  duration_ms: 24.754166
+  ...
+# Subtest: Prompt 2.5 - Check 3: Demo Contact Seeding preserves strict consent isolation (Consent = Unknown, Eligible = 0)
+ok 67 - Prompt 2.5 - Check 3: Demo Contact Seeding preserves strict consent isolation (Consent = Unknown, Eligible = 0)
+  ---
+  duration_ms: 23.797916
+  ...
+# Subtest: Prompt 2.5 - Check 4: Demo Campaigns & Mock Simulation isolation
+ok 68 - Prompt 2.5 - Check 4: Demo Campaigns & Mock Simulation isolation
+  ---
+  duration_ms: 8.176542
+  ...
+# Subtest: Prompt 2.5 - Check 5: Synthetic Test Inbox does NOT inflate verified provider metrics
+ok 69 - Prompt 2.5 - Check 5: Synthetic Test Inbox does NOT inflate verified provider metrics
+  ---
+  duration_ms: 25.90975
+  ...
+# Subtest: Prompt 2.5 - Check 6: Safe Demo Reset removes ONLY demo records and preserves genuine customer data
+ok 70 - Prompt 2.5 - Check 6: Safe Demo Reset removes ONLY demo records and preserves genuine customer data
+  ---
+  duration_ms: 6.02375
+  ...
+# Subtest: Prompt 2 - SCENARIO A: Empty database for test owner produces zero counts, no fake data, and honest provider offline state
+ok 71 - Prompt 2 - SCENARIO A: Empty database for test owner produces zero counts, no fake data, and honest provider offline state
+  ---
+  duration_ms: 2793.62
+  ...
+# Subtest: Prompt 2 - SCENARIO B: Contacts exist without consent records (Total counts, Verified Opted-In remains 0)
+ok 72 - Prompt 2 - SCENARIO B: Contacts exist without consent records (Total counts, Verified Opted-In remains 0)
+  ---
+  duration_ms: 42.230542
+  ...
+# Subtest: Prompt 2 - SCENARIO C: Verified consent vs Opted-out exclusion follows strict evidence rules
+ok 73 - Prompt 2 - SCENARIO C: Verified consent vs Opted-out exclusion follows strict evidence rules
+  ---
+  duration_ms: 45.19275
+  ...
+# Subtest: Prompt 2 - SCENARIO D & E: Campaign lifecycle, scheduled mock runs sorting and mock simulation safety
+ok 74 - Prompt 2 - SCENARIO D & E: Campaign lifecycle, scheduled mock runs sorting and mock simulation safety
+  ---
+  duration_ms: 38.098166
+  ...
+# Subtest: Prompt 2 - SCENARIO F: Internal CRM inbox notes & synthetic test replies do not falsify provider metrics
+ok 75 - Prompt 2 - SCENARIO F: Internal CRM inbox notes & synthetic test replies do not falsify provider metrics
+  ---
+  duration_ms: 493.339917
+  ...
+# Subtest: Prompt 2 - SCENARIO G: Operational Alerts ("Needs Attention") and Business Profile completeness
+ok 76 - Prompt 2 - SCENARIO G: Operational Alerts ("Needs Attention") and Business Profile completeness
+  ---
+  duration_ms: 10.941833
+  ...
+# Subtest: Prompt 2 - SCENARIO H: Tenant Data Isolation (No cross-account leakage)
+ok 77 - Prompt 2 - SCENARIO H: Tenant Data Isolation (No cross-account leakage)
+  ---
+  duration_ms: 14.282375
+  ...
+# Subtest: Prompt 3 - 1. Real Estate Contact CRUD & E.164 Phone Normalization
+ok 78 - Prompt 3 - 1. Real Estate Contact CRUD & E.164 Phone Normalization
+  ---
+  duration_ms: 10551.700459
+  ...
+# Subtest: Prompt 3 - 2. Duplicate Phone Validation and Scoped Uniqueness
+ok 79 - Prompt 3 - 2. Duplicate Phone Validation and Scoped Uniqueness
+  ---
+  duration_ms: 20.339125
+  ...
+# Subtest: Prompt 3 - 3. Real Estate Contact Groups CRUD & Safe Member Detachment
+ok 80 - Prompt 3 - 3. Real Estate Contact Groups CRUD & Safe Member Detachment
+  ---
+  duration_ms: 47.49725
+  ...
+# Subtest: Prompt 3 - 4. Tag Taxonomy Management (Create, Rename across contacts, Delete safely)
+ok 81 - Prompt 3 - 4. Tag Taxonomy Management (Create, Rename across contacts, Delete safely)
+  ---
+  duration_ms: 18.523
+  ...
+# Subtest: Prompt 3 - 5. Dynamic Segment Condition Engine with Allowlisted Operators
+ok 82 - Prompt 3 - 5. Dynamic Segment Condition Engine with Allowlisted Operators
+  ---
+  duration_ms: 53.304083
+  ...
+# Subtest: Prompt 3 - 6. WhatsApp Consent Audit, Suppression & Zero-Policy Enforcement
+ok 83 - Prompt 3 - 6. WhatsApp Consent Audit, Suppression & Zero-Policy Enforcement
+  ---
+  duration_ms: 60.386459
+  ...
+# Subtest: Prompt 3 - 7. Safe CSV Export Neutralizes Spreadsheet Formula Injection
+ok 84 - Prompt 3 - 7. Safe CSV Export Neutralizes Spreadsheet Formula Injection
+  ---
+  duration_ms: 17.836916
+  ...
+# Subtest: Prompt 3 - 8. Bulk Operations (Add/Remove Tags, Group, Suppression)
+ok 85 - Prompt 3 - 8. Bulk Operations (Add/Remove Tags, Group, Suppression)
+  ---
+  duration_ms: 30.683208
+  ...
+# Subtest: demo seed/reset maintenance endpoints fail closed
+ok 86 - demo seed/reset maintenance endpoints fail closed
+  ---
+  duration_ms: 0.922166
+  ...
+# Subtest: settings routes reject forged x-workspace-id via membership check
+ok 87 - settings routes reject forged x-workspace-id via membership check
+  ---
+  duration_ms: 0.173584
+  ...
+# Subtest: manual takeover pauses auto-reply and records PAUSED_TAKEOVER
+ok 88 - manual takeover pauses auto-reply and records PAUSED_TAKEOVER
+  ---
+  duration_ms: 0.175458
+  ...
+# Subtest: cooldown bypass is limited to non-production synthetic mode
+ok 89 - cooldown bypass is limited to non-production synthetic mode
+  ---
+  duration_ms: 0.100042
+  ...
+# Subtest: onboarding page has no customer-facing roadmap text
+ok 90 - onboarding page has no customer-facing roadmap text
+  ---
+  duration_ms: 0.23975
+  ...
+# Subtest: Overview aggregates Message.status (SIMULATED_*) cumulatively, not a nonexistent deliveryStatus field
+ok 91 - Overview aggregates Message.status (SIMULATED_*) cumulatively, not a nonexistent deliveryStatus field
+  ---
+  duration_ms: 0.148916
+  ...
+# Subtest: Overview copy is industry-aware (no hardcoded property wording for every workspace)
+ok 92 - Overview copy is industry-aware (no hardcoded property wording for every workspace)
+  ---
+  duration_ms: 0.198959
+  ...
+# Subtest: Overview reports real worker status and separates run counts from campaign counts
+ok 93 - Overview reports real worker status and separates run counts from campaign counts
+  ---
+  duration_ms: 0.109125
+  ...
+# Subtest: Prompt 4 - 1. Template Variables & Categories Registries
+ok 94 - Prompt 4 - 1. Template Variables & Categories Registries
+  ---
+  duration_ms: 11365.603833
+  ...
+# Subtest: Prompt 4 - 2. Real Estate Presets Library
+ok 95 - Prompt 4 - 2. Real Estate Presets Library
+  ---
+  duration_ms: 0.324417
+  ...
+# Subtest: Prompt 4 - 3. Create Real Estate Template with Variables & Quick Replies
+ok 96 - Prompt 4 - 3. Create Real Estate Template with Variables & Quick Replies
+  ---
+  duration_ms: 37.425708
+  ...
+# Subtest: Prompt 4 - 4. Media Upload & Attachment (PDF Brochure & Image Headers)
+ok 97 - Prompt 4 - 4. Media Upload & Attachment (PDF Brochure & Image Headers)
+  ---
+  duration_ms: 53.897167
+  ...
+# Subtest: Prompt 4 - 5. Interactive Buttons Validation (URL CTA, Phone CTA, Mutual Exclusion)
+ok 98 - Prompt 4 - 5. Interactive Buttons Validation (URL CTA, Phone CTA, Mutual Exclusion)
+  ---
+  duration_ms: 34.269208
+  ...
+# Subtest: Prompt 4 - 6. Versioning, History & Version Restore
+ok 99 - Prompt 4 - 6. Versioning, History & Version Restore
+  ---
+  duration_ms: 37.452667
+  ...
+# Subtest: Prompt 4 - 7. Campaign Snapshot Isolation (Template editing does NOT mutate pinned campaign)
+ok 100 - Prompt 4 - 7. Campaign Snapshot Isolation (Template editing does NOT mutate pinned campaign)
+  ---
+  duration_ms: 20.499875
+  ...
+# Subtest: Prompt 4 - 8. Duplicate, Archive & Restore Lifecycle
+ok 101 - Prompt 4 - 8. Duplicate, Archive & Restore Lifecycle
+  ---
+  duration_ms: 29.092583
+  ...
+# Subtest: Prompt 4 - 9. Multi-Tenant Isolation & Ownership Enforcement
+ok 102 - Prompt 4 - 9. Multi-Tenant Isolation & Ownership Enforcement
+  ---
+  duration_ms: 19.382291
+  ...
+# Subtest: Prompt 5 - 1. Mock Provider & Registry Enforcement
+    # Subtest: Provider Registry returns MockWhatsAppProvider for MOCK mode
+    ok 1 - Provider Registry returns MockWhatsAppProvider for MOCK mode
+      ---
+      duration_ms: 0.442375
+      ...
+    # Subtest: Provider Registry strictly rejects LIVE mode with 403
+    ok 2 - Provider Registry strictly rejects LIVE mode with 403
+      ---
+      duration_ms: 0.307541
+      ...
+    # Subtest: Provider Registry rejects invalid modes with 400
+    ok 3 - Provider Registry rejects invalid modes with 400
+      ---
+      duration_ms: 0.077416
+      ...
+    1..3
+ok 103 - Prompt 5 - 1. Mock Provider & Registry Enforcement
+  ---
+  duration_ms: 11892.029375
+  ...
+# Subtest: Prompt 5 - 2. Deterministic Mock Provider Outcomes
+    # Subtest: Simulated Success returns synthetic mock_msg ID and SIMULATED_SENT status
+    ok 1 - Simulated Success returns synthetic mock_msg ID and SIMULATED_SENT status
+      ---
+      duration_ms: 6.196708
+      ...
+    # Subtest: Simulated Temporary Failure is retryable
+    ok 2 - Simulated Temporary Failure is retryable
+      ---
+      duration_ms: 5.294083
+      ...
+    # Subtest: Simulated Timeout is retryable
+    ok 3 - Simulated Timeout is retryable
+      ---
+      duration_ms: 6.804875
+      ...
+    # Subtest: Simulated Rate Limit is retryable
+    ok 4 - Simulated Rate Limit is retryable
+      ---
+      duration_ms: 6.588125
+      ...
+    # Subtest: Simulated Permanent Failure is non-retryable
+    ok 5 - Simulated Permanent Failure is non-retryable
+      ---
+      duration_ms: 5.35
+      ...
+    1..5
+ok 104 - Prompt 5 - 2. Deterministic Mock Provider Outcomes
+  ---
+  duration_ms: 30.935916
+  ...
+# Subtest: Prompt 5 - 3. Recipient Eligibility, Consent Validation & Suppression
+    # Subtest: Rejects invalid phone number format
+    ok 1 - Rejects invalid phone number format
+      ---
+      duration_ms: 0.273708
+      ...
+    # Subtest: Blocks contact with Unknown consent
+    ok 2 - Blocks contact with Unknown consent
+      ---
+      duration_ms: 16.920334
+      ...
+    # Subtest: Blocks contact marked Opted Out
+    ok 3 - Blocks contact marked Opted Out
+      ---
+      duration_ms: 11.2955
+      ...
+    # Subtest: Blocks contact marked Do Not Contact
+    ok 4 - Blocks contact marked Do Not Contact
+      ---
+      duration_ms: 9.51475
+      ...
+    # Subtest: Blocks contact when consent business name does not match workspace
+    ok 5 - Blocks contact when consent business name does not match workspace
+      ---
+      duration_ms: 11.484792
+      ...
+    1..5
+ok 105 - Prompt 5 - 3. Recipient Eligibility, Consent Validation & Suppression
+  ---
+  duration_ms: 49.945875
+  ...
+# Subtest: Prompt 5 - 4. Personalization Rendering & Variable Validation
+    # Subtest: Renders real estate CRM variables accurately and creates immutable snapshot
+    ok 1 - Renders real estate CRM variables accurately and creates immutable snapshot
+      ---
+      duration_ms: 13.420292
+      ...
+    # Subtest: Detects missing required variables and transitions to BLOCKED
+    ok 2 - Detects missing required variables and transitions to BLOCKED
+      ---
+      duration_ms: 10.639542
+      ...
+    1..2
+ok 106 - Prompt 5 - 4. Personalization Rendering & Variable Validation
+  ---
+  duration_ms: 24.618
+  ...
+# Subtest: Prompt 5 - 5. Idempotency & Duplicate Elimination
+ok 107 - Prompt 5 - 5. Idempotency & Duplicate Elimination
+  ---
+  duration_ms: 12.308416
+  ...
+# Subtest: Prompt 5 - 6. Background Queue Worker Lease & Execution
+ok 108 - Prompt 5 - 6. Background Queue Worker Lease & Execution
+  ---
+  duration_ms: 26.855208
+  ...
+# Subtest: Prompt 5 - 7. Retries, Exponential Backoff & Max Attempts
+ok 109 - Prompt 5 - 7. Retries, Exponential Backoff & Max Attempts
+  ---
+  duration_ms: 79.654084
+  ...
+# Subtest: Prompt 5 - 8. Mid-Queue Opt-Out / Suppression Blocking
+ok 110 - Prompt 5 - 8. Mid-Queue Opt-Out / Suppression Blocking
+  ---
+  duration_ms: 14.071292
+  ...
+# Subtest: Prompt 5 - 9. Scheduled Messages & Reconciliation
+ok 111 - Prompt 5 - 9. Scheduled Messages & Reconciliation
+  ---
+  duration_ms: 29.12125
+  ...
+# Subtest: Prompt 5 - 10. Message Cancellation & State Transition Integrity
+ok 112 - Prompt 5 - 10. Message Cancellation & State Transition Integrity
+  ---
+  duration_ms: 14.562166
+  ...
+# Subtest: Prompt 5 - 11. REST API Endpoints & Multi-Tenant Isolation
+ok 113 - Prompt 5 - 11. REST API Endpoints & Multi-Tenant Isolation
+  ---
+  duration_ms: 75.076458
+  ...
+# Subtest: Prompt 6 — 1. Campaign Wizard Step 1: Creation, Validation & Template Pinned Reference
+ok 114 - Prompt 6 — 1. Campaign Wizard Step 1: Creation, Validation & Template Pinned Reference
+  ---
+  duration_ms: 4181.471292
+  ...
+# Subtest: Prompt 6 — 2. Template Snapshot Immutability (Preserves pinned content when template is edited)
+ok 115 - Prompt 6 — 2. Template Snapshot Immutability (Preserves pinned content when template is edited)
+  ---
+  duration_ms: 76.246625
+  ...
+# Subtest: Prompt 6 — 3. Live Audience Eligibility Endpoint (POST /api/campaigns/audience/preview)
+ok 116 - Prompt 6 — 3. Live Audience Eligibility Endpoint (POST /api/campaigns/audience/preview)
+  ---
+  duration_ms: 8.372958
+  ...
+# Subtest: Prompt 6 — 4. Audience Deduplication (Eliminates duplicates across multiple groups & criteria)
+ok 117 - Prompt 6 — 4. Audience Deduplication (Eliminates duplicates across multiple groups & criteria)
+  ---
+  duration_ms: 22.7805
+  ...
+# Subtest: Prompt 6 — 5. Consent Enforcement: Ineligible Contacts Are Blocked From Dispatch
+ok 118 - Prompt 6 — 5. Consent Enforcement: Ineligible Contacts Are Blocked From Dispatch
+  ---
+  duration_ms: 74.489042
+  ...
+# Subtest: Prompt 6 — 6. Durable Scheduling, Validation & Worker Reconciliation
+ok 119 - Prompt 6 — 6. Durable Scheduling, Validation & Worker Reconciliation
+  ---
+  duration_ms: 63.825959
+  ...
+# Subtest: Prompt 6 — 7. Pause, Resume and Cancel Lifecycle Semantics
+ok 120 - Prompt 6 — 7. Pause, Resume and Cancel Lifecycle Semantics
+  ---
+  duration_ms: 58.129375
+  ...
+# Subtest: Prompt 6 — 8. Campaign Duplication & Archiving
+ok 121 - Prompt 6 — 8. Campaign Duplication & Archiving
+  ---
+  duration_ms: 16.414292
+  ...
+# Subtest: Prompt 6 — 9. Campaign Analytics & Statistics
+ok 122 - Prompt 6 — 9. Campaign Analytics & Statistics
+  ---
+  duration_ms: 72.985833
+  ...
+# Subtest: Prompt 7 — 1. Keyword Matcher: Whole-word, Exact, Contains and Word-boundary Protection
+ok 123 - Prompt 7 — 1. Keyword Matcher: Whole-word, Exact, Contains and Word-boundary Protection
+  ---
+  duration_ms: 1964.064917
+  ...
+# Subtest: Prompt 7 — 2. Quick Reply Library CRUD, Variable Tokens & Duplicate
+ok 124 - Prompt 7 — 2. Quick Reply Library CRUD, Variable Tokens & Duplicate
+  ---
+  duration_ms: 1178.601417
+  ...
+# Subtest: Prompt 7 — 3. Auto-Reply Keyword Rules CRUD & Priority Enforcement
+ok 125 - Prompt 7 — 3. Auto-Reply Keyword Rules CRUD & Priority Enforcement
+  ---
+  duration_ms: 38.742542
+  ...
+# Subtest: Prompt 7 — 4. SCENARIO A: Inbound BROCHURE Message triggers Mock Brochure Reply
+ok 126 - Prompt 7 — 4. SCENARIO A: Inbound BROCHURE Message triggers Mock Brochure Reply
+  ---
+  duration_ms: 36.081292
+  ...
+# Subtest: Prompt 7 — 5. SCENARIO B: Inbound PRICE Inquiry asks for configuration without inventing false prices
+ok 127 - Prompt 7 — 5. SCENARIO B: Inbound PRICE Inquiry asks for configuration without inventing false prices
+  ---
+  duration_ms: 19.880834
+  ...
+# Subtest: Prompt 7 — 6. SCENARIO C: Inbound VISIT Request Marks Needs Attention and Creates Internal Note
+ok 128 - Prompt 7 — 6. SCENARIO C: Inbound VISIT Request Marks Needs Attention and Creates Internal Note
+  ---
+  duration_ms: 26.798875
+  ...
+# Subtest: Prompt 7 — 7. SCENARIO D: Inbound STOP Request Enforces Authoritative Opt-out & Blocks Marketing
+ok 129 - Prompt 7 — 7. SCENARIO D: Inbound STOP Request Enforces Authoritative Opt-out & Blocks Marketing
+  ---
+  duration_ms: 165.708167
+  ...
+# Subtest: Prompt 7 — 8. SCENARIO E: Owner Takeover Pauses Automation & Resume Restores It Without Replaying
+ok 130 - Prompt 7 — 8. SCENARIO E: Owner Takeover Pauses Automation & Resume Restores It Without Replaying
+  ---
+  duration_ms: 39.9145
+  ...
+# Subtest: Prompt 7 — 9. Composer Outbound Mock Send & Status Lifecycle Transitions
+ok 131 - Prompt 7 — 9. Composer Outbound Mock Send & Status Lifecycle Transitions
+  ---
+  duration_ms: 27.625833
+  ...
+# Subtest: Prompt 7 — 10. Multi-Tenant Owner Isolation
+ok 132 - Prompt 7 — 10. Multi-Tenant Owner Isolation
+  ---
+  duration_ms: 10.749208
+  ...
+# Subtest: Prompt 8 — SCENARIO A: Empty Database Handling (Zero vs Unavailable Truthfulness)
+ok 133 - Prompt 8 — SCENARIO A: Empty Database Handling (Zero vs Unavailable Truthfulness)
+  ---
+  duration_ms: 4202.145416
+  ...
+# Subtest: Prompt 8 — SCENARIO B: Mock Campaign & Audience Aggregations
+ok 134 - Prompt 8 — SCENARIO B: Mock Campaign & Audience Aggregations
+  ---
+  duration_ms: 68.797584
+  ...
+# Subtest: Prompt 8 — SCENARIO C: Consent & Opt-Out Reporting
+ok 135 - Prompt 8 — SCENARIO C: Consent & Opt-Out Reporting
+  ---
+  duration_ms: 50.95925
+  ...
+# Subtest: Prompt 8 — SCENARIO D: Retry Analytics & Logical Message Isolation
+ok 136 - Prompt 8 — SCENARIO D: Retry Analytics & Logical Message Isolation
+  ---
+  duration_ms: 11.095916
+  ...
+# Subtest: Prompt 8 — SCENARIO E: Campaign Comparison (2-4 Campaigns)
+ok 137 - Prompt 8 — SCENARIO E: Campaign Comparison (2-4 Campaigns)
+  ---
+  duration_ms: 27.193667
+  ...
+# Subtest: Prompt 8 — SCENARIO F: CSV Export Filter Matching & Formula Injection Protection
+ok 138 - Prompt 8 — SCENARIO F: CSV Export Filter Matching & Formula Injection Protection
+  ---
+  duration_ms: 47.490958
+  ...
+# Subtest: Prompt 8 — SCENARIO G: XLSX (Excel) Workbook Generation
+ok 139 - Prompt 8 — SCENARIO G: XLSX (Excel) Workbook Generation
+  ---
+  duration_ms: 51.948959
+  ...
+# Subtest: Prompt 8 — SCENARIO H: Multi-Tenant Owner Isolation
+ok 140 - Prompt 8 — SCENARIO H: Multi-Tenant Owner Isolation
+  ---
+  duration_ms: 13.939042
+  ...
+# Subtest: PROMPT 9.2 — 1. Credential Hardening & Backdoor Elimination
+ok 141 - PROMPT 9.2 — 1. Credential Hardening & Backdoor Elimination
+  ---
+  duration_ms: 4666.365375
+  ...
+# Subtest: PROMPT 9.2 — 2. Mock Message Counts Audit & 12-Status Metrics Breakdown
+ok 142 - PROMPT 9.2 — 2. Mock Message Counts Audit & 12-Status Metrics Breakdown
+  ---
+  duration_ms: 51.625416
+  ...
+# Subtest: PROMPT 9.2 — 3. Owner-Scoped Analytics & Anti-Leakage Isolation
+ok 143 - PROMPT 9.2 — 3. Owner-Scoped Analytics & Anti-Leakage Isolation
+  ---
+  duration_ms: 25.111375
+  ...
+# Subtest: PROMPT 9.2 — 4. Synthetic Test Isolation & Production Guard
+ok 144 - PROMPT 9.2 — 4. Synthetic Test Isolation & Production Guard
+  ---
+  duration_ms: 7.470833
+  ...
+# Subtest: PROMPT 9.2 — 5. STOP Keyword & Consent Safety Isolation
+ok 145 - PROMPT 9.2 — 5. STOP Keyword & Consent Safety Isolation
+  ---
+  duration_ms: 25.259459
+  ...
+# Subtest: PROMPT 9.2 — 6. Property Data & Pricing Auto-Reply Truthfulness
+ok 146 - PROMPT 9.2 — 6. Property Data & Pricing Auto-Reply Truthfulness
+  ---
+  duration_ms: 9.82875
+  ...
+# Subtest: PROMPT 9.2 — 7. Programmatic CSV & XLSX Export File Verification
+ok 147 - PROMPT 9.2 — 7. Programmatic CSV & XLSX Export File Verification
+  ---
+  duration_ms: 65.206833
+  ...
+# Subtest: PROMPT 9.2 — 8. Durable Queue Worker Interruption & Recovery
+ok 148 - PROMPT 9.2 — 8. Durable Queue Worker Interruption & Recovery
+  ---
+  duration_ms: 10.294708
+  ...
+# Subtest: Prompt 9.3 — Relay Screenshot-Based Final Stabilization Regression Suite
+    # Subtest: 1. Campaign count consistency & authoritative status distribution in Report Service
+    ok 1 - 1. Campaign count consistency & authoritative status distribution in Report Service
+      ---
+      duration_ms: 615.54575
+      ...
+    # Subtest: 2. Scheduled campaign template validation blocks scheduling without template
+    ok 2 - 2. Scheduled campaign template validation blocks scheduling without template
+      ---
+      duration_ms: 22.06225
+      ...
+    # Subtest: 3. Worker tick blocks execution of scheduled campaigns missing template references
+    ok 3 - 3. Worker tick blocks execution of scheduled campaigns missing template references
+      ---
+      duration_ms: 7.362792
+      ...
+    # Subtest: 4. Contact consent provenance & evidence requirements
+    ok 4 - 4. Contact consent provenance & evidence requirements
+      ---
+      duration_ms: 7.319292
+      ...
+    # Subtest: 5. Synthetic inbound message anti-replay and duplicate prevention
+    ok 5 - 5. Synthetic inbound message anti-replay and duplicate prevention
+      ---
+      duration_ms: 192.201584
+      ...
+    # Subtest: 6. Reports unique message counting ignores retries
+    ok 6 - 6. Reports unique message counting ignores retries
+      ---
+      duration_ms: 5.465583
+      ...
+    1..6
+ok 149 - Prompt 9.3 — Relay Screenshot-Based Final Stabilization Regression Suite
+  ---
+  duration_ms: 4219.780708
+  type: 'suite'
+  ...
+# Subtest: SaaS Prompt 3 — Public Contact & Enquiry API Tests
+    # Subtest: 1. Valid submission creates PublicEnquiry and returns 201
+    ok 1 - 1. Valid submission creates PublicEnquiry and returns 201
+      ---
+      duration_ms: 1649.740042
+      ...
+    # Subtest: 2. Rejects submission with invalid email format (400)
+    ok 2 - 2. Rejects submission with invalid email format (400)
+      ---
+      duration_ms: 3.173166
+      ...
+    # Subtest: 3. Rejects submission with missing name or business name (400)
+    ok 3 - 3. Rejects submission with missing name or business name (400)
+      ---
+      duration_ms: 1.751791
+      ...
+    # Subtest: 4. Safely defaults unknown industry to "other"
+    ok 4 - 4. Safely defaults unknown industry to "other"
+      ---
+      duration_ms: 1218.230625
+      ...
+    1..4
+ok 150 - SaaS Prompt 3 — Public Contact & Enquiry API Tests
+  ---
+  duration_ms: 5303.642416
+  type: 'suite'
+  ...
+# Subtest: three accounts share cookies but preserve independent tab identities, refresh and logout revocation
+ok 151 - three accounts share cookies but preserve independent tab identities, refresh and logout revocation
+  ---
+  duration_ms: 4876.09675
+  ...
+# Subtest: industry libraries use the verified workspace, normalize draft categories and never persist on GET
+ok 152 - industry libraries use the verified workspace, normalize draft categories and never persist on GET
+  ---
+  duration_ms: 93.264458
+  ...
+# Subtest: explicit foreign tenant and invalid workspace selectors fail closed
+ok 153 - explicit foreign tenant and invalid workspace selectors fail closed
+  ---
+  duration_ms: 17.693292
+  ...
+# Subtest: presets save, reload, update and version through the scoped template API
+ok 154 - presets save, reload, update and version through the scoped template API
+  ---
+  duration_ms: 38.869083
+  ...
+# Subtest: explicit concurrent starter installation creates eight replies and five disabled rules once, preserving reviewed states
+ok 155 - explicit concurrent starter installation creates eight replies and five disabled rules once, preserving reviewed states
+  ---
+  duration_ms: 77.597167
+  ...
+# Subtest: contacts persist real estate metadata, duplicate validation and tenant context through create/update/reload
+ok 156 - contacts persist real estate metadata, duplicate validation and tenant context through create/update/reload
+  ---
+  duration_ms: 40.086834
+  ...
+# Subtest: STOP bypasses takeover, is idempotent per inbound event, protects genuine contacts from synthetic mutation, and START does not opt in
+ok 157 - STOP bypasses takeover, is idempotent per inbound event, protects genuine contacts from synthetic mutation, and START does not opt in
+  ---
+  duration_ms: 98.603
+  ...
+# Subtest: workspace campaign audiences can reuse the existing owner-scoped group library without importing foreign-workspace contacts
+ok 158 - workspace campaign audiences can reuse the existing owner-scoped group library without importing foreign-workspace contacts
+  ---
+  duration_ms: 37.825041
+  ...
+# Subtest: 1. Workspace Model: successfully creates valid workspace with required fields
+ok 159 - 1. Workspace Model: successfully creates valid workspace with required fields
+  ---
+  duration_ms: 12125.346
+  ...
+# Subtest: 2. Workspace Model: rejects missing required name
+ok 160 - 2. Workspace Model: rejects missing required name
+  ---
+  duration_ms: 1.146208
+  ...
+# Subtest: 3. Workspace Model: rejects invalid industryKey
+ok 161 - 3. Workspace Model: rejects invalid industryKey
+  ---
+  duration_ms: 0.519375
+  ...
+# Subtest: 4. Workspace Model: normalizes slug by lowercasing, trimming, and replacing non-alphanumerics
+ok 162 - 4. Workspace Model: normalizes slug by lowercasing, trimming, and replacing non-alphanumerics
+  ---
+  duration_ms: 0.940875
+  ...
+# Subtest: 5. Workspace Model: rejects duplicate slug (unique index enforcement)
+ok 163 - 5. Workspace Model: rejects duplicate slug (unique index enforcement)
+  ---
+  duration_ms: 1.115
+  ...
+# Subtest: 6. Workspace Model: validates valid IANA timezone and rejects invalid timezone
+ok 164 - 6. Workspace Model: validates valid IANA timezone and rejects invalid timezone
+  ---
+  duration_ms: 2.292416
+  ...
+# Subtest: 7. Workspace Model: rejects invalid status value
+ok 165 - 7. Workspace Model: rejects invalid status value
+  ---
+  duration_ms: 1.318916
+  ...
+# Subtest: 8. Workspace Model: persists custom settings and preserves timestamps
+ok 166 - 8. Workspace Model: persists custom settings and preserves timestamps
+  ---
+  duration_ms: 1.592792
+  ...
+# Subtest: 9. Workspace Model: rejects unsupported extra fields (strict: "throw")
+ok 167 - 9. Workspace Model: rejects unsupported extra fields (strict: "throw")
+  ---
+  duration_ms: 0.663625
+  ...
+# Subtest: 10. Membership Model: successfully creates OWNER membership
+ok 168 - 10. Membership Model: successfully creates OWNER membership
+  ---
+  duration_ms: 1.052167
+  ...
+# Subtest: 11. Membership Model: rejects duplicate membership for same user and workspace
+ok 169 - 11. Membership Model: rejects duplicate membership for same user and workspace
+  ---
+  duration_ms: 0.888458
+  ...
+# Subtest: 12. Membership Model: rejects invalid user or workspace references
+ok 170 - 12. Membership Model: rejects invalid user or workspace references
+  ---
+  duration_ms: 1.150875
+  ...
+# Subtest: 13. Membership Model: rejects invalid membership role
+ok 171 - 13. Membership Model: rejects invalid membership role
+  ---
+  duration_ms: 0.396375
+  ...
+# Subtest: 14. Membership Model: supports one user having memberships across multiple workspaces
+ok 172 - 14. Membership Model: supports one user having memberships across multiple workspaces
+  ---
+  duration_ms: 2.075542
+  ...
+# Subtest: 15. Auth: unauthenticated request to /api/workspaces/current returns 401
+ok 173 - 15. Auth: unauthenticated request to /api/workspaces/current returns 401
+  ---
+  duration_ms: 9.414417
+  ...
+# Subtest: 16. Auth: request with invalid or expired token returns 401
+ok 174 - 16. Auth: request with invalid or expired token returns 401
+  ---
+  duration_ms: 2.25
+  ...
+# Subtest: 17. Authorization: User A successfully accesses Workspace A via header
+ok 175 - 17. Authorization: User A successfully accesses Workspace A via header
+  ---
+  duration_ms: 8.241916
+  ...
+# Subtest: 18. Multi-Tenant Isolation: User B cannot access Workspace A (returns 403 Forbidden)
+ok 176 - 18. Multi-Tenant Isolation: User B cannot access Workspace A (returns 403 Forbidden)
+  ---
+  duration_ms: 5.363375
+  ...
+# Subtest: 19. Forged Tenant Header: non-existent or random workspace ID returns 403 Forbidden
+ok 177 - 19. Forged Tenant Header: non-existent or random workspace ID returns 403 Forbidden
+  ---
+  duration_ms: 5.102
+  ...
+# Subtest: 20. Malformed Tenant Header: non-ObjectId format returns 400 Bad Request
+ok 178 - 20. Malformed Tenant Header: non-ObjectId format returns 400 Bad Request
+  ---
+  duration_ms: 4.001208
+  ...
+# Subtest: 21. Membership Revocation: REVOKED membership blocks subsequent access with 403
+ok 179 - 21. Membership Revocation: REVOKED membership blocks subsequent access with 403
+  ---
+  duration_ms: 36.922625
+  ...
+# Subtest: 22. Workspace Status: SUSPENDED workspace blocks access with 403 WORKSPACE_SUSPENDED
+ok 180 - 22. Workspace Status: SUSPENDED workspace blocks access with 403 WORKSPACE_SUSPENDED
+  ---
+  duration_ms: 5.895792
+  ...
+# Subtest: 23. Workspace List: /api/workspaces/my-workspaces returns only authorized workspaces
+ok 181 - 23. Workspace List: /api/workspaces/my-workspaces returns only authorized workspaces
+  ---
+  duration_ms: 8.68675
+  ...
+# Subtest: 24. Query Helper: buildWorkspaceScope validates workspaceId and fails closed on undefined
+ok 182 - 24. Query Helper: buildWorkspaceScope validates workspaceId and fails closed on undefined
+  ---
+  duration_ms: 0.237417
+  ...
+# Subtest: 25. Query Helper: assertResourceWorkspaceOwnership prevents cross-tenant enumeration
+ok 183 - 25. Query Helper: assertResourceWorkspaceOwnership prevents cross-tenant enumeration
+  ---
+  duration_ms: 0.114625
+  ...
+# Subtest: 26. Legacy Compatibility: existing M2W owner can authenticate and fetch profile (/api/auth/me)
+ok 184 - 26. Legacy Compatibility: existing M2W owner can authenticate and fetch profile (/api/auth/me)
+  ---
+  duration_ms: 5.392167
+  ...
+# Subtest: 27. Legacy Compatibility: existing single-owner routes continue working via ownerId
+ok 185 - 27. Legacy Compatibility: existing single-owner routes continue working via ownerId
+  ---
+  duration_ms: 6.145708
+  ...
+# Subtest: 28. Legacy Compatibility: User A (new workspace) CANNOT read legacy M2W contacts
+ok 186 - 28. Legacy Compatibility: User A (new workspace) CANNOT read legacy M2W contacts
+  ---
+  duration_ms: 6.736416
+  ...
+# Subtest: 29. Legacy Protection: M2W records retain ownerId and have not been automatically mutated
+ok 187 - 29. Legacy Protection: M2W records retain ownerId and have not been automatically mutated
+  ---
+  duration_ms: 1.212125
+  ...
+# Subtest: 30. Safety Guard: Meta WhatsApp Cloud API live mode remains strictly blocked with 403
+ok 188 - 30. Safety Guard: Meta WhatsApp Cloud API live mode remains strictly blocked with 403
+  ---
+  duration_ms: 0.138167
+  ...
+# Subtest: SAAS PROMPT 2 — Comprehensive M2W Migration & Zero-Data-Loss Test Suite
+    # Subtest: 1. Authoritative Owner Resolution: resolves M2W owner dynamically via BusinessProfile
+    ok 1 - 1. Authoritative Owner Resolution: resolves M2W owner dynamically via BusinessProfile
+      ---
+      duration_ms: 7.644792
+      ...
+    # Subtest: 2. Owner Resolution: rejects non-existent explicit ownerId
+    ok 2 - 2. Owner Resolution: rejects non-existent explicit ownerId
+      ---
+      duration_ms: 1.230833
+      ...
+    # Subtest: 3. Database Backup Service: creates and verifies durable database backup
+    ok 3 - 3. Database Backup Service: creates and verifies durable database backup
+      ---
+      duration_ms: 746.460625
+      ...
+    # Subtest: 4. Migration Dry-Run: plans migration with zero writes to database
+    ok 4 - 4. Migration Dry-Run: plans migration with zero writes to database
+      ---
+      duration_ms: 143.195542
+      ...
+    # Subtest: 5. Migration Execution: provisions authoritative M2W workspace and OWNER membership
+    ok 5 - 5. Migration Execution: provisions authoritative M2W workspace and OWNER membership
+      ---
+      duration_ms: 68.417875
+      ...
+    # Subtest: 6. Ownership Backfill: assigns workspaceId while strictly preserving original ownerId
+    ok 6 - 6. Ownership Backfill: assigns workspaceId while strictly preserving original ownerId
+      ---
+      duration_ms: 4.038375
+      ...
+    # Subtest: 7. Tenant Isolation: User B documents were NOT touched or migrated to M2W
+    ok 7 - 7. Tenant Isolation: User B documents were NOT touched or migrated to M2W
+      ---
+      duration_ms: 1.352
+      ...
+    # Subtest: 8. Consent Immutability: consent status, purpose, timestamp, evidence are preserved
+    ok 8 - 8. Consent Immutability: consent status, purpose, timestamp, evidence are preserved
+      ---
+      duration_ms: 1.261792
+      ...
+    # Subtest: 9. Migration Idempotency: second execution does not duplicate workspace or re-migrate records
+    ok 9 - 9. Migration Idempotency: second execution does not duplicate workspace or re-migrate records
+      ---
+      duration_ms: 48.559625
+      ...
+    # Subtest: 10. Verification Service: confirms 100% migrated records and intact consent
+    ok 10 - 10. Verification Service: confirms 100% migrated records and intact consent
+      ---
+      duration_ms: 49.3115
+      ...
+    # Subtest: 11. Parent-Child Consistency: flags cross-owner conflict and refuses invalid assignment
+    ok 11 - 11. Parent-Child Consistency: flags cross-owner conflict and refuses invalid assignment
+      ---
+      duration_ms: 4.987792
+      ...
+    # Subtest: 12. API Security: User B cannot access M2W Workspace via /api/workspaces/current (403)
+    ok 12 - 12. API Security: User B cannot access M2W Workspace via /api/workspaces/current (403)
+      ---
+      duration_ms: 13.506916
+      ...
+    # Subtest: 13. API Security: M2W Owner successfully accesses M2W Workspace context (200)
+    ok 13 - 13. API Security: M2W Owner successfully accesses M2W Workspace context (200)
+      ---
+      duration_ms: 6.380791
+      ...
+    # Subtest: 14. Safety Guard: Meta WhatsApp Cloud API live mode remains strictly 403-blocked
+    ok 14 - 14. Safety Guard: Meta WhatsApp Cloud API live mode remains strictly 403-blocked
+      ---
+      duration_ms: 0.281542
+      ...
+    # Subtest: 15. Index Compatibility: same phone number allowed across different workspaces
+    ok 15 - 15. Index Compatibility: same phone number allowed across different workspaces
+      ---
+      duration_ms: 11286.469334
+      ...
+    # Subtest: 16. Rollback: successfully unsets workspaceId on all migrated documents
+    ok 16 - 16. Rollback: successfully unsets workspaceId on all migrated documents
+      ---
+      duration_ms: 81.081208
+      ...
+    # Subtest: 17. Re-Execution after Rollback: re-migrates records cleanly and idempotently
+    ok 17 - 17. Re-Execution after Rollback: re-migrates records cleanly and idempotently
+      ---
+      duration_ms: 75.89475
+      ...
+    1..17
+ok 189 - SAAS PROMPT 2 — Comprehensive M2W Migration & Zero-Data-Loss Test Suite
+  ---
+  duration_ms: 19020.832625
+  type: 'suite'
+  ...
+# Subtest: SaaS Prompt 4 — Production-Grade Customer Authentication Test Suite
+    # Subtest: Group 1: Registration Validation & Constraints
+        # Subtest: 1. Valid registration creates user in unverified state and returns 201
+        ok 1 - 1. Valid registration creates user in unverified state and returns 201
+          ---
+          duration_ms: 2118.467125
+          ...
+        # Subtest: 2. Missing or short name rejects with 400
+        ok 2 - 2. Missing or short name rejects with 400
+          ---
+          duration_ms: 2.814583
+          ...
+        # Subtest: 3. Invalid email format rejects with 400
+        ok 3 - 3. Invalid email format rejects with 400
+          ---
+          duration_ms: 1.984416
+          ...
+        # Subtest: 4. Missing password rejects with 400
+        ok 4 - 4. Missing password rejects with 400
+          ---
+          duration_ms: 1.536084
+          ...
+        # Subtest: 5. Short password (< 8 characters) rejects with 400
+        ok 5 - 5. Short password (< 8 characters) rejects with 400
+          ---
+          duration_ms: 1.965708
+          ...
+        # Subtest: 6. Password confirmation mismatch rejects with 400
+        ok 6 - 6. Password confirmation mismatch rejects with 400
+          ---
+          duration_ms: 1.568916
+          ...
+        # Subtest: 7. Duplicate email registration rejects with 409
+        ok 7 - 7. Duplicate email registration rejects with 409
+          ---
+          duration_ms: 3.483583
+          ...
+        # Subtest: 8. Email normalization: lowercases and trims email
+        ok 8 - 8. Email normalization: lowercases and trims email
+          ---
+          duration_ms: 424.126875
+          ...
+        # Subtest: 9. Concurrent duplicate registration handled safely by unique constraint
+        ok 9 - 9. Concurrent duplicate registration handled safely by unique constraint
+          ---
+          duration_ms: 816.700791
+          ...
+        # Subtest: 10. Untrusted role injection is ignored by server
+        ok 10 - 10. Untrusted role injection is ignored by server
+          ---
+          duration_ms: 412.594459
+          ...
+        # Subtest: 11. Untrusted isEmailVerified injection is ignored by server
+        ok 11 - 11. Untrusted isEmailVerified injection is ignored by server
+          ---
+          duration_ms: 410.658375
+          ...
+        # Subtest: 12. Untrusted workspaceId injection is ignored by server
+        ok 12 - 12. Untrusted workspaceId injection is ignored by server
+          ---
+          duration_ms: 411.284041
+          ...
+        1..12
+    ok 1 - Group 1: Registration Validation & Constraints
+      ---
+      duration_ms: 4608.094958
+      type: 'suite'
+      ...
+    # Subtest: Group 2: Token Architecture & Email Verification
+        # Subtest: 13. User created in PENDING_EMAIL_VERIFICATION status with null verifiedAt
+        ok 1 - 13. User created in PENDING_EMAIL_VERIFICATION status with null verifiedAt
+          ---
+          duration_ms: 0.518833
+          ...
+        # Subtest: 14. Verification token was generated and persisted in AuthToken
+        ok 2 - 14. Verification token was generated and persisted in AuthToken
+          ---
+          duration_ms: 2.434334
+          ...
+        # Subtest: 15. Token is stored hashed (SHA-256), NOT plaintext
+        ok 3 - 15. Token is stored hashed (SHA-256), NOT plaintext
+          ---
+          duration_ms: 1.322542
+          ...
+        # Subtest: 16. Verification email adapter was called with valid verification URL
+        ok 4 - 16. Verification email adapter was called with valid verification URL
+          ---
+          duration_ms: 0.375041
+          ...
+        # Subtest: 17. Email delivery failure is handled gracefully without rolling back user creation
+        ok 5 - 17. Email delivery failure is handled gracefully without rolling back user creation
+          ---
+          duration_ms: 450.478958
+          ...
+        # Subtest: 18. Valid verification completes, sets isEmailVerified and ACTIVE
+        ok 6 - 18. Valid verification completes, sets isEmailVerified and ACTIVE
+          ---
+          duration_ms: 8.365416
+          ...
+        # Subtest: 19. Invalid verification token rejected with 400
+        ok 7 - 19. Invalid verification token rejected with 400
+          ---
+          duration_ms: 2.652458
+          ...
+        # Subtest: 20. Expired verification token rejected with 400 (TOKEN_EXPIRED)
+        ok 8 - 20. Expired verification token rejected with 400 (TOKEN_EXPIRED)
+          ---
+          duration_ms: 4.239042
+          ...
+        # Subtest: 21. Token replay rejected: already-consumed token returns 400
+        ok 9 - 21. Token replay rejected: already-consumed token returns 400
+          ---
+          duration_ms: 1.978208
+          ...
+        # Subtest: 22. Concurrent verification handled atomically (only one consumes token)
+        ok 10 - 22. Concurrent verification handled atomically (only one consumes token)
+          ---
+          duration_ms: 7.977791
+          ...
+        # Subtest: 23. Resend verification generates fresh token and sends email
+        ok 11 - 23. Resend verification generates fresh token and sends email
+          ---
+          duration_ms: 5.745375
+          ...
+        # Subtest: 24. Resend rate limiting / cooldown enforced (429)
+        ok 12 - 24. Resend rate limiting / cooldown enforced (429)
+          ---
+          duration_ms: 1.913666
+          ...
+        1..12
+    ok 2 - Group 2: Token Architecture & Email Verification
+      ---
+      duration_ms: 907.823917
+      type: 'suite'
+      ...
+    # Subtest: Group 3: Authentication, Login & Session Management
+        # Subtest: 25. Existing legacy M2W account login succeeds seamlessly
+        ok 1 - 25. Existing legacy M2W account login succeeds seamlessly
+          ---
+          duration_ms: 243.338417
+          ...
+        # Subtest: 26. New verified user login succeeds and indicates hasWorkspace === false
+        ok 2 - 26. New verified user login succeeds and indicates hasWorkspace === false
+          ---
+          duration_ms: 412.820917
+          ...
+        # Subtest: 27. Unverified user login is blocked with 403 (EMAIL_NOT_VERIFIED)
+        ok 3 - 27. Unverified user login is blocked with 403 (EMAIL_NOT_VERIFIED)
+          ---
+          duration_ms: 839.908042
+          ...
+        # Subtest: 28. Wrong password rejected with generic 401
+        ok 4 - 28. Wrong password rejected with generic 401
+          ---
+          duration_ms: 410.615125
+          ...
+        # Subtest: 29. Account suspension restriction: SUSPENDED account blocked with 403
+        ok 5 - 29. Account suspension restriction: SUSPENDED account blocked with 403
+          ---
+          duration_ms: 419.541875
+          ...
+        # Subtest: 30. Valid session issuance: returns signed JWT and sets session cookie
+        ok 6 - 30. Valid session issuance: returns signed JWT and sets session cookie
+          ---
+          duration_ms: 419.547625
+          ...
+        # Subtest: 31. Session cookie attributes: HttpOnly, Path=/, SameSite=Lax
+        ok 7 - 31. Session cookie attributes: HttpOnly, Path=/, SameSite=Lax
+          ---
+          duration_ms: 503.330041
+          ...
+        # Subtest: 32. Invalid JWT rejected by requireAuth middleware (401)
+        ok 8 - 32. Invalid JWT rejected by requireAuth middleware (401)
+          ---
+          duration_ms: 1.93875
+          ...
+        # Subtest: 33. Expired JWT rejected by requireAuth (401)
+        ok 9 - 33. Expired JWT rejected by requireAuth (401)
+          ---
+          duration_ms: 2.878375
+          ...
+        # Subtest: 34. Logout clears session cookie
+        ok 10 - 34. Logout clears session cookie
+          ---
+          duration_ms: 1.262875
+          ...
+        # Subtest: 35. Authenticated GET /api/auth/me returns current user profile and workspaces
+        ok 11 - 35. Authenticated GET /api/auth/me returns current user profile and workspaces
+          ---
+          duration_ms: 117.916583
+          ...
+        # Subtest: 36. Safe sensitive-field filtering: no passwordHash or authVersion leaked in me
+        ok 12 - 36. Safe sensitive-field filtering: no passwordHash or authVersion leaked in me
+          ---
+          duration_ms: 116.952875
+          ...
+        1..12
+    ok 3 - Group 3: Authentication, Login & Session Management
+      ---
+      duration_ms: 3490.490542
+      type: 'suite'
+      ...
+    # Subtest: Group 4: Password Recovery & Reset Lifecycle
+        # Subtest: 37. Forgot password request succeeds and dispatches reset email
+        ok 1 - 37. Forgot password request succeeds and dispatches reset email
+          ---
+          duration_ms: 130.366709
+          ...
+        # Subtest: 38. Unknown-email enumeration protection: returns generic success
+        ok 2 - 38. Unknown-email enumeration protection: returns generic success
+          ---
+          duration_ms: 2.698
+          ...
+        # Subtest: 39. Reset token generated and stored hashed with 30-minute expiry
+        ok 3 - 39. Reset token generated and stored hashed with 30-minute expiry
+          ---
+          duration_ms: 1.048625
+          ...
+        # Subtest: 40. Valid password reset succeeds and updates password
+        ok 4 - 40. Valid password reset succeeds and updates password
+          ---
+          duration_ms: 520.402042
+          ...
+        # Subtest: 41. Expired reset token rejected with 400 (TOKEN_EXPIRED)
+        ok 5 - 41. Expired reset token rejected with 400 (TOKEN_EXPIRED)
+          ---
+          duration_ms: 3.84725
+          ...
+        # Subtest: 42. Consumed reset token rejected (replayed token returns 400)
+        ok 6 - 42. Consumed reset token rejected (replayed token returns 400)
+          ---
+          duration_ms: 2.093333
+          ...
+        # Subtest: 43. Reset-token purpose mismatch rejected (cannot use verify token for reset)
+        ok 7 - 43. Reset-token purpose mismatch rejected (cannot use verify token for reset)
+          ---
+          duration_ms: 3.004834
+          ...
+        # Subtest: 44. New password authenticates successfully
+        ok 8 - 44. New password authenticates successfully
+          ---
+          duration_ms: 421.69025
+          ...
+        # Subtest: 45. Old password rejected after reset (401)
+        ok 9 - 45. Old password rejected after reset (401)
+          ---
+          duration_ms: 413.194292
+          ...
+        # Subtest: 46. Old sessions revoked: JWT issued prior to password reset fails authVersion check
+        ok 10 - 46. Old sessions revoked: JWT issued prior to password reset fails authVersion check
+          ---
+          duration_ms: 5.196917
+          ...
+        1..10
+    ok 4 - Group 4: Password Recovery & Reset Lifecycle
+      ---
+      duration_ms: 1503.934208
+      type: 'suite'
+      ...
+    # Subtest: Group 5: Multi-Tenant Workspace Boundaries & Safety Gates
+        # Subtest: 47. New account without workspace is blocked from workspace routes (403 NO_ACTIVE_WORKSPACE)
+        ok 1 - 47. New account without workspace is blocked from workspace routes (403 NO_ACTIVE_WORKSPACE)
+          ---
+          duration_ms: 417.634208
+          ...
+        # Subtest: 48. M2W owner retains dashboard and workspace access
+        ok 2 - 48. M2W owner retains dashboard and workspace access
+          ---
+          duration_ms: 114.683208
+          ...
+        # Subtest: 49. New user cannot access M2W workspace records even if forging x-workspace-id
+        ok 3 - 49. New user cannot access M2W workspace records even if forging x-workspace-id
+          ---
+          duration_ms: 431.7
+          ...
+        # Subtest: 50. Real Meta WhatsApp sending remains strictly 403-blocked
+        ok 4 - 50. Real Meta WhatsApp sending remains strictly 403-blocked
+          ---
+          duration_ms: 1.573875
+          ...
+        1..4
+    ok 5 - Group 5: Multi-Tenant Workspace Boundaries & Safety Gates
+      ---
+      duration_ms: 965.773209
+      type: 'suite'
+      ...
+    1..5
+ok 190 - SaaS Prompt 4 — Production-Grade Customer Authentication Test Suite
+  ---
+  duration_ms: 17075.172375
+  type: 'suite'
+  ...
+# Subtest: SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisioning Test Suite
+    # Subtest: Group 1: Access Controls & Eligibility
+        # Subtest: 1. Unauthenticated onboarding request blocked (401)
+        ok 1 - 1. Unauthenticated onboarding request blocked (401)
+          ---
+          duration_ms: 11.174667
+          ...
+        # Subtest: 2. Unverified account blocked from starting onboarding (403 EMAIL_VERIFICATION_REQUIRED)
+        ok 2 - 2. Unverified account blocked from starting onboarding (403 EMAIL_VERIFICATION_REQUIRED)
+          ---
+          duration_ms: 7.426334
+          ...
+        # Subtest: 3. Verified account allowed to access onboarding status (200)
+        ok 3 - 3. Verified account allowed to access onboarding status (200)
+          ---
+          duration_ms: 5.32575
+          ...
+        # Subtest: 4. Existing M2W owner shows hasWorkspace: true on status
+        ok 4 - 4. Existing M2W owner shows hasWorkspace: true on status
+          ---
+          duration_ms: 9.881625
+          ...
+        1..4
+    ok 1 - Group 1: Access Controls & Eligibility
+      ---
+      duration_ms: 34.32675
+      type: 'suite'
+      ...
+    # Subtest: Group 2: Draft Persistence & Validation
+        # Subtest: 5. Draft created automatically if not existing (GET /api/onboarding/draft)
+        ok 1 - 5. Draft created automatically if not existing (GET /api/onboarding/draft)
+          ---
+          duration_ms: 8.644583
+          ...
+        # Subtest: 6. Draft saved and updated via PUT /api/onboarding/draft
+        ok 2 - 6. Draft saved and updated via PUT /api/onboarding/draft
+          ---
+          duration_ms: 12.240125
+          ...
+        # Subtest: 7. Draft resumed on subsequent GET /api/onboarding/draft
+        ok 3 - 7. Draft resumed on subsequent GET /api/onboarding/draft
+          ---
+          duration_ms: 5.129458
+          ...
+        # Subtest: 8. Draft owned by correct user (cannot read another user draft)
+        ok 4 - 8. Draft owned by correct user (cannot read another user draft)
+          ---
+          duration_ms: 6.378625
+          ...
+        # Subtest: 9. Invalid industry key rejected (400 INVALID_INDUSTRY)
+        ok 5 - 9. Invalid industry key rejected (400 INVALID_INDUSTRY)
+          ---
+          duration_ms: 5.899459
+          ...
+        # Subtest: 10. Valid industry keys accepted (all 7 verticals)
+        ok 6 - 10. Valid industry keys accepted (all 7 verticals)
+          ---
+          duration_ms: 42.915875
+          ...
+        # Subtest: 11. Invalid metadata rejected (prototype pollution and $ operators stripped)
+        ok 7 - 11. Invalid metadata rejected (prototype pollution and $ operators stripped)
+          ---
+          duration_ms: 5.963625
+          ...
+        # Subtest: 12. Timezone validated (valid IANA timezone accepted, invalid rejected)
+        ok 8 - 12. Timezone validated (valid IANA timezone accepted, invalid rejected)
+          ---
+          duration_ms: 11.428709
+          ...
+        1..8
+    ok 2 - Group 2: Draft Persistence & Validation
+      ---
+      duration_ms: 99.134042
+      type: 'suite'
+      ...
+    # Subtest: Group 3: Logo Upload Security
+        # Subtest: 13. Valid PNG logo upload accepted (200)
+        ok 1 - 13. Valid PNG logo upload accepted (200)
+          ---
+          duration_ms: 23.884125
+          ...
+        # Subtest: 14. Spoofed image rejected (magic bytes content mismatch: 400)
+        ok 2 - 14. Spoofed image rejected (magic bytes content mismatch: 400)
+          ---
+          duration_ms: 27.415208
+          ...
+        # Subtest: 15. Oversized logo rejected (> 2 MB: 413)
+        ok 3 - 15. Oversized logo rejected (> 2 MB: 413)
+          ---
+          duration_ms: 114.108625
+          ...
+        # Subtest: 16. Logo replaced cleanly with fresh upload
+        ok 4 - 16. Logo replaced cleanly with fresh upload
+          ---
+          duration_ms: 21.872792
+          ...
+        # Subtest: 17. Safe logo serving (GET /api/onboarding/logo/:filename) with nosniff header
+        ok 5 - 17. Safe logo serving (GET /api/onboarding/logo/:filename) with nosniff header
+          ---
+          duration_ms: 6.570167
+          ...
+        # Subtest: 18. Path traversal attempt in logo filename rejected (400)
+        ok 6 - 18. Path traversal attempt in logo filename rejected (400)
+          ---
+          duration_ms: 1.021791
+          ...
+        # Subtest: 19. Logo deletion (DELETE /api/onboarding/logo) clears branding
+        ok 7 - 19. Logo deletion (DELETE /api/onboarding/logo) clears branding
+          ---
+          duration_ms: 9.444375
+          ...
+        1..7
+    ok 3 - Group 3: Logo Upload Security
+      ---
+      duration_ms: 204.630583
+      type: 'suite'
+      ...
+    # Subtest: Group 4: Automatic Workspace Provisioning & Idempotency
+        # Subtest: 20. Provisioning fails if business name is missing or too short
+        ok 1 - 20. Provisioning fails if business name is missing or too short
+          ---
+          duration_ms: 10.498708
+          ...
+        # Subtest: 21. Valid provisioning creates Workspace, OWNER Membership and BusinessProfile
+        ok 2 - 21. Valid provisioning creates Workspace, OWNER Membership and BusinessProfile
+          ---
+          duration_ms: 47.531333
+          ...
+        # Subtest: 22. Zero fabricated records in new workspace (zero contacts, campaigns, consent)
+        ok 3 - 22. Zero fabricated records in new workspace (zero contacts, campaigns, consent)
+          ---
+          duration_ms: 2.789791
+          ...
+        # Subtest: 23. Repeat provisioning is idempotent (returns 200 and existing workspace)
+        ok 4 - 23. Repeat provisioning is idempotent (returns 200 and existing workspace)
+          ---
+          duration_ms: 6.602834
+          ...
+        # Subtest: 24. Status endpoint reflects completed onboarding state
+        ok 5 - 24. Status endpoint reflects completed onboarding state
+          ---
+          duration_ms: 4.769084
+          ...
+        # Subtest: 25. Slug collision handled cleanly (appends unique suffix)
+        ok 6 - 25. Slug collision handled cleanly (appends unique suffix)
+          ---
+          duration_ms: 31.102708
+          ...
+        1..6
+    ok 4 - Group 4: Automatic Workspace Provisioning & Idempotency
+      ---
+      duration_ms: 103.532209
+      type: 'suite'
+      ...
+    # Subtest: Group 5: Tenant Isolation & Adversarial Security
+        # Subtest: 26. New workspace cannot access M2W workspace via forged x-workspace-id (403)
+        ok 1 - 26. New workspace cannot access M2W workspace via forged x-workspace-id (403)
+          ---
+          duration_ms: 4.2385
+          ...
+        # Subtest: 27. New workspace cannot access M2W contacts even if querying directly
+        ok 2 - 27. New workspace cannot access M2W contacts even if querying directly
+          ---
+          duration_ms: 3.159417
+          ...
+        # Subtest: 28. Forged role injection in complete request ignored (server enforces OWNER)
+        ok 3 - 28. Forged role injection in complete request ignored (server enforces OWNER)
+          ---
+          duration_ms: 5.6735
+          ...
+        # Subtest: 29. M2W owner retains full dashboard and workspace access
+        ok 4 - 29. M2W owner retains full dashboard and workspace access
+          ---
+          duration_ms: 6.865125
+          ...
+        # Subtest: 30. Real Meta WhatsApp sending remains strictly 403-blocked
+        ok 5 - 30. Real Meta WhatsApp sending remains strictly 403-blocked
+          ---
+          duration_ms: 1.180958
+          ...
+        1..5
+    ok 5 - Group 5: Tenant Isolation & Adversarial Security
+      ---
+      duration_ms: 21.303875
+      type: 'suite'
+      ...
+    1..5
+ok 191 - SaaS Prompt 5 — Complete Business Onboarding & Workspace Provisioning Test Suite
+  ---
+  duration_ms: 6504.403459
+  type: 'suite'
+  ...
+# Subtest: SaaS Prompt 09 — Platform Super Admin, Agency & White-Label Isolation Suite
+    # Subtest: 1. Unauthenticated request to Platform Admin is rejected with 401
+    ok 1 - 1. Unauthenticated request to Platform Admin is rejected with 401
+      ---
+      duration_ms: 11.986208
+      ...
+    # Subtest: 2. Business owner without isPlatformAdmin is rejected with 403 Forbidden
+    ok 2 - 2. Business owner without isPlatformAdmin is rejected with 403 Forbidden
+      ---
+      duration_ms: 12.356666
+      ...
+    # Subtest: 3. Agency owner without isPlatformAdmin is rejected with 403 Forbidden
+    ok 3 - 3. Agency owner without isPlatformAdmin is rejected with 403 Forbidden
+      ---
+      duration_ms: 5.487584
+      ...
+    # Subtest: 4. Authorized Platform Admin receives 200 with platform telemetry and metrics
+    ok 4 - 4. Authorized Platform Admin receives 200 with platform telemetry and metrics
+      ---
+      duration_ms: 14.034833
+      ...
+    # Subtest: 5. Admin can list workspaces with search and filters
+    ok 5 - 5. Admin can list workspaces with search and filters
+      ---
+      duration_ms: 13.277708
+      ...
+    # Subtest: 6. Workspace details endpoint returns operational metadata but ZERO private CRM contacts or message bodies
+    ok 6 - 6. Workspace details endpoint returns operational metadata but ZERO private CRM contacts or message bodies
+      ---
+      duration_ms: 8.46625
+      ...
+    # Subtest: 7. Admin can suspend and reactivate a workspace with audit logs
+    ok 7 - 7. Admin can suspend and reactivate a workspace with audit logs
+      ---
+      duration_ms: 18.812375
+      ...
+    # Subtest: 8. Admin can list platform users without exposing password hashes or reset secrets
+    ok 8 - 8. Admin can list platform users without exposing password hashes or reset secrets
+      ---
+      duration_ms: 7.330208
+      ...
+    # Subtest: 9. Admin can list subscriptions and verify offline mock mode tags
+    ok 9 - 9. Admin can list subscriptions and verify offline mock mode tags
+      ---
+      duration_ms: 5.42075
+      ...
+    # Subtest: 10. Admin can query platform agencies and view client relationship counts
+    ok 10 - 10. Admin can query platform agencies and view client relationship counts
+      ---
+      duration_ms: 6.210334
+      ...
+    # Subtest: 11. Agency Owner can retrieve agency context and client list
+    ok 11 - 11. Agency Owner can retrieve agency context and client list
+      ---
+      duration_ms: 7.156083
+      ...
+    # Subtest: 12. Cross-Agency Isolation: Apex Agency cannot see Spark Agency clients
+    ok 12 - 12. Cross-Agency Isolation: Apex Agency cannot see Spark Agency clients
+      ---
+      duration_ms: 5.390875
+      ...
+    # Subtest: 13. Agency Owner can update white-label branding and DNS instructions
+    ok 13 - 13. Agency Owner can update white-label branding and DNS instructions
+      ---
+      duration_ms: 10.326833
+      ...
+    # Subtest: 14. Agency Owner can simulate custom domain verification lifecycle
+    ok 14 - 14. Agency Owner can simulate custom domain verification lifecycle
+      ---
+      duration_ms: 9.765125
+      ...
+    # Subtest: 15. Agency Owner can invite and remove staff with role assignments
+    ok 15 - 15. Agency Owner can invite and remove staff with role assignments
+      ---
+      duration_ms: 199.270459
+      ...
+    # Subtest: 16. Agency client delegation revocation terminates access safely
+    ok 16 - 16. Agency client delegation revocation terminates access safely
+      ---
+      duration_ms: 10.537125
+      ...
+    1..16
+ok 192 - SaaS Prompt 09 — Platform Super Admin, Agency & White-Label Isolation Suite
+  ---
+  duration_ms: 6317.438375
+  type: 'suite'
+  ...
+# Subtest: template CRUD, versions, duplication, archive and safe draft deletion
+ok 193 - template CRUD, versions, duplication, archive and safe draft deletion
+  ---
+  duration_ms: 3920.587
+  ...
+# Subtest: real owner-scoped preview, imported custom fields, Meta mapping and bounded bulk preview
+ok 194 - real owner-scoped preview, imported custom fields, Meta mapping and bounded bulk preview
+  ---
+  duration_ms: 25.495625
+  ...
+# Error: AI Not Configured: set AI_API_KEY, AI_BASE_URL, and AI_MODEL on the backend.
+#     at fail (file:///Users/sumitthakur/Desktop/Relay/backend/src/controllers/templateController.js:11:48)
+#     at callAi (file:///Users/sumitthakur/Desktop/Relay/backend/src/controllers/templateController.js:107:68)
+#     at file:///Users/sumitthakur/Desktop/Relay/backend/src/controllers/templateController.js:108:69
+#     at file:///Users/sumitthakur/Desktop/Relay/backend/src/utils/asyncHandler.js:1:63
+#     at Layer.handle [as handle_request] (/Users/sumitthakur/Desktop/Relay/backend/node_modules/express/lib/router/layer.js:95:5)
+#     at next (/Users/sumitthakur/Desktop/Relay/backend/node_modules/express/lib/router/route.js:149:13)
+#     at file:///Users/sumitthakur/Desktop/Relay/backend/node_modules/express-rate-limit/dist/index.mjs:779:7
+#     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+#     at async file:///Users/sumitthakur/Desktop/Relay/backend/node_modules/express-rate-limit/dist/index.mjs:663:5 {
+#   status: 503
+# }
+# Subtest: malformed variables, missing values and AI-disabled behavior are reported honestly
+ok 195 - malformed variables, missing values and AI-disabled behavior are reported honestly
+  ---
+  duration_ms: 21.874458
+  ...
+# Subtest: namespaced CRM variables, fallbacks, business category and button parameters preview without sending
+ok 196 - namespaced CRM variables, fallbacks, business category and button parameters preview without sending
+  ---
+  duration_ms: 23.962292
+  ...
+# Subtest: Universal Industry Packs — 1. Registry loads all industries with valid stable keys and versions
+ok 197 - Universal Industry Packs — 1. Registry loads all industries with valid stable keys and versions
+  ---
+  duration_ms: 1.202542
+  ...
+# Subtest: Universal Industry Packs — 2. Real Estate pack defines required fields, 10 templates, 5+ quick replies, keyword rules, and campaign
+ok 198 - Universal Industry Packs — 2. Real Estate pack defines required fields, 10 templates, 5+ quick replies, keyword rules, and campaign
+  ---
+  duration_ms: 1.018166
+  ...
+# Subtest: Universal Industry Packs — 3. Gym / Fitness pack defines required fields, 10 templates, 5+ quick replies, and campaign
+ok 199 - Universal Industry Packs — 3. Gym / Fitness pack defines required fields, 10 templates, 5+ quick replies, and campaign
+  ---
+  duration_ms: 0.198791
+  ...
+# Subtest: Universal Industry Packs — 4. Clinic pack defines non-sensitive administrative fields, 10 templates, and privacy compliance
+ok 200 - Universal Industry Packs — 4. Clinic pack defines non-sensitive administrative fields, 10 templates, and privacy compliance
+  ---
+  duration_ms: 0.200875
+  ...
+# Subtest: Universal Industry Packs — 5. Generic Business pack defines 10 templates, 5+ quick replies, and campaign
+ok 201 - Universal Industry Packs — 5. Generic Business pack defines 10 templates, 5+ quick replies, and campaign
+  ---
+  duration_ms: 0.184083
+  ...
+# Subtest: Universal Industry Packs — 6. Fallback and alias resolution works for unknown or aliased keys
+ok 202 - Universal Industry Packs — 6. Fallback and alias resolution works for unknown or aliased keys
+  ---
+  duration_ms: 0.086625
+  ...
+# Subtest: Universal Industry Packs — 7. Template variable resolution works across industries without errors
+ok 203 - Universal Industry Packs — 7. Template variable resolution works across industries without errors
+  ---
+  duration_ms: 0.576959
+  ...
+# Subtest: condition engine preserves UNKNOWN and validation rejects unsafe graphs
+ok 204 - condition engine preserves UNKNOWN and validation rejects unsafe graphs
+  ---
+  duration_ms: 4993.105875
+  ...
+# Subtest: workflow graph lifecycle, dry-run isolation, version immutability, internal authorization and ownership
+ok 205 - workflow graph lifecycle, dry-run isolation, version immutability, internal authorization and ownership
+  ---
+  duration_ms: 176.656667
+  ...
+# Subtest: scheduling validates IANA zones, calculates recurring local times and persists tenant scoped schedules
+ok 206 - scheduling validates IANA zones, calculates recurring local times and persists tenant scoped schedules
+  ---
+  duration_ms: 36.535542
+  ...
+1..206
+# tests 379
+# suites 20
+# pass 379
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83662.738

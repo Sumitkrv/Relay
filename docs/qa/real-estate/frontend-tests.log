@@ -1,0 +1,732 @@
+
+> freelance-crm-frontend@1.0.0 test
+> node --test test/*.test.js
+
+TAP version 13
+# Subtest: normalizePath folds /app aliases and trailing slashes
+ok 1 - normalizePath folds /app aliases and trailing slashes
+  ---
+  duration_ms: 2.003
+  ...
+# Subtest: Exactly one primary item is active for each of the seven modules
+ok 2 - Exactly one primary item is active for each of the seven modules
+  ---
+  duration_ms: 1.174
+  ...
+# Subtest: The /app/* alias routes no longer light up Overview
+ok 3 - The /app/* alias routes no longer light up Overview
+  ---
+  duration_ms: 0.797
+  ...
+# Subtest: Nested routes keep their parent module active
+ok 4 - Nested routes keep their parent module active
+  ---
+  duration_ms: 0.36975
+  ...
+# Subtest: Prefix look-alikes do not false-match
+ok 5 - Prefix look-alikes do not false-match
+  ---
+  duration_ms: 0.195542
+  ...
+# Subtest: Breadcrumb for each module is "Workspace / <Module>" and never "Relay/App"
+ok 6 - Breadcrumb for each module is "Workspace / <Module>" and never "Relay/App"
+  ---
+  duration_ms: 0.742417
+  ...
+# Subtest: Alias /app/* routes produce the same breadcrumb as canonical routes
+ok 7 - Alias /app/* routes produce the same breadcrumb as canonical routes
+  ---
+  duration_ms: 0.344208
+  ...
+# Subtest: Nested breadcrumbs are meaningful and only the last crumb is current
+ok 8 - Nested breadcrumbs are meaningful and only the last crumb is current
+  ---
+  duration_ms: 0.457958
+  ...
+# Subtest: Person and business initials differ so avatars never read as the workspace logo
+ok 9 - Person and business initials differ so avatars never read as the workspace logo
+  ---
+  duration_ms: 0.627459
+  ...
+# Subtest: Industry labels are formatted from workspace data
+ok 10 - Industry labels are formatted from workspace data
+  ---
+  duration_ms: 0.4025
+  ...
+# Subtest: Shell has ONE implementation and no hardcoded business branding in the brand header
+ok 11 - Shell has ONE implementation and no hardcoded business branding in the brand header
+  ---
+  duration_ms: 5.102417
+  ...
+# Subtest: Role is never fabricated and the user avatar never uses the business logo
+ok 12 - Role is never fabricated and the user avatar never uses the business logo
+  ---
+  duration_ms: 2.087541
+  ...
+# Subtest: Collapse control lives in the sidebar header, not as a footer menu row
+ok 13 - Collapse control lives in the sidebar header, not as a footer menu row
+  ---
+  duration_ms: 2.557875
+  ...
+# Subtest: Mobile drawer: scroll lock, Escape, focus trap and dialog semantics are implemented
+ok 14 - Mobile drawer: scroll lock, Escape, focus trap and dialog semantics are implemented
+  ---
+  duration_ms: 0.509333
+  ...
+# Subtest: Topbar: dynamic breadcrumb, compact status, Mock Mode badge, notifications, account menu
+ok 15 - Topbar: dynamic breadcrumb, compact status, Mock Mode badge, notifications, account menu
+  ---
+  duration_ms: 0.507375
+  ...
+# Subtest: A failed health check can never be rendered as Online
+ok 16 - A failed health check can never be rendered as Online
+  ---
+  duration_ms: 0.668417
+  ...
+# Subtest: Shell stylesheet: locked palette, namespaced selectors, no green brand, no important abuse
+ok 17 - Shell stylesheet: locked palette, namespaced selectors, no green brand, no important abuse
+  ---
+  duration_ms: 2.700125
+  ...
+# Subtest: Legacy shell selectors are gone from styles.css (no conflicting teal/green overrides)
+ok 18 - Legacy shell selectors are gone from styles.css (no conflicting teal/green overrides)
+  ---
+  duration_ms: 0.805
+  ...
+# Subtest: Emergency Fix: 1. Full Dashboard restored in Dashboard.jsx without non-m2w gate
+ok 19 - Emergency Fix: 1. Full Dashboard restored in Dashboard.jsx without non-m2w gate
+  ---
+  duration_ms: 4.798292
+  ...
+# Subtest: Emergency Fix: 2. AppLayout.jsx integrates useWorkspace and safe dynamic branding
+ok 20 - Emergency Fix: 2. AppLayout.jsx integrates useWorkspace and safe dynamic branding
+  ---
+  duration_ms: 4.942167
+  ...
+# Subtest: Emergency Fix: 3. BusinessOnboardingPage redirects to /app upon completion
+ok 21 - Emergency Fix: 3. BusinessOnboardingPage redirects to /app upon completion
+  ---
+  duration_ms: 2.434459
+  ...
+# Subtest: Emergency Fix: 4. WorkspaceGettingStartedPage has zero roadmap prompt numbers
+ok 22 - Emergency Fix: 4. WorkspaceGettingStartedPage has zero roadmap prompt numbers
+  ---
+  duration_ms: 0.679542
+  ...
+# Subtest: Emergency Fix: 5. Vite config defines backend proxy for /api to prevent broken image loading
+ok 23 - Emergency Fix: 5. Vite config defines backend proxy for /api to prevent broken image loading
+  ---
+  duration_ms: 0.647583
+  ...
+# Subtest: Emergency Fix: 6. media.js helper accurately resolves relative and absolute asset URLs
+ok 24 - Emergency Fix: 6. media.js helper accurately resolves relative and absolute asset URLs
+  ---
+  duration_ms: 0.664125
+  ...
+# Subtest: Navigation: AppLayout defines exactly 7 primary navigation screens
+ok 25 - Navigation: AppLayout defines exactly 7 primary navigation screens
+  ---
+  duration_ms: 4.211041
+  ...
+# Subtest: Navigation: Single Operator workspace and brand header are configured
+ok 26 - Navigation: Single Operator workspace and brand header are configured
+  ---
+  duration_ms: 2.713875
+  ...
+# Subtest: Readiness Status: AppLayout checks /health and monitors backend, db, provider and mock mode
+ok 27 - Readiness Status: AppLayout checks /health and monitors backend, db, provider and mock mode
+  ---
+  duration_ms: 0.603625
+  ...
+# Subtest: Breadcrumbs: route label metadata (shellRoutes.js) aligned with PPT and consumed by Breadcrumbs.jsx
+ok 28 - Breadcrumbs: route label metadata (shellRoutes.js) aligned with PPT and consumed by Breadcrumbs.jsx
+  ---
+  duration_ms: 4.413334
+  ...
+# Subtest: Import & Contacts Integration: Contacts links to import and import has back to contacts
+ok 29 - Import & Contacts Integration: Contacts links to import and import has back to contacts
+  ---
+  duration_ms: 5.918583
+  ...
+# Subtest: Overview CSS is scoped: every selector starts with .ov-
+ok 30 - Overview CSS is scoped: every selector starts with .ov-
+  ---
+  duration_ms: 6.881791
+  ...
+# Subtest: Overview palette uses Electric Blue and Midnight Navy tokens
+ok 31 - Overview palette uses Electric Blue and Midnight Navy tokens
+  ---
+  duration_ms: 5.352458
+  ...
+# Subtest: Overview keeps all header actions, quick actions and routes
+ok 32 - Overview keeps all header actions, quick actions and routes
+  ---
+  duration_ms: 0.214583
+  ...
+# Subtest: Overview has no hardcoded industry terms and uses centralized industry copy
+ok 33 - Overview has no hardcoded industry terms and uses centralized industry copy
+  ---
+  duration_ms: 0.192417
+  ...
+# Subtest: Overview status is honest: unknown state when data unavailable, mock labelled
+ok 34 - Overview status is honest: unknown state when data unavailable, mock labelled
+  ---
+  duration_ms: 0.127292
+  ...
+# Subtest: Checklist is accessible and uses real onboarding data
+ok 35 - Checklist is accessible and uses real onboarding data
+  ---
+  duration_ms: 0.102584
+  ...
+# Subtest: Completed runs are labelled as mock runs, not campaigns
+ok 36 - Completed runs are labelled as mock runs, not campaigns
+  ---
+  duration_ms: 0.094458
+  ...
+# Subtest: Design Tokens: tokens.js defines Midnight Slate × Jade palette
+ok 37 - Design Tokens: tokens.js defines Midnight Slate × Jade palette
+  ---
+  duration_ms: 12.864
+  ...
+# Subtest: Shared Components: PageHeader is exported and standardized
+ok 38 - Shared Components: PageHeader is exported and standardized
+  ---
+  duration_ms: 0.94375
+  ...
+# Subtest: Overview: Dashboard displays exact 4 primary KPIs and quick actions
+ok 39 - Overview: Dashboard displays exact 4 primary KPIs and quick actions
+  ---
+  duration_ms: 0.423292
+  ...
+# Subtest: Inbox: Rebuilt layout with dedicated Auto-reply rules and non-overlapping controls
+ok 40 - Inbox: Rebuilt layout with dedicated Auto-reply rules and non-overlapping controls
+  ---
+  duration_ms: 3.000084
+  ...
+# Subtest: Campaigns: Defines 4 primary cards and compact status summary
+ok 41 - Campaigns: Defines 4 primary cards and compact status summary
+  ---
+  duration_ms: 5.38225
+  ...
+# Subtest: Settings: Supports hash deep-linking and single-operator role mapping
+ok 42 - Settings: Supports hash deep-linking and single-operator role mapping
+  ---
+  duration_ms: 4.476208
+  ...
+# Subtest: Prompt 1 Settings: SettingsPage defines all 6 tabs including business and security
+ok 43 - Prompt 1 Settings: SettingsPage defines all 6 tabs including business and security
+  ---
+  duration_ms: 8.4295
+  ...
+# Subtest: Prompt 1 Settings: settings.js exports complete API suite
+ok 44 - Prompt 1 Settings: settings.js exports complete API suite
+  ---
+  duration_ms: 0.891375
+  ...
+# Subtest: Prompt 1 Auth: AuthContext exposes updateUser helper and handles session rotation
+ok 45 - Prompt 1 Auth: AuthContext exposes updateUser helper and handles session rotation
+  ---
+  duration_ms: 0.50125
+  ...
+# Subtest: Prompt 1 Auth: AuthPage enforces single-operator branding and security safeguards
+ok 46 - Prompt 1 Auth: AuthPage enforces single-operator branding and security safeguards
+  ---
+  duration_ms: 0.591333
+  ...
+# Subtest: Prompt 3 Contacts: ContactsPage defines professional tabs and action buttons
+ok 47 - Prompt 3 Contacts: ContactsPage defines professional tabs and action buttons
+  ---
+  duration_ms: 5.071417
+  ...
+# Subtest: Prompt 3 Import Wizard: Smart import wizard supports 5 steps, presets, and duplicate policies
+ok 48 - Prompt 3 Import Wizard: Smart import wizard supports 5 steps, presets, and duplicate policies
+  ---
+  duration_ms: 6.474542
+  ...
+# Subtest: Prompt 3 Campaigns Integration: CampaignBuilder supports Contact Groups alongside Segments and Imports
+ok 49 - Prompt 3 Campaigns Integration: CampaignBuilder supports Contact Groups alongside Segments and Imports
+  ---
+  duration_ms: 5.549542
+  ...
+# Subtest: Prompt 3 Contact Groups & Tag Services: Complete API functions exported
+ok 50 - Prompt 3 Contact Groups & Tag Services: Complete API functions exported
+  ---
+  duration_ms: 0.868667
+  ...
+# Subtest: Prompt 4 - Frontend Templates Service API Surface
+ok 51 - Prompt 4 - Frontend Templates Service API Surface
+  ---
+  duration_ms: 4.286416
+  ...
+# Subtest: Prompt 4 - Template Studio 3-Panel Layout & Responsive Design
+ok 52 - Prompt 4 - Template Studio 3-Panel Layout & Responsive Design
+  ---
+  duration_ms: 3.584542
+  ...
+# Subtest: Prompt 4 - Header Media Upload & Brochure Support
+ok 53 - Prompt 4 - Header Media Upload & Brochure Support
+  ---
+  duration_ms: 0.665958
+  ...
+# Subtest: Prompt 4 - Real Estate Variable Toolbar & Personalization Tokens
+ok 54 - Prompt 4 - Real Estate Variable Toolbar & Personalization Tokens
+  ---
+  duration_ms: 26.098333
+  ...
+# Subtest: Prompt 4 - Interactive Buttons Builder & Mutual Exclusion Validation
+ok 55 - Prompt 4 - Interactive Buttons Builder & Mutual Exclusion Validation
+  ---
+  duration_ms: 10.303459
+  ...
+# Subtest: Prompt 4 - WhatsApp Preview & Truthful Meta Approval Status
+ok 56 - Prompt 4 - WhatsApp Preview & Truthful Meta Approval Status
+  ---
+  duration_ms: 0.932375
+  ...
+# Subtest: Prompt 4 - Version History, Audit Snapshots & Campaign Pinned References
+ok 57 - Prompt 4 - Version History, Audit Snapshots & Campaign Pinned References
+  ---
+  duration_ms: 0.496083
+  ...
+# Subtest: Prompt 5 - Frontend Messages Service API Surface
+ok 58 - Prompt 5 - Frontend Messages Service API Surface
+  ---
+  duration_ms: 8.024042
+  ...
+# Subtest: Prompt 5 - Message Modal Components Exist and Conform
+ok 59 - Prompt 5 - Message Modal Components Exist and Conform
+  ---
+  duration_ms: 2.214458
+  ...
+# Subtest: Prompt 5 - Campaigns Page Message Execution & Queue Integration
+ok 60 - Prompt 5 - Campaigns Page Message Execution & Queue Integration
+  ---
+  duration_ms: 0.83525
+  ...
+# Subtest: Prompt 5 - Contacts Page Detail Drawer Message History Section
+ok 61 - Prompt 5 - Contacts Page Detail Drawer Message History Section
+  ---
+  duration_ms: 0.783459
+  ...
+# Subtest: Prompt 5 - Settings WhatsApp Integration Diagnostics & Queue Health
+ok 62 - Prompt 5 - Settings WhatsApp Integration Diagnostics & Queue Health
+  ---
+  duration_ms: 0.886125
+  ...
+# Subtest: Prompt 5 - Strict 7-Screen Scope & Sidebar Preservation
+ok 63 - Prompt 5 - Strict 7-Screen Scope & Sidebar Preservation
+  ---
+  duration_ms: 0.332375
+  ...
+# Subtest: Prompt 6 — Frontend: Campaigns Page exports 4 Primary KPI Cards and Compact Status Breakdown
+ok 64 - Prompt 6 — Frontend: Campaigns Page exports 4 Primary KPI Cards and Compact Status Breakdown
+  ---
+  duration_ms: 3.438042
+  ...
+# Subtest: Prompt 6 — Frontend: Four-Step Stepper (Template → Audience → Preview → Launch)
+ok 65 - Prompt 6 — Frontend: Four-Step Stepper (Template → Audience → Preview → Launch)
+  ---
+  duration_ms: 4.056084
+  ...
+# Subtest: Prompt 6 — Frontend: Step 1 Template Studio Integration & Version Pinning
+ok 66 - Prompt 6 — Frontend: Step 1 Template Studio Integration & Version Pinning
+  ---
+  duration_ms: 1.248458
+  ...
+# Subtest: Prompt 6 — Frontend: Step 2 Audience Targeting & Live Eligibility Breakdown
+ok 67 - Prompt 6 — Frontend: Step 2 Audience Targeting & Live Eligibility Breakdown
+  ---
+  duration_ms: 0.933292
+  ...
+# Subtest: Prompt 6 — Frontend: Step 3 Personalized Message Preview & Pager
+ok 68 - Prompt 6 — Frontend: Step 3 Personalized Message Preview & Pager
+  ---
+  duration_ms: 1.167083
+  ...
+# Subtest: Prompt 6 — Frontend: Step 4 Scheduling & Launch Mock Compliance Banner
+ok 69 - Prompt 6 — Frontend: Step 4 Scheduling & Launch Mock Compliance Banner
+  ---
+  duration_ms: 0.622875
+  ...
+# Subtest: Prompt 6 — Frontend: Services API Surface Exports All Lifecycle Endpoints
+ok 70 - Prompt 6 — Frontend: Services API Surface Exports All Lifecycle Endpoints
+  ---
+  duration_ms: 0.649292
+  ...
+# Subtest: Prompt 7 — Frontend: InboxPage exports 3 Primary Tabs (Conversations, Auto-reply Rules, Quick Replies)
+ok 71 - Prompt 7 — Frontend: InboxPage exports 3 Primary Tabs (Conversations, Auto-reply Rules, Quick Replies)
+  ---
+  duration_ms: 4.000959
+  ...
+# Subtest: Prompt 7 — Frontend: Rebuilt 3-Panel Workspace Layout Structure
+ok 72 - Prompt 7 — Frontend: Rebuilt 3-Panel Workspace Layout Structure
+  ---
+  duration_ms: 4.217334
+  ...
+# Subtest: Prompt 7 — Frontend: Truthful Provider Disconnected Status Banner
+ok 73 - Prompt 7 — Frontend: Truthful Provider Disconnected Status Banner
+  ---
+  duration_ms: 0.496833
+  ...
+# Subtest: Prompt 7 — Frontend: Owner Takeover & Manual Control Automation Controls
+ok 74 - Prompt 7 — Frontend: Owner Takeover & Manual Control Automation Controls
+  ---
+  duration_ms: 3.633667
+  ...
+# Subtest: Prompt 7 — Frontend: Message Timeline, Internal Notes & Campaign Traceability
+ok 75 - Prompt 7 — Frontend: Message Timeline, Internal Notes & Campaign Traceability
+  ---
+  duration_ms: 0.642583
+  ...
+# Subtest: Prompt 7 — Frontend: Message Composer with Quick Replies, Templates & Mock Send
+ok 76 - Prompt 7 — Frontend: Message Composer with Quick Replies, Templates & Mock Send
+  ---
+  duration_ms: 0.69075
+  ...
+# Subtest: Prompt 7 — Frontend: Inbound Synthetic Test Simulator with Real Estate Presets
+ok 77 - Prompt 7 — Frontend: Inbound Synthetic Test Simulator with Real Estate Presets
+  ---
+  duration_ms: 0.82575
+  ...
+# Subtest: Prompt 7 — Frontend: Auto-Reply Rules Tab with Interactive Rule Match Tester & History
+ok 78 - Prompt 7 — Frontend: Auto-Reply Rules Tab with Interactive Rule Match Tester & History
+  ---
+  duration_ms: 1.188083
+  ...
+# Subtest: Prompt 7 — Frontend: Quick Reply Library with Category Pills & Token Support
+ok 79 - Prompt 7 — Frontend: Quick Reply Library with Category Pills & Token Support
+  ---
+  duration_ms: 0.963125
+  ...
+# Subtest: Prompt 7 — Frontend: Services API Surface in inbox.js
+ok 80 - Prompt 7 — Frontend: Services API Surface in inbox.js
+  ---
+  duration_ms: 0.825459
+  ...
+# Subtest: Prompt 8 — Frontend: ReportsPage exports 5 Primary Tabs (Overview, Campaigns, Messages, Consent, Exports)
+ok 81 - Prompt 8 — Frontend: ReportsPage exports 5 Primary Tabs (Overview, Campaigns, Messages, Consent, Exports)
+  ---
+  duration_ms: 5.031208
+  ...
+# Subtest: Prompt 8 — Frontend: 4 Primary KPI Cards with Truthful Provider Disconnected State
+ok 82 - Prompt 8 — Frontend: 4 Primary KPI Cards with Truthful Provider Disconnected State
+  ---
+  duration_ms: 0.78575
+  ...
+# Subtest: Prompt 8 — Frontend: Secondary Operational Metrics Breakdown
+ok 83 - Prompt 8 — Frontend: Secondary Operational Metrics Breakdown
+  ---
+  duration_ms: 1.292167
+  ...
+# Subtest: Prompt 8 — Frontend: Responsive Filter Toolbar (Date, Campaign, Mode, Status, Refresh, Export)
+ok 84 - Prompt 8 — Frontend: Responsive Filter Toolbar (Date, Campaign, Mode, Status, Refresh, Export)
+  ---
+  duration_ms: 0.5285
+  ...
+# Subtest: Prompt 8 — Frontend: Recharts Visualizations & Empty States
+ok 85 - Prompt 8 — Frontend: Recharts Visualizations & Empty States
+  ---
+  duration_ms: 1.081583
+  ...
+# Subtest: Prompt 8 — Frontend: Campaign Performance Table & Multi-Campaign Comparison (2-4 Campaigns)
+ok 86 - Prompt 8 — Frontend: Campaign Performance Table & Multi-Campaign Comparison (2-4 Campaigns)
+  ---
+  duration_ms: 0.722958
+  ...
+# Subtest: Prompt 8 — Frontend: Message Activity, Failures & Retry Analytics
+ok 87 - Prompt 8 — Frontend: Message Activity, Failures & Retry Analytics
+  ---
+  duration_ms: 0.5
+  ...
+# Subtest: Prompt 8 — Frontend: Consent & Opt-Out Audit Reporting
+ok 88 - Prompt 8 — Frontend: Consent & Opt-Out Audit Reporting
+  ---
+  duration_ms: 1.453667
+  ...
+# Subtest: Prompt 8 — Frontend: Secure Export Modal Dialog & Format Selection
+ok 89 - Prompt 8 — Frontend: Secure Export Modal Dialog & Format Selection
+  ---
+  duration_ms: 7.660792
+  ...
+# Subtest: Prompt 8 — Frontend: Reports Service API Client Coverage
+ok 90 - Prompt 8 — Frontend: Reports Service API Client Coverage
+  ---
+  duration_ms: 2.212625
+  ...
+# Subtest: Prompt 9 — Frontend: Developer Testing Center & Mock Finishing
+    # Subtest: 1. SettingsPage.jsx defines "developer" in VALID_TABS
+    ok 1 - 1. SettingsPage.jsx defines "developer" in VALID_TABS
+      ---
+      duration_ms: 2.410834
+      ...
+    # Subtest: 2. SettingsPage.jsx renders Developer / Test Mode navigation button
+    ok 2 - 2. SettingsPage.jsx renders Developer / Test Mode navigation button
+      ---
+      duration_ms: 3.883625
+      ...
+    # Subtest: 3. SettingsPage.jsx mounts DeveloperTestingCenter when activeTab === "developer"
+    ok 3 - 3. SettingsPage.jsx mounts DeveloperTestingCenter when activeTab === "developer"
+      ---
+      duration_ms: 2.55125
+      ...
+    # Subtest: 4. DeveloperTestingCenter.jsx exists and has zero dead buttons
+    ok 4 - 4. DeveloperTestingCenter.jsx exists and has zero dead buttons
+      ---
+      duration_ms: 14.181709
+      ...
+    # Subtest: 5. messages.js exports complete mock simulator API client surface
+    ok 5 - 5. messages.js exports complete mock simulator API client surface
+      ---
+      duration_ms: 0.5855
+      ...
+    # Subtest: 6. AppLayout preserves strict 7 primary navigation screens (Developer is in Settings)
+    ok 6 - 6. AppLayout preserves strict 7 primary navigation screens (Developer is in Settings)
+      ---
+      duration_ms: 0.450292
+      ...
+    1..6
+ok 91 - Prompt 9 — Frontend: Developer Testing Center & Mock Finishing
+  ---
+  duration_ms: 27.364291
+  ...
+# Subtest: SaaS Prompt 1 - Frontend: WorkspaceContext and WorkspaceProvider exist and export useWorkspace
+ok 92 - SaaS Prompt 1 - Frontend: WorkspaceContext and WorkspaceProvider exist and export useWorkspace
+  ---
+  duration_ms: 3.85325
+  ...
+# Subtest: SaaS Prompt 1 - Frontend: main.jsx wraps WorkspaceProvider inside AuthProvider without breaking routing
+ok 93 - SaaS Prompt 1 - Frontend: main.jsx wraps WorkspaceProvider inside AuthProvider without breaking routing
+  ---
+  duration_ms: 0.586166
+  ...
+# Subtest: SaaS Prompt 1 - Frontend: api.js request interceptor attaches x-workspace-id when selected
+ok 94 - SaaS Prompt 1 - Frontend: api.js request interceptor attaches x-workspace-id when selected
+  ---
+  duration_ms: 0.638166
+  ...
+# Subtest: SaaS Prompt 1 - Frontend: services/workspaces.js exports complete workspace client API
+ok 95 - SaaS Prompt 1 - Frontend: services/workspaces.js exports complete workspace client API
+  ---
+  duration_ms: 0.46475
+  ...
+# Subtest: SaaS Prompt 1 - Frontend: Single-Operator and M2W Realty branding preserved for legacy compatibility
+ok 96 - SaaS Prompt 1 - Frontend: Single-Operator and M2W Realty branding preserved for legacy compatibility
+  ---
+  duration_ms: 1.563167
+  ...
+# Subtest: SaaS Prompt 3 — 1. Public Route Architecture in App.jsx
+ok 97 - SaaS Prompt 3 — 1. Public Route Architecture in App.jsx
+  ---
+  duration_ms: 3.907167
+  ...
+# Subtest: SaaS Prompt 3 — 2. Seven Specialized Industries Configuration
+ok 98 - SaaS Prompt 3 — 2. Seven Specialized Industries Configuration
+  ---
+  duration_ms: 0.264083
+  ...
+# Subtest: SaaS Prompt 3 — 3. Real Estate Industry Flagship Data Integrity
+ok 99 - SaaS Prompt 3 — 3. Real Estate Industry Flagship Data Integrity
+  ---
+  duration_ms: 0.141417
+  ...
+# Subtest: SaaS Prompt 3 — 4. Pricing Tiers & Separate Meta Billing Truthfulness
+ok 100 - SaaS Prompt 3 — 4. Pricing Tiers & Separate Meta Billing Truthfulness
+  ---
+  duration_ms: 0.155292
+  ...
+# Subtest: SaaS Prompt 3 — 5. FAQ Categorization & Knowledge Coverage
+ok 101 - SaaS Prompt 3 — 5. FAQ Categorization & Knowledge Coverage
+  ---
+  duration_ms: 0.337292
+  ...
+# Subtest: SaaS Prompt 3 — 6. Marketing Navbar Component Capabilities
+ok 102 - SaaS Prompt 3 — 6. Marketing Navbar Component Capabilities
+  ---
+  duration_ms: 0.733625
+  ...
+# Subtest: SaaS Prompt 3 — 7. Contact Form API Client & Honeypot Spam Protection
+ok 103 - SaaS Prompt 3 — 7. Contact Form API Client & Honeypot Spam Protection
+  ---
+  duration_ms: 0.651542
+  ...
+# Subtest: SaaS Prompt 3 — 8. Early Access Signup Shell Boundaries
+ok 104 - SaaS Prompt 3 — 8. Early Access Signup Shell Boundaries
+  ---
+  duration_ms: 0.621
+  ...
+# Subtest: SaaS Prompt 3 — 9. Privacy Policy & Terms of Service Integrity
+ok 105 - SaaS Prompt 3 — 9. Privacy Policy & Terms of Service Integrity
+  ---
+  duration_ms: 1.718833
+  ...
+# Subtest: SaaS Prompt 4 — 1. Route Registry & Public Auth Routes in App.jsx
+ok 106 - SaaS Prompt 4 — 1. Route Registry & Public Auth Routes in App.jsx
+  ---
+  duration_ms: 2.140667
+  ...
+# Subtest: SaaS Prompt 4 — 2. AuthContext API Surface & State Machine
+ok 107 - SaaS Prompt 4 — 2. AuthContext API Surface & State Machine
+  ---
+  duration_ms: 0.304958
+  ...
+# Subtest: SaaS Prompt 4 — 3. ProtectedRoute Workspace & Verification Enforcement
+ok 108 - SaaS Prompt 4 — 3. ProtectedRoute Workspace & Verification Enforcement
+  ---
+  duration_ms: 3.026375
+  ...
+# Subtest: SaaS Prompt 4 — 4. SignupPage Real Customer Registration UI
+ok 109 - SaaS Prompt 4 — 4. SignupPage Real Customer Registration UI
+  ---
+  duration_ms: 0.46275
+  ...
+# Subtest: SaaS Prompt 4 — 5. AuthPage Login & Post-Login Redirection Logic
+ok 110 - SaaS Prompt 4 — 5. AuthPage Login & Post-Login Redirection Logic
+  ---
+  duration_ms: 0.379042
+  ...
+# Subtest: SaaS Prompt 4 — 6. VerifyEmailPage Token Validation & Resend Workflow
+ok 111 - SaaS Prompt 4 — 6. VerifyEmailPage Token Validation & Resend Workflow
+  ---
+  duration_ms: 0.602167
+  ...
+# Subtest: SaaS Prompt 4 — 7. ForgotPasswordPage & ResetPasswordPage Security
+ok 112 - SaaS Prompt 4 — 7. ForgotPasswordPage & ResetPasswordPage Security
+  ---
+  duration_ms: 1.045083
+  ...
+# Subtest: SaaS Prompt 4 — 8. OnboardingHandoffPage Boundary & Zero Fake Workspace
+ok 113 - SaaS Prompt 4 — 8. OnboardingHandoffPage Boundary & Zero Fake Workspace
+  ---
+  duration_ms: 0.855375
+  ...
+# Subtest: SaaS Prompt 5 — 1. Route Registry & Onboarding Entry Points in App.jsx
+ok 114 - SaaS Prompt 5 — 1. Route Registry & Onboarding Entry Points in App.jsx
+  ---
+  duration_ms: 4.456333
+  ...
+# Subtest: SaaS Prompt 5 — 2. Frontend Onboarding Service API Surface
+ok 115 - SaaS Prompt 5 — 2. Frontend Onboarding Service API Surface
+  ---
+  duration_ms: 1.219041
+  ...
+# Subtest: SaaS Prompt 5 — 3. Seven Supported Industries Configuration
+ok 116 - SaaS Prompt 5 — 3. Seven Supported Industries Configuration
+  ---
+  duration_ms: 2.010459
+  ...
+# Subtest: SaaS Prompt 5 — 4. Business Identity Form Validation & Inputs
+ok 117 - SaaS Prompt 5 — 4. Business Identity Form Validation & Inputs
+  ---
+  duration_ms: 0.697209
+  ...
+# Subtest: SaaS Prompt 5 — 5. Branding & Logo Upload Security UI
+ok 118 - SaaS Prompt 5 — 5. Branding & Logo Upload Security UI
+  ---
+  duration_ms: 0.515125
+  ...
+# Subtest: SaaS Prompt 5 — 6. Review & Provisioning Step Integration
+ok 119 - SaaS Prompt 5 — 6. Review & Provisioning Step Integration
+  ---
+  duration_ms: 0.528375
+  ...
+# Subtest: SaaS Prompt 5 — 7. Workspace Getting Started Post-Onboarding Screen
+ok 120 - SaaS Prompt 5 — 7. Workspace Getting Started Post-Onboarding Screen
+  ---
+  duration_ms: 5.9005
+  ...
+# Subtest: SaaS Prompt 5 & Emergency Fix — 8. Full Dashboard Access for All Workspaces
+ok 121 - SaaS Prompt 5 & Emergency Fix — 8. Full Dashboard Access for All Workspaces
+  ---
+  duration_ms: 0.628458
+  ...
+# Subtest: SaaS Prompt 09 — Frontend Platform Admin & Agency Management Test Suite
+    # Subtest: 1. adminService exports complete administrative API surface
+    ok 1 - 1. adminService exports complete administrative API surface
+      ---
+      duration_ms: 1.757625
+      ...
+    # Subtest: 2. agencyService exports complete agency API surface
+    ok 2 - 2. agencyService exports complete agency API surface
+      ---
+      duration_ms: 0.666959
+      ...
+    # Subtest: 3. SuperAdminPage defines all 8 administrative sections with honest revenue labeling
+    ok 3 - 3. SuperAdminPage defines all 8 administrative sections with honest revenue labeling
+      ---
+      duration_ms: 2.710209
+      ...
+    # Subtest: 4. AgencyDashboardPage defines all 5 agency sections, live preview & DNS instructions
+    ok 4 - 4. AgencyDashboardPage defines all 5 agency sections, live preview & DNS instructions
+      ---
+      duration_ms: 1.0885
+      ...
+    # Subtest: 5. AppLayout preserves 7 primary navigation modules and supports privileged menu and delegated banner
+    ok 5 - 5. AppLayout preserves 7 primary navigation modules and supports privileged menu and delegated banner
+      ---
+      duration_ms: 0.432541
+      ...
+    # Subtest: 6. SuperAdmin and Agency CSS files exist and namespace tokens to Midnight Navy & Electric Blue
+    ok 6 - 6. SuperAdmin and Agency CSS files exist and namespace tokens to Midnight Navy & Electric Blue
+      ---
+      duration_ms: 0.799584
+      ...
+    1..6
+ok 122 - SaaS Prompt 09 — Frontend Platform Admin & Agency Management Test Suite
+  ---
+  duration_ms: 9.174875
+  type: 'suite'
+  ...
+# Subtest: Regression: listTemplates is exported from services/templates.js
+ok 123 - Regression: listTemplates is exported from services/templates.js
+  ---
+  duration_ms: 1.276708
+  ...
+# Subtest: Regression: TemplatesPage.jsx imports listTemplates from services/templates
+ok 124 - Regression: TemplatesPage.jsx imports listTemplates from services/templates
+  ---
+  duration_ms: 0.613208
+  ...
+# Subtest: Frontend Universal Industry — 1. crmVariables exports structured catalog and helper methods
+ok 125 - Frontend Universal Industry — 1. crmVariables exports structured catalog and helper methods
+  ---
+  duration_ms: 0.9425
+  ...
+# Subtest: Frontend Universal Industry — 2. extractCrmTokens accurately finds template tokens
+ok 126 - Frontend Universal Industry — 2. extractCrmTokens accurately finds template tokens
+  ---
+  duration_ms: 1.301167
+  ...
+# Subtest: Frontend Universal Industry — 3. resolveCrmVariables replaces known variables and handles missing with fallback brackets
+ok 127 - Frontend Universal Industry — 3. resolveCrmVariables replaces known variables and handles missing with fallback brackets
+  ---
+  duration_ms: 0.466833
+  ...
+# Subtest: Frontend Universal Industry — 4. resolveSampleContext generates safe previews per industry
+ok 128 - Frontend Universal Industry — 4. resolveSampleContext generates safe previews per industry
+  ---
+  duration_ms: 0.171666
+  ...
+# Subtest: Frontend Universal Industry — 5. services/industries.js exports public and workspace industry APIs
+ok 129 - Frontend Universal Industry — 5. services/industries.js exports public and workspace industry APIs
+  ---
+  duration_ms: 0.574542
+  ...
+# Subtest: Frontend Universal Industry — 6. IndustryPreviewPage.jsx displays read-only banner and covers all tabs
+ok 130 - Frontend Universal Industry — 6. IndustryPreviewPage.jsx displays read-only banner and covers all tabs
+  ---
+  duration_ms: 1.023709
+  ...
+# Subtest: Frontend Universal Industry — 7. App.jsx mounts /dev/industry-preview and DeveloperTestingCenter links to it
+ok 131 - Frontend Universal Industry — 7. App.jsx mounts /dev/industry-preview and DeveloperTestingCenter links to it
+  ---
+  duration_ms: 0.279
+  ...
+1..131
+# tests 142
+# suites 1
+# pass 142
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 962.87825

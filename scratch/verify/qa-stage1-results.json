@@ -1,0 +1,457 @@
+[
+ {
+  "id": "real_estate:workspace resolves to real_estate",
+  "ok": true,
+  "note": "industryKey=real_estate"
+ },
+ {
+  "id": "real_estate:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "real_estate:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "real_estate:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "real_estate:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "real_estate:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "real_estate:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "gym:workspace resolves to gym",
+  "ok": true,
+  "note": "industryKey=gym"
+ },
+ {
+  "id": "gym:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "gym:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "gym:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "gym:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "gym:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "gym:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "clinic:workspace resolves to clinic",
+  "ok": true,
+  "note": "industryKey=clinic"
+ },
+ {
+  "id": "clinic:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "clinic:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "clinic:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "clinic:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "clinic:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "clinic:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "education:workspace resolves to education",
+  "ok": true,
+  "note": "industryKey=education"
+ },
+ {
+  "id": "education:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "education:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "education:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "education:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "education:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "education:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "salon:workspace resolves to salon",
+  "ok": true,
+  "note": "industryKey=salon"
+ },
+ {
+  "id": "salon:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "salon:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "salon:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "salon:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "salon:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "salon:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "automobile:workspace resolves to automobile",
+  "ok": true,
+  "note": "industryKey=automobile"
+ },
+ {
+  "id": "automobile:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "automobile:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "automobile:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "automobile:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "automobile:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "automobile:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "travel_tourism:workspace resolves to travel_tourism",
+  "ok": true,
+  "note": "industryKey=travel_tourism"
+ },
+ {
+  "id": "travel_tourism:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "travel_tourism:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "travel_tourism:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "travel_tourism:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "travel_tourism:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "travel_tourism:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "restaurant_food:workspace resolves to restaurant_food",
+  "ok": true,
+  "note": "industryKey=restaurant_food"
+ },
+ {
+  "id": "restaurant_food:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "restaurant_food:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "restaurant_food:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "restaurant_food:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "restaurant_food:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "restaurant_food:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "professional_services:workspace resolves to professional_services",
+  "ok": true,
+  "note": "industryKey=professional_services"
+ },
+ {
+  "id": "professional_services:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "professional_services:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "professional_services:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "professional_services:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "professional_services:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "professional_services:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "generic_business:workspace resolves to generic_business",
+  "ok": true,
+  "note": "industryKey=generic_business"
+ },
+ {
+  "id": "generic_business:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "generic_business:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "generic_business:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "generic_business:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "generic_business:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "generic_business:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "ecommerce_retail:workspace resolves to ecommerce_retail",
+  "ok": true,
+  "note": "industryKey=ecommerce_retail"
+ },
+ {
+  "id": "ecommerce_retail:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "ecommerce_retail:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "ecommerce_retail:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "ecommerce_retail:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "ecommerce_retail:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "ecommerce_retail:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "home_services:workspace resolves to home_services",
+  "ok": true,
+  "note": "industryKey=home_services"
+ },
+ {
+  "id": "home_services:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "home_services:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "home_services:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "home_services:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "home_services:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "home_services:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ },
+ {
+  "id": "hospitality:workspace resolves to hospitality",
+  "ok": true,
+  "note": "industryKey=hospitality"
+ },
+ {
+  "id": "hospitality:starter templates=15",
+  "ok": true,
+  "note": "templates=15"
+ },
+ {
+  "id": "hospitality:starter quick replies>=8",
+  "ok": true,
+  "note": "quick=8"
+ },
+ {
+  "id": "hospitality:starter auto-reply rules (incl. protected STOP)>=6",
+  "ok": true,
+  "note": "rules=6"
+ },
+ {
+  "id": "hospitality:zero fabricated contacts",
+  "ok": true,
+  "note": "contacts=0"
+ },
+ {
+  "id": "hospitality:business profile persisted",
+  "ok": true,
+  "note": "score=100"
+ },
+ {
+  "id": "hospitality:dashboard overview contexts",
+  "ok": true,
+  "note": "dashTemplates=15"
+ }
+]

@@ -1,0 +1,618 @@
+{
+  "checks": [
+    {
+      "check": "real_estate browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "real_estate independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "clinic browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "clinic independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "gym browser login",
+      "result": "PASS"
+    },
+    {
+      "check": "gym independent refresh and correct pack",
+      "result": "PASS"
+    },
+    {
+      "check": "Preset selection, editor, explicit save, refresh, update and versioning",
+      "result": "PASS"
+    },
+    {
+      "check": "Campaign starter opens wizard, saves a draft and never schedules/sends automatically",
+      "result": "PASS"
+    },
+    {
+      "check": "Eight quick replies, five disabled rules, protected STOP and refresh without duplicate IDs",
+      "result": "PASS"
+    },
+    {
+      "check": "Compact preview drawer opens and closes through reachable controls",
+      "result": "PASS"
+    },
+    {
+      "check": "Mobile editor and preview controls",
+      "result": "PASS"
+    },
+    {
+      "check": "Independent logout in one shared browser context",
+      "result": "PASS"
+    }
+  ],
+  "layoutChecks": 70,
+  "overflow": [],
+  "errors": [],
+  "networkFailures": [],
+  "layout": [
+    {
+      "route": "/app",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Overview"
+    },
+    {
+      "route": "/app",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Overview"
+    },
+    {
+      "route": "/contacts",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/contacts",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Contacts & Audiences"
+    },
+    {
+      "route": "/templates",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Templates"
+    },
+    {
+      "route": "/templates",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Templates"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/campaigns",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Campaigns"
+    },
+    {
+      "route": "/inbox",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/inbox",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Inbox & Auto-reply"
+    },
+    {
+      "route": "/reports",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/reports",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Reports & Analytics"
+    },
+    {
+      "route": "/settings",
+      "width": 1920,
+      "height": 800,
+      "documentWidth": 1920,
+      "viewport": 1920,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 1525,
+      "height": 1024,
+      "documentWidth": 1525,
+      "viewport": 1525,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 1440,
+      "height": 800,
+      "documentWidth": 1440,
+      "viewport": 1440,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 1366,
+      "height": 800,
+      "documentWidth": 1366,
+      "viewport": 1366,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 1280,
+      "height": 800,
+      "documentWidth": 1280,
+      "viewport": 1280,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 1024,
+      "height": 800,
+      "documentWidth": 1024,
+      "viewport": 1024,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 768,
+      "height": 1024,
+      "documentWidth": 768,
+      "viewport": 768,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 430,
+      "height": 932,
+      "documentWidth": 430,
+      "viewport": 430,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 390,
+      "height": 932,
+      "documentWidth": 390,
+      "viewport": 390,
+      "title": "Settings"
+    },
+    {
+      "route": "/settings",
+      "width": 375,
+      "height": 932,
+      "documentWidth": 375,
+      "viewport": 375,
+      "title": "Settings"
+    }
+  ]
+}

@@ -163,5 +163,6 @@ export const completeOnboarding = asyncHandler(async (req, res) => {
     workspace: result.workspace,
     membership: result.membership,
     businessProfile: result.businessProfile,
+    starterProvisioning: result.starterProvisioning || null,
   });
 });

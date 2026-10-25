@@ -15,8 +15,21 @@ export async function internalProvisionWorkspace(payload) {
   return data;
 }
 
+export async function getStarterProvisioningStatus() {
+  const { data } = await api.get('/workspaces/current/starter-provisioning');
+  return data;
+}
+
+// Resumes an unfinished provisioning; the backend inserts only missing starter records.
+export async function retryStarterProvisioning() {
+  const { data } = await api.post('/workspaces/current/starter-provisioning/retry');
+  return data;
+}
+
 export default {
   getCurrentWorkspace,
   getMyWorkspaces,
   internalProvisionWorkspace,
+  getStarterProvisioningStatus,
+  retryStarterProvisioning,
 };

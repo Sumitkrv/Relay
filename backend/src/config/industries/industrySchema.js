@@ -13,7 +13,14 @@ export const SUPPORTED_FIELD_TYPES = [
   'boolean',
 ];
 
-export const SUPPORTED_MATCH_TYPES = ['exact', 'contains'];
+export const SUPPORTED_MATCH_TYPES = [
+  'exact',
+  'contains',
+  'whole_word',
+  'EXACT_MATCH',
+  'CONTAINS',
+  'WHOLE_WORD',
+];
 
 export const ALLOWED_TEMPLATE_VARIABLE_PATTERN = /^[a-z0-9_]{2,40}$/;
 
@@ -86,7 +93,8 @@ export function validateTemplateSuggestion(template, index = 0, industryKey = ''
     throw new Error(`[Industry:${industryKey}] Template at index ${index} must be an object.`);
   }
 
-  const { presetKey, title, body, variables } = template;
+  const presetKey = template.presetKey || template.key;
+  const { title, body, variables } = template;
 
   if (!presetKey || typeof presetKey !== 'string') {
     throw new Error(`[Industry:${industryKey}] Template at index ${index} must have a presetKey.`);
@@ -123,14 +131,16 @@ export function validateAutomationPreset(preset, index = 0, industryKey = '') {
     throw new Error(`[Industry:${industryKey}] Automation preset at index ${index} must be an object.`);
   }
 
-  const { presetId, displayName, triggerKeywords, matchType, suggestedResponse } = preset;
+  const presetId = preset.presetId || preset.id;
+  const displayName = preset.displayName || preset.ruleName;
+  const { triggerKeywords, matchType, suggestedResponse } = preset;
 
   if (!presetId || typeof presetId !== 'string') {
     throw new Error(`[Industry:${industryKey}] Automation preset at index ${index} must have presetId.`);
   }
 
   if (!displayName || typeof displayName !== 'string') {
-    throw new Error(`[Industry:${industryKey}] Automation preset "${presetId}" must have displayName.`);
+    throw new Error(`[Industry:${industryKey}] Automation preset "${presetId}" must have displayName or ruleName.`);
   }
 
   if (!Array.isArray(triggerKeywords) || triggerKeywords.length === 0) {
@@ -147,6 +157,55 @@ export function validateAutomationPreset(preset, index = 0, industryKey = '') {
     throw new Error(`[Industry:${industryKey}] Automation preset "${presetId}" must have suggestedResponse text.`);
   }
 
+  return true;
+}
+
+/**
+ * Validates a quick reply preset.
+ */
+export function validateQuickReplyPreset(qr, index = 0, industryKey = '') {
+  if (!qr || typeof qr !== 'object') {
+    throw new Error(`[Industry:${industryKey}] Quick reply at index ${index} must be an object.`);
+  }
+  const key = qr.key || qr.presetKey || qr.id;
+  const title = qr.title || qr.label;
+  const text = qr.text || qr.body;
+  if (!key || typeof key !== 'string') {
+    throw new Error(`[Industry:${industryKey}] Quick reply at index ${index} must have a key.`);
+  }
+  if (!title || typeof title !== 'string') {
+    throw new Error(`[Industry:${industryKey}] Quick reply "${key}" must have a title.`);
+  }
+  if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    throw new Error(`[Industry:${industryKey}] Quick reply "${key}" must have text.`);
+  }
+  return true;
+}
+
+/**
+ * Validates a sample campaign draft.
+ */
+export function validateSampleCampaign(campaign, industryKey = '') {
+  if (!campaign || typeof campaign !== 'object') {
+    throw new Error(`[Industry:${industryKey}] Sample campaign must be an object.`);
+  }
+  const name = campaign.campaignName || campaign.name;
+  if (!name || typeof name !== 'string') {
+    throw new Error(`[Industry:${industryKey}] Sample campaign must have a name.`);
+  }
+  return true;
+}
+
+/**
+ * Validates a supported variable definition.
+ */
+export function validateSupportedVariable(v, index = 0, industryKey = '') {
+  if (!v || typeof v !== 'object') {
+    throw new Error(`[Industry:${industryKey}] Supported variable at index ${index} must be an object.`);
+  }
+  if (!v.token || typeof v.token !== 'string') {
+    throw new Error(`[Industry:${industryKey}] Supported variable at index ${index} must have a token.`);
+  }
   return true;
 }
 
@@ -169,7 +228,13 @@ export function validateIndustryDefinition(def) {
     contactDisplayPreferences,
     contactFilters,
     templateSuggestions,
+    starterTemplatePack,
     automationPresets,
+    keywordAutoReplyPack,
+    quickReplyPresets,
+    quickReplyPack,
+    sampleCampaignDraft,
+    supportedVariables,
   } = def;
 
   if (!key || typeof key !== 'string' || !/^[a-z0-9_]{3,30}$/.test(key)) {
@@ -217,17 +282,75 @@ export function validateIndustryDefinition(def) {
     seenKeys.add(field.key);
   });
 
-  // Validate templates
-  if (!Array.isArray(templateSuggestions)) {
+  // Validate templates (supports either templateSuggestions or starterTemplatePack)
+  const templates = templateSuggestions || starterTemplatePack;
+  if (!Array.isArray(templates)) {
     throw new Error(`[Industry:${key}] templateSuggestions must be an array.`);
   }
-  templateSuggestions.forEach((tpl, index) => validateTemplateSuggestion(tpl, index, key));
+  const seenTemplateKeys = new Set();
+  templates.forEach((tpl, index) => {
+    validateTemplateSuggestion(tpl, index, key);
+    const tplKey = tpl.presetKey || tpl.key || tpl.templateId;
+    if (seenTemplateKeys.has(tplKey)) {
+      throw new Error(`[Industry:${key}] Duplicate template key detected: "${tplKey}".`);
+    }
+    seenTemplateKeys.add(tplKey);
+  });
 
-  // Validate automation presets
-  if (!Array.isArray(automationPresets)) {
+  // Validate automation presets (supports either automationPresets or keywordAutoReplyPack)
+  const automations = automationPresets || keywordAutoReplyPack;
+  if (!Array.isArray(automations)) {
     throw new Error(`[Industry:${key}] automationPresets must be an array.`);
   }
-  automationPresets.forEach((ap, index) => validateAutomationPreset(ap, index, key));
+  const seenAutomationIds = new Set();
+  automations.forEach((ap, index) => {
+    validateAutomationPreset(ap, index, key);
+    const apId = ap.presetId || ap.id;
+    if (seenAutomationIds.has(apId)) {
+      throw new Error(`[Industry:${key}] Duplicate automation preset ID: "${apId}".`);
+    }
+    seenAutomationIds.add(apId);
+  });
+
+  // Validate quick reply presets if present
+  const quickReplies = quickReplyPresets || quickReplyPack;
+  if (quickReplies) {
+    if (!Array.isArray(quickReplies)) {
+      throw new Error(`[Industry:${key}] quickReplyPresets must be an array.`);
+    }
+    const seenQrKeys = new Set();
+    quickReplies.forEach((qr, idx) => {
+      validateQuickReplyPreset(qr, idx, key);
+      const qrKey = qr.key || qr.presetKey || qr.id;
+      if (seenQrKeys.has(qrKey)) {
+        throw new Error(`[Industry:${key}] Duplicate quick reply key detected: "${qrKey}".`);
+      }
+      seenQrKeys.add(qrKey);
+    });
+  }
+
+  // Validate sample campaigns if present
+  const campaignDrafts = def.sampleCampaignDrafts || (sampleCampaignDraft ? [sampleCampaignDraft] : null);
+  if (campaignDrafts) {
+    if (!Array.isArray(campaignDrafts)) {
+      throw new Error(`[Industry:${key}] sampleCampaignDrafts must be an array.`);
+    }
+    campaignDrafts.forEach((camp) => {
+      validateSampleCampaign(camp, key);
+      if (camp.targetTemplateKey && !seenTemplateKeys.has(camp.targetTemplateKey)) {
+        // Warning or validation ensuring template exists in pack
+        console.warn(`[Industry:${key}] Sample campaign "${camp.campaignName || camp.name}" references template "${camp.targetTemplateKey}"`);
+      }
+    });
+  }
+
+  // Validate supported variables if present
+  if (supportedVariables) {
+    if (!Array.isArray(supportedVariables)) {
+      throw new Error(`[Industry:${key}] supportedVariables must be an array.`);
+    }
+    supportedVariables.forEach((v, idx) => validateSupportedVariable(v, idx, key));
+  }
 
   // Ensure serializability
   try {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'd2573fbca6add62c63544430a55abf9d47dc0c4ee829fa6cc2847f90f2ee73c3';
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-for-relay-crm-development-only-minimum-32-chars-long';
 
 import request from 'supertest';
 import mongoose from 'mongoose';
@@ -338,6 +338,8 @@ test('PROMPT 9.2 — 5. STOP Keyword & Consent Safety Isolation', async () => {
 });
 
 test('PROMPT 9.2 — 6. Property Data & Pricing Auto-Reply Truthfulness', async () => {
+  // A reviewed custom rule is explicitly saved; loading a page never seeds/enables automation.
+  await AutoReplyRule.create({ ownerId: ownerA._id, name: 'Reviewed pricing enquiry', priority: 0, triggerKeyword: 'PRICE', synonyms: ['PRICING'], actionType: 'RUN_MOCK_REPLY', responseMessage: 'For {{project_name}}, which unit type would you like to review?', enabled: true });
   const contact = await Contact.create({
     ownerId: ownerA._id,
     fullName: 'Zayd Al-Mansoori',

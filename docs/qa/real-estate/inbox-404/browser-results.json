@@ -1,0 +1,48 @@
+{
+  "performedAt": "2026-10-23T18:13:57.496Z",
+  "checks": [
+    {
+      "check": "Reported conversation 6adba0b30cf1681623cc5f9e: detail and messages",
+      "status": "PASS",
+      "detailHttpStatus": 200,
+      "messagesHttpStatus": 200
+    },
+    {
+      "check": "Reported conversation 6adba0ad0cf1681623cc5eb7: detail and messages",
+      "status": "PASS",
+      "detailHttpStatus": 200,
+      "messagesHttpStatus": 200
+    },
+    {
+      "check": "Conversation 6adba0ad0cf1681623cc5eb7 loads once with matching contact",
+      "status": "PASS"
+    },
+    {
+      "check": "Conversation 6adba0b30cf1681623cc5f9e loads once with matching contact",
+      "status": "PASS"
+    },
+    {
+      "check": "Inbox fits 1525x1024",
+      "status": "PASS"
+    },
+    {
+      "check": "Inbox fits 1280x800",
+      "status": "PASS"
+    },
+    {
+      "check": "Inbox fits 430x932",
+      "status": "PASS"
+    },
+    {
+      "check": "Mobile back returns to the list and another conversation opens",
+      "status": "PASS"
+    },
+    {
+      "check": "Inbox reload retains M2W identity and opens the requested conversation",
+      "status": "PASS"
+    }
+  ],
+  "uncaughtBrowserErrors": [],
+  "authenticatedHttpFailures": [],
+  "reportedConversationRecordsEdited": 0
+}

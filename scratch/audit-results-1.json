@@ -1,0 +1,92 @@
+[
+ {
+  "id": "login:m2w",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "workspace:m2w",
+  "ok": true,
+  "note": "M2W Realty/real_estate/COMPLETED"
+ },
+ {
+  "id": "login:gym",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "workspace:gym",
+  "ok": true,
+  "note": "FitZone Gym/gym/COMPLETED"
+ },
+ {
+  "id": "login:clinic",
+  "ok": true,
+  "note": "status 200"
+ },
+ {
+  "id": "workspace:clinic",
+  "ok": true,
+  "note": "CarePlus Clinic/clinic/COMPLETED"
+ },
+ {
+  "id": "login:wrong-password=401",
+  "ok": true,
+  "note": "status 401"
+ },
+ {
+  "id": "login:unknown-email=401",
+  "ok": true,
+  "note": "status 401"
+ },
+ {
+  "id": "session:invalid-token=401",
+  "ok": true,
+  "note": "status 401"
+ },
+ {
+  "id": "session:no-token=401",
+  "ok": true,
+  "note": "status 401"
+ },
+ {
+  "id": "tenant:forged-workspace-header /workspaces/current =403",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "tenant:nonexistent-workspace-header /workspaces/current =403",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "tenant:malformed-workspace-header /workspaces/current rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "tenant:forged-workspace-header /settings/business =403",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "tenant:nonexistent-workspace-header /settings/business =403",
+  "ok": true,
+  "note": "status 403"
+ },
+ {
+  "id": "tenant:malformed-workspace-header /settings/business rejected",
+  "ok": true,
+  "note": "status 400"
+ },
+ {
+  "id": "tenant:forged-header-on-owner-scoped-API-leaks-nothing",
+  "ok": true,
+  "note": "records=5"
+ },
+ {
+  "id": "settings:demo-reset-endpoint-disabled",
+  "ok": true,
+  "note": "status 403"
+ }
+]

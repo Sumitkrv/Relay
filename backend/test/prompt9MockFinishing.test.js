@@ -40,7 +40,7 @@ test.before(async () => {
     });
   }
 
-  process.env.JWT_SECRET = process.env.JWT_SECRET || 'd2573fbca6add62c63544430a55abf9d47dc0c4ee829fa6cc2847f90f2ee73c3';
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-for-relay-crm-development-only-minimum-32-chars-long';
   authToken = jwt.sign(
     { sub: String(testOwner._id), email: testOwner.email, role: testOwner.role || 'owner', ver: testOwner.authVersion || 0 },
     process.env.JWT_SECRET,

@@ -1,0 +1,14 @@
+import { createRequire } from 'module';
+const require = createRequire('/Users/sumitthakur/Desktop/Relay/backend/package.json');
+const mongoose = require('mongoose');
+await mongoose.connect('mongodb://127.0.0.1:27017');
+const db = mongoose.connection.client.db('relay_demo');
+const users = Object.fromEntries((await db.collection('users').find({}).toArray()).map(u=>[String(u._id),u.email]));
+const w = await db.collection('workspaces').findOne({slug:'fitzone-gym'});
+const cs = await db.collection('contacts').find({workspaceId:w._id}).toArray();
+for (const c of cs) console.log(c.fullName.padEnd(16), 'owner=', users[String(c.ownerId)], 'demo=',c.isDemo,'arch=',c.isArchived,'del=',c.isDeleted);
+const m = await db.collection('workspacememberships').find({workspaceId:w._id}).toArray();
+console.log('members', m.map(x=>users[String(x.userId)]+'/'+x.role));
+const orphans = await db.collection('contacts').find({workspaceId:{$exists:false}}).toArray();
+console.log('orphans owners:', orphans.map(c=>users[String(c.ownerId)]+':'+c.fullName).join(' | '));
+await mongoose.disconnect();

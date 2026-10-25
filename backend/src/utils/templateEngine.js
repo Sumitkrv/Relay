@@ -1,49 +1,96 @@
+import { getAllIndustryConfigs } from '../config/industries/industryRegistry.js';
 const CORE = new Set([
-  'name', 'first_name', 'last_name',
-  'company', 'business_category', 'designation', 'service', 'industry',
-  'city', 'location', 'website', 'email', 'phone', 'sender_name',
+  'name', 'first_name', 'last_name', 'customer_name',
+  'company', 'company_name', 'business_category', 'designation', 'service', 'industry',
+  'city', 'location', 'website', 'business_website', 'email', 'phone', 'sender_name',
   'business_name', 'business_phone',
   'property_type', 'interested_property_type', 'property_interest',
   'project', 'interested_project', 'project_name',
   'preferred_location',
-  'budget', 'budget_range'
+  'budget', 'budget_range',
+  'membership_type', 'membership_plan', 'fitness_program', 'fitness_goal', 'trial_session_interest', 'trial_date',
+  'service_category', 'service_name', 'service_interest', 'enquiry_type',
+  'preferred_enquiry_time', 'appointment_date', 'site_visit_date', 'test_drive_date',
+  'branch', 'branch_name', 'course_name', 'batch_date', 'vehicle_model',
+  'meeting_date', 'meeting_time', 'consultation_mode', 'representative_name', 'business_email',
+  'product_name', 'business_address', 'business_hours'
 ]);
+for (const config of getAllIndustryConfigs()) for (const variable of config.supportedVariables || []) CORE.add(variable.token);
 const TOKEN_RE = /{{\s*([a-zA-Z][a-zA-Z0-9_.: -]{0,63}?)\s*}}/g;
-const valuesFor = (contact = {}, user = {}) => ({
+export function valuesFor(input = {}, user = {}) {
+  const source = input?.toObject ? input.toObject() : input;
+  const contact = { ...source?.industryData, ...source };
+  // Canonical fields take precedence, but empty legacy fields must not mask saved industry data.
+  for (const [key, value] of Object.entries(source?.industryData || {})) {
+    if (contact[key] === '' || contact[key] == null) contact[key] = value;
+  }
+  const dynamic = Object.fromEntries(Object.entries(contact).map(([key, value]) => [key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`), value]));
+  const aliases = {
   name: contact.fullName || '',
+  customer_name: contact.fullName || '',
   first_name: String(contact.fullName || '').trim().split(/\s+/)[0] || '',
   last_name: String(contact.fullName || '').trim().split(/\s+/).slice(1).join(' '),
-  company: contact.companyName || '',
+  company: contact.companyName || user.businessName || user.workspaceName || user.name || '',
+  company_name: contact.companyName || '',
   business_category: contact.businessCategory || '',
   designation: contact.designation || '',
-  service: contact.interestedService || contact.interestedPropertyType || '',
+  service: contact.serviceName || contact.interestedService || contact.interestedPropertyType || contact.serviceCategory || contact.serviceInterest || '',
+  service_name: contact.serviceName || contact.service || contact.interestedService || contact.serviceCategory || contact.serviceInterest || '',
+  service_interest: contact.serviceInterest || contact.interestedService || '',
+  enquiry_type: contact.enquiryType || '',
   industry: contact.industry || '',
   city: contact.city || contact.location || '',
   location: contact.location || contact.city || '',
   website: contact.website || user.website || '',
+  business_website: user.website || '',
   email: contact.email || '',
   phone: contact.phoneNumber || '',
   sender_name: user.name || '',
-  business_name: user.businessName || '',
+  business_name: user.businessName || user.workspaceName || user.name || '',
   business_phone: user.businessPhone || user.phone || '',
-  property_type: contact.interestedPropertyType || contact.interestedService || '',
-  interested_property_type: contact.interestedPropertyType || contact.interestedService || '',
-  property_interest: contact.interestedPropertyType || contact.interestedService || '',
-  project: contact.interestedProject || contact.businessCategory || '',
-  interested_project: contact.interestedProject || contact.businessCategory || '',
-  project_name: contact.interestedProject || contact.businessCategory || '',
+  property_type: contact.interestedPropertyType || contact.propertyType || contact.interestedService || '',
+  interested_property_type: contact.interestedPropertyType || contact.propertyType || contact.interestedService || '',
+  property_interest: contact.propertyInterest || contact.interestedPropertyType || contact.interestedService || '',
+  project: contact.interestedProject || contact.projectName || contact.businessCategory || '',
+  interested_project: contact.interestedProject || contact.projectName || contact.businessCategory || '',
+  project_name: contact.interestedProject || contact.projectName || contact.businessCategory || '',
   preferred_location: contact.preferredLocation || contact.location || '',
-  budget: contact.budgetRange || (contact.estimatedDealValue ? `₹${Number(contact.estimatedDealValue).toLocaleString()}` : ''),
-  budget_range: contact.budgetRange || (contact.estimatedDealValue ? `₹${Number(contact.estimatedDealValue).toLocaleString()}` : ''),
-  ...(contact.customFields && typeof contact.customFields === 'object' ? contact.customFields : {})
-});
+  budget: contact.budgetRange || contact.budget || (contact.estimatedDealValue ? `₹${Number(contact.estimatedDealValue).toLocaleString()}` : ''),
+  budget_range: contact.budgetRange || contact.budget || (contact.estimatedDealValue ? `₹${Number(contact.estimatedDealValue).toLocaleString()}` : ''),
+  membership_type: contact.membershipType || contact.membershipPlan || contact.interestedService || '',
+  membership_plan: contact.membershipPlan || contact.membershipType || '',
+  fitness_program: contact.fitnessProgram || contact.interestedService || '',
+  fitness_goal: contact.fitnessGoal || contact.fitnessProgram || '',
+  trial_session_interest: contact.trialSessionInterest || '',
+  trial_date: contact.trialDate || contact.preferredJoiningDate || '',
+  service_category: contact.serviceCategory || contact.interestedService || '',
+  preferred_enquiry_time: contact.preferredEnquiryTime || '',
+  appointment_date: contact.appointmentDate || contact.preferredEnquiryDate || contact.appointmentRequestDate || contact.preferredEnquiryTime || '',
+  site_visit_date: contact.industryData?.siteVisitDate || contact.siteVisitDate || contact.preferredContactTime || '',
+  test_drive_date: contact.testDriveDate || contact.preferredContactTime || '',
+  branch: contact.branch || contact.branchName || '',
+  branch_name: contact.branchName || contact.branch || contact.preferredLocation || '',
+  course_name: contact.courseName || contact.courseInterest || '',
+  batch_date: contact.batchDate || contact.preferredBatchDate || '',
+  vehicle_model: contact.vehicleModel || contact.modelInterest || '',
+  meeting_date: contact.industryData?.meetingDate ? new Date(contact.industryData.meetingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : (contact.meetingDate || contact.appointmentDate || ''),
+  meeting_time: contact.industryData?.meetingTime || contact.meetingTime || contact.preferredEnquiryTime || '',
+  consultation_mode: contact.industryData?.meetingMode || contact.meetingMode || '',
+  representative_name: contact.representativeName || user.name || user.senderName || '',
+  business_email: user.businessEmail || user.email || '',
+  product_name: contact.productName || contact.productServiceInterest || contact.interestedService || '',
+  business_address: user.businessAddress || user.address || '',
+  business_hours: user.businessHours || '',
+  };
+  return { ...dynamic, ...Object.fromEntries(Object.entries(aliases).filter(([, value]) => value !== '' && value != null)), ...(contact.customFields || {}) };
+}
 
 export function extractVariables(text = '') { return [...new Set([...String(text).matchAll(TOKEN_RE)].map(m => m[1].trim()))]; }
 export function malformedVariables(text = '') {
   const stripped = String(text).replace(TOKEN_RE, '');
   return /{{|}}/.test(stripped);
 }
-export function resolveTemplate(template, contact, user = {}) {
+export function resolveTemplate(template, contact = {}, user = {}) {
   const values = valuesFor(contact, user);
   const fields = ['header','body','footer'];
   const missing = new Set();

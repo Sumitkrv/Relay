@@ -1,3 +1,6 @@
+import Workspace from '../models/Workspace.js';
+import { workspaceBusinessContext } from '../utils/workspaceBusinessContext.js';
+import Campaign from '../models/Campaign.js';
 import crypto from 'node:crypto';
 import Contact from '../models/Contact.js';
 import ConsentRecord from '../models/ConsentRecord.js';
@@ -125,6 +128,7 @@ export async function evaluateRecipientEligibility(contact, user, { purpose = ''
  */
 export async function prepareMessageIntent({
   ownerId,
+  workspaceId = null,
   contactId,
   templateId,
   templateVersionId,
@@ -138,20 +142,25 @@ export async function prepareMessageIntent({
   metadata = {},
   bypassConsentForTest = false // Development-only transport test harness flag
 }) {
+  const scope = { ownerId, ...(workspaceId ? { workspaceId } : {}) };
   const generatedCorrId = correlationId || `corr_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
-  const generatedIdempKey = idempotencyKey || `${ownerId}:${campaignRunId || 'direct'}:${contactId}:${purpose || 'msg'}`;
+  const rawIdempKey = idempotencyKey || `${ownerId}:${campaignRunId || 'direct'}:${contactId}:${purpose || 'msg'}`;
 
+  const generatedIdempKey = workspaceId ? `${workspaceId}:${rawIdempKey}` : rawIdempKey;
   // 1. Idempotency Check: if message already exists with this idempotencyKey and ownerId, return it!
-  const existing = await Message.findOne({ ownerId, idempotencyKey: generatedIdempKey });
+  const existing = await Message.findOne({ ...scope, idempotencyKey: generatedIdempKey });
   if (existing) {
     return { message: existing, isExisting: true };
   }
 
   // 2. Fetch Contact and User
-  const [contact, user] = await Promise.all([
-    Contact.findOne({ _id: contactId, ownerId }).lean(),
-    User.findById(ownerId).select('name businessName businessPhone website phone').lean()
+  const [contact, operator, workspace] = await Promise.all([
+    Contact.findOne({ _id: contactId, ...scope }).lean(),
+    User.findById(ownerId).select('name businessName businessPhone website phone').lean(),
+    workspaceId ? Workspace.findById(workspaceId).lean() : null
   ]);
+
+  const user = workspaceBusinessContext(operator, workspace);
 
   if (!contact) {
     const err = new Error('Contact not found or does not belong to this workspace.');
@@ -160,12 +169,16 @@ export async function prepareMessageIntent({
     throw err;
   }
 
+  if (campaignId && !await Campaign.exists({ _id: campaignId, ...scope })) {
+    throw Object.assign(new Error('Campaign not found.'), { status: 404 });
+  }
+
   // 3. Fetch Template and pinned TemplateVersion
   let template = null;
   let version = null;
 
   if (templateId) {
-    template = await MessageTemplate.findOne({ _id: templateId, ownerId }).lean();
+    template = await MessageTemplate.findOne({ _id: templateId, ...scope }).lean();
     if (!template) {
       const err = new Error('Message template not found.');
       err.status = 404;
@@ -174,9 +187,9 @@ export async function prepareMessageIntent({
     }
 
     if (templateVersionId) {
-      version = await TemplateVersion.findOne({ _id: templateVersionId, templateId, ownerId }).lean();
+      version = await TemplateVersion.findOne({ _id: templateVersionId, templateId, ...scope }).lean();
     } else if (template.currentVersionId) {
-      version = await TemplateVersion.findOne({ _id: template.currentVersionId, templateId, ownerId }).lean();
+      version = await TemplateVersion.findOne({ _id: template.currentVersionId, templateId, ...scope }).lean();
     }
 
     if (!version) {
@@ -250,6 +263,7 @@ export async function prepareMessageIntent({
   // 7. Create durable Message record
   const message = await Message.create({
     ownerId,
+    workspaceId: workspaceId || contact.workspaceId,
     messageId: messageUniqueId,
     contactId: contact._id,
     recipientPhone: contact.phoneNumber || '',

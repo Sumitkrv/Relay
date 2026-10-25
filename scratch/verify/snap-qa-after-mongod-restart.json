@@ -1,0 +1,42 @@
+{
+ "autoreplyrules": {
+  "n": 50,
+  "sha": "3a8e5ccf63d4b334"
+ },
+ "businessprofiles": {
+  "n": 10,
+  "sha": "8b06b695b089977f"
+ },
+ "campaigns": {
+  "n": 20,
+  "sha": "605c470e74af75a6"
+ },
+ "messagetemplates": {
+  "n": 150,
+  "sha": "c3610bd44f093597"
+ },
+ "onboardingdrafts": {
+  "n": 13,
+  "sha": "d8c9f5c317f88134"
+ },
+ "quickreplies": {
+  "n": 80,
+  "sha": "dafe4246fd23cf5f"
+ },
+ "templateversions": {
+  "n": 150,
+  "sha": "17ae619d2812cda2"
+ },
+ "users": {
+  "n": 13,
+  "sha": "42778acb9bf073a6"
+ },
+ "workspacememberships": {
+  "n": 10,
+  "sha": "5533e4c0b8bb516e"
+ },
+ "workspaces": {
+  "n": 10,
+  "sha": "1658d00642aca79f"
+ }
+}
