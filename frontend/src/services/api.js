@@ -3,12 +3,15 @@ import { getTabSessionId, getTabToken } from './tabSession';
 
 const getBaseUrl = () => {
   let url = import.meta.env.VITE_API_URL;
-  if (url) {
+  if (url && String(url).trim()) {
     url = String(url).trim().replace(/\/+$/, '');
     if (!url.endsWith('/api')) {
       url = `${url}/api`;
     }
     return url;
+  }
+  if (import.meta.env.PROD) {
+    return 'https://relay-kvfx.onrender.com/api';
   }
   const host = typeof window !== 'undefined' && window.location.hostname ? window.location.hostname : 'localhost';
   return `http://${host}:5000/api`;
