@@ -39,13 +39,18 @@ export default function AuthPage({ mode = 'login' }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (isRegister && form.name.trim().length < 2) {
+    const submitted = new FormData(e.currentTarget);
+    const email = String(submitted.get('email') || '').trim();
+    const password = String(submitted.get('password') || '');
+    const name = String(submitted.get('name') || '').trim();
+
+    if (isRegister && name.length < 2) {
       return toast.error('Please enter your full name (minimum 2 characters).');
     }
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
       return toast.error('Enter a valid email address.');
     }
-    if (form.password.length < 8) {
+    if (password.length < 8) {
       return toast.error('Password must be at least 8 characters.');
     }
 
@@ -53,11 +58,11 @@ export default function AuthPage({ mode = 'login' }) {
     setUnverifiedEmail('');
     try {
       if (isRegister) {
-        const result = await register({ ...form, name: form.name.trim(), confirmPassword: form.password });
+        const result = await register({ name, email, password, confirmPassword: password });
         toast.success('Registration successful! Welcome to Relay.');
         if (result?.user?.isPlatformAdmin) {
           navigate('/admin');
-        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && email.toLowerCase().includes('agency'))) {
           navigate('/agency');
         } else if (result && result.hasWorkspace) {
           navigate('/app');
@@ -65,11 +70,11 @@ export default function AuthPage({ mode = 'login' }) {
           navigate('/onboarding');
         }
       } else {
-        const result = await login({ email: form.email, password: form.password });
+        const result = await login({ email, password });
         toast.success('Welcome back to Relay.');
         if (result?.user?.isPlatformAdmin) {
           navigate('/admin');
-        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && email.toLowerCase().includes('agency'))) {
           navigate('/agency');
         } else if (result && result.hasWorkspace) {
           navigate('/app');
@@ -79,10 +84,14 @@ export default function AuthPage({ mode = 'login' }) {
       }
     } catch (err) {
       const code = err.response?.data?.code;
-      const msg = err.response?.data?.message || 'Could not sign you in. Please check your credentials.';
+      const msg = err.response?.data?.message || (
+        err.request
+          ? 'Relay API is unavailable. Start the local backend and check its MongoDB connection.'
+          : 'Could not sign you in. Please check your credentials.'
+      );
 
       if (code === 'EMAIL_NOT_VERIFIED') {
-        setUnverifiedEmail(form.email.trim());
+        setUnverifiedEmail(email);
       }
       toast.error(msg);
     } finally {
@@ -193,48 +202,6 @@ export default function AuthPage({ mode = 'login' }) {
                   Verify Page
                 </Link>
               </div>
-            </div>
-          )}
-
-          {!isRegister && import.meta.env.DEV && (
-            <div
-              style={{
-                marginBottom: '1.25rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '8px',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#1e40af' }}>
-                  🏢 M2W Realty Demo Account
-                </div>
-                <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>
-                  Password: <code style={{ background: '#dbeafe', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>password123</code>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setForm({ name: '', email: 'owner.m2w@relay-demo.test', password: 'password123' })}
-                style={{
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  border: '1px solid #93c5fd',
-                  background: '#ffffff',
-                  color: '#1d4ed8',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Auto-fill
-              </button>
             </div>
           )}
 
