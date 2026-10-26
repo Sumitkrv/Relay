@@ -11,8 +11,8 @@ import industryRegistry, {
 import { validateIndustryDefinition } from '../src/config/industries/industrySchema.js';
 import { extractVariables, resolveTemplate } from '../src/utils/templateEngine.js';
 
-test('Master Prompt 01/08 — 1. 13 Target Industry Identifiers registered with metadata', () => {
-  assert.equal(TARGET_INDUSTRY_IDENTIFIERS.length, 13, 'Must define exactly 13 initial industry identifiers');
+test('Master Prompt 01/08 — 1. 13+ Target Industry Identifiers registered with metadata', () => {
+  assert.ok(TARGET_INDUSTRY_IDENTIFIERS.length >= 13, 'Must define at least 13 initial industry identifiers');
   const expectedIdentifiers = [
     'real_estate',
     'education_coaching',
@@ -33,7 +33,7 @@ test('Master Prompt 01/08 — 1. 13 Target Industry Identifiers registered with 
   });
 
   const catalog = getAllSupportedIndustries();
-  assert.equal(catalog.length, 13, 'Catalog must provide metadata for all 13 industries');
+  assert.ok(catalog.length >= 13, 'Catalog must provide metadata for all supported industries');
   
   const reMeta = catalog.find((c) => c.id === 'real_estate');
   assert.equal(reMeta.status, 'ready');

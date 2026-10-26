@@ -50,6 +50,16 @@ const presentation = {
       "libraryLabel": "Professional Services Preset Library",
       "templatePlaceholder": "e.g. consultation_request",
       "quickReplyPlaceholder": "e.g. Available Services & Consultation"
+    },
+    "marketing_agency": {
+      "libraryLabel": "Marketing Agency Preset Library",
+      "templatePlaceholder": "e.g. agency_lead_welcome",
+      "quickReplyPlaceholder": "e.g. Services Overview & Pricing"
+    },
+    "freelancing": {
+      "libraryLabel": "Freelancing Preset Library",
+      "templatePlaceholder": "e.g. freelance_enquiry_welcome",
+      "quickReplyPlaceholder": "e.g. Availability & Portfolio"
     }
   },
   "dashboard": {
@@ -122,6 +132,20 @@ const presentation = {
       "templateHint": "Customer greeting, quotation, and follow-up templates",
       "campaignHint": "Plan an audience snapshot and schedule",
       "scheduleHint": "Plan your next customer follow-up when you are ready."
+    },
+    "marketing_agency": {
+      "subtitle": "Manage marketing enquiries, client retainers, creative approvals, and campaign performance.",
+      "importHint": "Upload client or brand leads from XLSX or CSV",
+      "templateHint": "Marketing proposals, kickoff updates and performance reports",
+      "campaignHint": "Plan an audience snapshot and schedule",
+      "scheduleHint": "Plan your next client review or campaign follow-up when you are ready."
+    },
+    "freelancing": {
+      "subtitle": "Track project enquiries, client proposals, milestones, and deliverable approvals.",
+      "importHint": "Upload client contacts from XLSX or CSV",
+      "templateHint": "Project proposals, draft deliverables and milestone updates",
+      "campaignHint": "Plan an audience snapshot and schedule",
+      "scheduleHint": "Plan your next client follow-up or check-in when you are ready."
     }
   },
   "contacts": {
@@ -224,6 +248,26 @@ const presentation = {
       "profileEyebrow": "CUSTOMER ENQUIRY PROFILE",
       "requirementsTitle": "Customer Enquiry & Requirements",
       "emptyImportHint": "Import your customer list or add your first business lead manually."
+    },
+    "marketing_agency": {
+      "subtitle": "Manage brand client leads, retainer accounts and build campaign audiences.",
+      "databaseFoot": "Marketing agency client database",
+      "interestFilterLabel": "All Marketing Services",
+      "interestColumnLabel": "Interested Service",
+      "projectColumnLabel": "Brand / Company Name",
+      "profileEyebrow": "MARKETING CLIENT PROFILE",
+      "requirementsTitle": "Marketing Goals & Service Requirements",
+      "emptyImportHint": "Import your client lead sheet or add your first brand contact manually."
+    },
+    "freelancing": {
+      "subtitle": "Manage project enquiries, client deliverables and build repeat business audiences.",
+      "databaseFoot": "Freelance client & project database",
+      "interestFilterLabel": "All Freelance Services",
+      "interestColumnLabel": "Service Requested",
+      "projectColumnLabel": "Project Type",
+      "profileEyebrow": "PROJECT ENQUIRY PROFILE",
+      "requirementsTitle": "Project Requirements & Scope",
+      "emptyImportHint": "Import your client list or add your first project enquiry manually."
     }
   },
   "campaigns": {
@@ -354,6 +398,42 @@ const presentation = {
         "Sedans & Luxury",
         "Electric Vehicles (EV)",
         "Service & Maintenance",
+        "Other"
+      ]
+    },
+    "marketing_agency": {
+      "goals": [
+        "Agency Lead Nurturing",
+        "Existing Client Monthly Review",
+        "New Marketing Offering Announcement",
+        "Festive Campaign Kickoff",
+        "Retainer Renewal Follow-Up",
+        "Other"
+      ],
+      "categories": [
+        "Digital Marketing",
+        "Paid Advertising",
+        "Search Engine Optimization (SEO)",
+        "Social Media Management",
+        "Creative & Branding",
+        "Other"
+      ]
+    },
+    "freelancing": {
+      "goals": [
+        "Previous Client Follow-Up",
+        "New Service Announcement",
+        "Availability Announcement",
+        "Milestone Review & Sign-Off",
+        "Testimonial & Referral Request",
+        "Other"
+      ],
+      "categories": [
+        "Web & App Development",
+        "UI/UX Design",
+        "Graphic Design & Branding",
+        "Content & Copywriting",
+        "Workflow Automation & Consulting",
         "Other"
       ]
     }

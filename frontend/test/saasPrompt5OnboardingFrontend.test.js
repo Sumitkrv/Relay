@@ -48,12 +48,14 @@ test('SaaS Prompt 5 — 3. All 13 Supported Industries Configuration', () => {
     'hospitality',
     'professional_services',
     'generic_business',
+    'marketing_agency',
+    'freelancing',
   ];
 
   for (const ind of requiredIndustries) {
     assert.ok(getPublicIndustrySummaries().some(item => item.key === ind), `Industry API must support "${ind}"`);
   }
-  assert.equal(getPublicIndustrySummaries().length, 13, 'No alias duplicates in onboarding');
+  assert.equal(getPublicIndustrySummaries().length, 15, 'No alias duplicates in onboarding');
   assert.ok(code.includes('getIndustrySummaries()') && code.includes('industries.map'), 'Render the API catalog');
   assert.ok(code.includes('retryStarterProvisioning'), 'Step 6 must offer a real backend retry for unfinished starter provisioning');
 });

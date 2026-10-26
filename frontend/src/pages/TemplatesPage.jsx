@@ -96,12 +96,14 @@ const errorMsg = (e) => e.response?.data?.message || e.message || 'Something wen
 export default function TemplatesPage() {
   const [params] = useSearchParams();
   const { currentWorkspace, industryConfig } = useWorkspace();
-  const activeIndustry = industryConfig.industryKey;
-  const presetLibraryLabel = industryConfig.ui.libraryLabel;
-  const industryName = industryConfig.industryName;
-  const industryDescription = industryConfig.description;
-  const templatePlaceholder = industryConfig.ui.templatePlaceholder;
-  const industryLabel = industryConfig.displayLabel;
+  const safeConfig = industryConfig || {};
+  const safeUi = safeConfig.ui || {};
+  const activeIndustry = safeConfig.industryKey || currentWorkspace?.industryKey || 'real_estate';
+  const presetLibraryLabel = safeUi.libraryLabel || 'Industry Preset Library';
+  const industryName = safeConfig.industryName || 'Industry';
+  const industryDescription = safeConfig.description || '';
+  const templatePlaceholder = safeUi.templatePlaceholder || 'Type your message template here...';
+  const industryLabel = safeConfig.displayLabel || 'Industry';
   const [variableGroups, setVariableGroups] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [library, setLibrary] = useState([]);
@@ -614,13 +616,13 @@ export default function TemplatesPage() {
   // Otherwise resolve in real-time client side with selected contact.
   const livePreviewBody = useMemo(() => {
     if (!dirty && preview?.body) return preview.body;
-    if (draft.body.trim()) return resolveContactVariables(draft.body, selectedContact, currentWorkspace);
+    if (draft.body?.trim()) return resolveContactVariables(draft.body, selectedContact, currentWorkspace);
     return '';
   }, [dirty, preview?.body, draft.body, selectedContact, currentWorkspace]);
 
   const livePreviewHeader = useMemo(() => {
     if (!dirty && preview?.header) return preview.header;
-    if (draft.header) return resolveContactVariables(draft.header, selectedContact, currentWorkspace);
+    if (draft.header?.trim()) return resolveContactVariables(draft.header, selectedContact, currentWorkspace);
     return '';
   }, [dirty, preview?.header, draft.header, selectedContact, currentWorkspace]);
 
@@ -1119,7 +1121,7 @@ export default function TemplatesPage() {
                       </div>
 
                       <div className="tp-var-chips">
-                        {variableGroups.find((g) => g.id === activeVarGroup)?.vars.map((v) => (
+                        {variableGroups.find((g) => g.id === activeVarGroup)?.vars?.map((v) => (
                           <button
                             key={v.key}
                             type="button"
@@ -1473,7 +1475,7 @@ export default function TemplatesPage() {
                   <div style={{ padding: '10px 12px', background: 'var(--tp-red-50)', border: '1px solid #FECACA', borderRadius: '8px', fontSize: '11.5px', color: 'var(--tp-red-600)' }}>
                     <b>Validation Findings:</b>
                     <ul style={{ margin: '4px 0 0', paddingLeft: '16px' }}>
-                      {validation.errors.map((e, i) => (
+                      {(validation.errors || []).map((e, i) => (
                         <li key={i}>{e}</li>
                       ))}
                     </ul>

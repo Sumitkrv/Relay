@@ -23,8 +23,8 @@ test('authoritative industry API: all 13 packs, variables, dynamic fields and sa
     const owner = await User.create({ name: 'Audit Operator', email: 'audit@isolated.test', passwordHash: 'test-only-hash', isEmailVerified: true });
     const token = jwt.sign({ sub: String(owner._id) }, process.env.JWT_SECRET);
     const summaries = await request(app).get('/api/industries').expect(200);
-    assert.equal(summaries.body.industries.length, 13);
-    assert.equal(new Set(summaries.body.industries.map(i => i.key)).size, 13);
+    assert.equal(summaries.body.industries.length, 15);
+    assert.equal(new Set(summaries.body.industries.map(i => i.key)).size, 15);
     await request(app).get('/api/industries/workspace/current').expect(401);
     await request(app).get('/api/industries/unknown').expect(404);
     let previous;

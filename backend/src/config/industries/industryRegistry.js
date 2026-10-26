@@ -25,8 +25,10 @@ import ecommerceRetail from './definitions/ecommerceRetail.js';
 import homeServices from './definitions/homeServices.js';
 import hospitality from './definitions/hospitality.js';
 import other from './definitions/other.js';
+import marketingAgency from './definitions/marketingAgency.js';
+import freelancing from './definitions/freelancing.js';
 
-// The 11 active loaded packs for existing offline demo regression suites
+// The 15 active loaded packs for existing offline demo regression suites
 export const VALID_INDUSTRY_KEYS = [
   'real_estate',
   'gym',
@@ -41,10 +43,11 @@ export const VALID_INDUSTRY_KEYS = [
   'ecommerce_retail',
   'home_services',
   'hospitality',
-  'other',
+  'marketing_agency',
+  'freelancing',
 ];
 
-// TASK 2: 13 Initial Industry Identifiers
+// TASK 2: 15 Industry Identifiers
 export const TARGET_INDUSTRY_IDENTIFIERS = [
   'real_estate',
   'education_coaching',
@@ -59,6 +62,8 @@ export const TARGET_INDUSTRY_IDENTIFIERS = [
   'hospitality',
   'professional_services',
   'generic_business',
+  'marketing_agency',
+  'freelancing',
 ];
 
 // Reusable Industry Starter Pack Catalog
@@ -67,6 +72,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'real_estate',
     name: 'Real Estate & Housing',
     displayLabel: 'Real Estate',
+    category: 'Property & Repairs',
     description: 'Properties, project enquiries, floor plans, and automated site visit booking.',
     icon: 'Building2',
     status: 'ready',
@@ -77,6 +83,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'education_coaching',
     name: 'Education & Coaching',
     displayLabel: 'Education & Coaching',
+    category: 'Education',
     description: 'Course admissions, batch schedules, entrance exam prep, and student counselling.',
     icon: 'GraduationCap',
     status: 'ready',
@@ -88,6 +95,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'gym_fitness',
     name: 'Gym & Fitness Centers',
     displayLabel: 'Gym / Fitness',
+    category: 'Health & Wellness',
     description: 'Membership plans, trial sessions, personal training, and workout reminders.',
     icon: 'Dumbbell',
     status: 'ready',
@@ -99,6 +107,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'clinic_dental',
     name: 'Healthcare, Clinic & Dental',
     displayLabel: 'Clinic / Healthcare',
+    category: 'Health & Wellness',
     description: 'Consultation scheduling, clinic hours, directions, and visit confirmations.',
     icon: 'Stethoscope',
     status: 'ready',
@@ -110,6 +119,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'salon_beauty',
     name: 'Salon, Spa & Beauty',
     displayLabel: 'Salon & Spa',
+    category: 'Health & Wellness',
     description: 'Service menus, appointment scheduling, styling consultations, and reminders.',
     icon: 'Sparkles',
     status: 'ready',
@@ -121,6 +131,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'automobile',
     name: 'Automobile Dealerships & Service',
     displayLabel: 'Automobile',
+    category: 'Other Businesses',
     description: 'Test drive scheduling, service bookings, vehicle quotes, and maintenance alerts.',
     icon: 'Car',
     status: 'ready',
@@ -132,6 +143,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'travel_tourism',
     name: 'Travel & Tourism',
     displayLabel: 'Travel & Tourism',
+    category: 'Retail & Hospitality',
     description: 'Tour packages, itinerary requests, visa guidance, and holiday booking replies.',
     icon: 'Plane',
     status: 'ready',
@@ -142,6 +154,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'ecommerce_retail',
     name: 'E-commerce & Retail',
     displayLabel: 'E-commerce & Retail',
+    category: 'Retail & Hospitality',
     description: 'Order tracking, product inquiries, catalog browsing, and return policies.',
     icon: 'ShoppingBag',
     status: 'ready',
@@ -152,6 +165,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'restaurant_food',
     name: 'Restaurants & Food',
     displayLabel: 'Restaurants & Food',
+    category: 'Retail & Hospitality',
     description: 'Table reservations, menu exploration, catering inquiries, order requests, and restaurant operating hours.',
     icon: 'Utensils',
     status: 'ready',
@@ -162,6 +176,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'home_services',
     name: 'Home Services & Repairs',
     displayLabel: 'Home Services',
+    category: 'Property & Repairs',
     description: 'Service requests, technician visits, rate cards, and emergency support.',
     icon: 'Wrench',
     status: 'ready',
@@ -172,6 +187,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'hospitality',
     name: 'Hotels & Hospitality',
     displayLabel: 'Hospitality',
+    category: 'Retail & Hospitality',
     description: 'Room reservations, banquet inquiries, check-in information, and guest support.',
     icon: 'Hotel',
     status: 'ready',
@@ -182,6 +198,7 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'professional_services',
     name: 'Professional & Legal Services',
     displayLabel: 'Professional Services',
+    category: 'Agencies & Services',
     description: 'Client consultations, fee structures, appointment intake, and legal advisory.',
     icon: 'Briefcase',
     status: 'ready',
@@ -192,11 +209,38 @@ export const SUPPORTED_INDUSTRY_CATALOG = [
     id: 'generic_business',
     name: 'Generic Business & Services',
     displayLabel: 'Generic Business',
+    category: 'Other Businesses',
     description: 'General enquiries, product/service information, quotations, working hours, and customer follow-up templates.',
     icon: 'Briefcase',
     status: 'ready',
     packVersion: '1.1.0',
     hasCompletePack: true,
+  },
+  {
+    id: 'marketing_agency',
+    name: 'Marketing Agency',
+    displayLabel: 'Marketing Agency',
+    category: 'Agencies & Services',
+    subtitle: 'Digital Marketing & Creative Services',
+    description: 'Manage client enquiries, marketing campaigns, proposals, creative approvals, reporting and ongoing client communication.',
+    icon: 'Megaphone',
+    status: 'ready',
+    packVersion: '1.1.0',
+    hasCompletePack: true,
+    isNew: true,
+  },
+  {
+    id: 'freelancing',
+    name: 'Freelancing & Independent Professionals',
+    displayLabel: 'Freelancing & Independent Professionals',
+    category: 'Agencies & Services',
+    subtitle: 'Freelancers & Solo Professionals',
+    description: 'Organize project enquiries, proposals, client requirements, milestones, revisions, payments and project follow-ups.',
+    icon: 'Laptop',
+    status: 'ready',
+    packVersion: '1.1.0',
+    hasCompletePack: true,
+    isNew: true,
   },
 ];
 
@@ -258,12 +302,19 @@ const ALIAS_MAP = {
   hotels_hospitality: 'hospitality',
   hotel: 'hospitality',
   hotels: 'hospitality',
+  marketing_agency: 'marketing_agency',
+  marketing: 'marketing_agency',
+  digital_marketing: 'marketing_agency',
+  freelancing: 'freelancing',
+  freelance: 'freelancing',
+  freelancer: 'freelancing',
+  solo_professional: 'freelancing',
 };
 
 const registry = new Map();
 
 // Validate and register all core active industries at startup
-const rawDefinitions = [realEstate, gym, clinic, education, salon, automobile, travel, restaurant, professionalServices, genericBusiness, ecommerceRetail, homeServices, hospitality, other];
+const rawDefinitions = [realEstate, gym, clinic, education, salon, automobile, travel, restaurant, professionalServices, genericBusiness, ecommerceRetail, homeServices, hospitality, marketingAgency, freelancing, other];
 
 rawDefinitions.forEach((def) => {
   validateIndustryDefinition(def);
@@ -341,12 +392,16 @@ export function getAllSupportedIndustries() {
 export function getPublicIndustrySummaries() {
   return TARGET_INDUSTRY_IDENTIFIERS.map((k) => {
     const item = getStrictIndustryConfig(k);
+    const catEntry = SUPPORTED_INDUSTRY_CATALOG.find((c) => c.id === k || c.id === item.key);
     return {
       key: item.key,
       name: item.name,
       displayLabel: item.displayLabel || item.name,
+      subtitle: item.subtitle || catEntry?.subtitle || '',
+      category: item.category || catEntry?.category || 'Other Businesses',
       description: item.description,
       icon: item.icon,
+      isNew: Boolean(item.isNew || catEntry?.isNew || k === 'marketing_agency' || k === 'freelancing'),
       version: item.version,
       packVersion: item.packVersion || '1.0.0',
       status: item.status || 'ready',
@@ -354,6 +409,7 @@ export function getPublicIndustrySummaries() {
       templateCount: (item.templateSuggestions || item.starterTemplatePack || []).length,
       automationCount: (item.automationPresets || item.keywordAutoReplyPack || []).length,
       quickReplyCount: (item.quickReplyPresets || item.quickReplyPack || []).length,
+      campaignCount: (item.sampleCampaignDrafts || []).length,
       aliases: Object.entries(ALIAS_MAP).filter(([, canonical]) => canonical === item.key).map(([alias]) => alias),
     };
   });

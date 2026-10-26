@@ -75,6 +75,33 @@ export class ErrorBoundary extends React.Component {
             }}>
               An unexpected display issue occurred in this section. Your underlying data and settings remain safe in MongoDB.
             </p>
+            {import.meta.env?.DEV && this.state.error && (
+              <details style={{
+                textAlign: 'left',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                marginBottom: '16px',
+                fontSize: '11px',
+                color: '#ef4444',
+                fontFamily: 'monospace',
+                overflowX: 'auto',
+                whiteSpace: 'pre-wrap'
+              }}>
+                <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#64748b' }}>
+                  Developer Diagnostics (Dev Only)
+                </summary>
+                <div style={{ marginTop: '8px' }}>
+                  {this.state.error.toString()}
+                  {this.state.error.stack && (
+                    <div style={{ color: '#475569', fontSize: '10px', marginTop: '4px' }}>
+                      {this.state.error.stack}
+                    </div>
+                  )}
+                </div>
+              </details>
+            )}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
               <button
                 onClick={this.reset}

@@ -18,6 +18,8 @@ export const VALID_INDUSTRIES = [
   'ecommerce_retail',
   'home_services',
   'hospitality',
+  'marketing_agency',
+  'freelancing',
   'other',
 ];
 

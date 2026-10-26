@@ -1,0 +1,3 @@
+[
+{"_id":"6adf82eefd25539ac43aff40","ownerId":"6adf82e9fd25539ac43afed8","contactId":"6adf82ecfd25539ac43aff0e","channel":"whatsapp","provider":"none","businessAccountId":"","businessPhoneNumberId":"","source":"manual","status":"Open","automationStatus":"ACTIVE","assignedUserId":null,"lastMessageId":null,"lastInboundAt":null,"lastVerifiedInboundAt":null,"internalUnreadCount":0,"tags":[],"labels":[],"lastActivityAt":"2026-10-26T16:42:22.104Z","createdAt":"2026-10-26T16:42:22.104Z","updatedAt":"2026-10-26T16:42:22.104Z","__v":0}
+]

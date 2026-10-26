@@ -36,16 +36,18 @@ const COMPLETED_CATALOG_IDS = [
   'ecommerce_retail',
   'home_services',
   'hospitality',
+  'marketing_agency',
+  'freelancing',
 ];
 
 const PLANNED_CATALOG_IDS = [];
 
 test('Master Prompt 02/08 — 1. Registry loads all completed industry packs and identifies planned industries', () => {
   const catalog = getAllSupportedIndustries();
-  assert.equal(catalog.length, 13, 'Catalog must provide metadata for all 13 industries');
+  assert.equal(catalog.length, 15, 'Catalog must provide metadata for all 15 industries');
 
   const readyPacks = catalog.filter((c) => c.status === 'ready');
-  assert.equal(readyPacks.length, 13, 'All 13 industries must be completed ready packs');
+  assert.equal(readyPacks.length, 15, 'All 15 industries must be completed ready packs');
 
   COMPLETED_CATALOG_IDS.forEach((id) => {
     const entry = catalog.find((c) => c.id === id);

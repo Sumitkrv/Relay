@@ -39,18 +39,13 @@ export default function AuthPage({ mode = 'login' }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    const submitted = new FormData(e.currentTarget);
-    const email = String(submitted.get('email') || '').trim();
-    const password = String(submitted.get('password') || '');
-    const name = String(submitted.get('name') || '').trim();
-
-    if (isRegister && name.length < 2) {
+    if (isRegister && form.name.trim().length < 2) {
       return toast.error('Please enter your full name (minimum 2 characters).');
     }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) {
       return toast.error('Enter a valid email address.');
     }
-    if (password.length < 8) {
+    if (form.password.length < 8) {
       return toast.error('Password must be at least 8 characters.');
     }
 
@@ -58,11 +53,11 @@ export default function AuthPage({ mode = 'login' }) {
     setUnverifiedEmail('');
     try {
       if (isRegister) {
-        const result = await register({ name, email, password, confirmPassword: password });
+        const result = await register({ ...form, name: form.name.trim(), confirmPassword: form.password });
         toast.success('Registration successful! Welcome to Relay.');
         if (result?.user?.isPlatformAdmin) {
           navigate('/admin');
-        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && email.toLowerCase().includes('agency'))) {
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
           navigate('/agency');
         } else if (result && result.hasWorkspace) {
           navigate('/app');
@@ -70,11 +65,11 @@ export default function AuthPage({ mode = 'login' }) {
           navigate('/onboarding');
         }
       } else {
-        const result = await login({ email, password });
+        const result = await login({ email: form.email, password: form.password });
         toast.success('Welcome back to Relay.');
         if (result?.user?.isPlatformAdmin) {
           navigate('/admin');
-        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && email.toLowerCase().includes('agency'))) {
+        } else if (result?.user?.role === 'agency_owner' || (!result?.hasWorkspace && form.email.toLowerCase().includes('agency'))) {
           navigate('/agency');
         } else if (result && result.hasWorkspace) {
           navigate('/app');
@@ -84,14 +79,10 @@ export default function AuthPage({ mode = 'login' }) {
       }
     } catch (err) {
       const code = err.response?.data?.code;
-      const msg = err.response?.data?.message || (
-        err.request
-          ? 'Relay API is unavailable. Start the local backend and check its MongoDB connection.'
-          : 'Could not sign you in. Please check your credentials.'
-      );
+      const msg = err.response?.data?.message || 'Could not sign you in. Please check your credentials.';
 
       if (code === 'EMAIL_NOT_VERIFIED') {
-        setUnverifiedEmail(email);
+        setUnverifiedEmail(form.email.trim());
       }
       toast.error(msg);
     } finally {

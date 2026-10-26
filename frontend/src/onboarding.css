@@ -48,32 +48,59 @@
   --ob-shadow-glow: 0 0 20px rgba(37, 99, 235, 0.15);
 }
 
-/* Page Background with Ambient Radial Glow & Subtle Dot Texture */
+/* Page Background with Ambient Radial Glow & Clean Canvas */
 .ob-page-canvas {
   background-color: var(--ob-page-bg);
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37, 99, 235, 0.08), transparent 70%),
-    radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.03), transparent 40%),
-    radial-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 24px 24px;
+    radial-gradient(ellipse 70% 45% at 50% 5%, rgba(37, 99, 235, 0.07), transparent 70%),
+    radial-gradient(circle at 50% 25%, rgba(37, 99, 235, 0.03), transparent 60%);
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Decorative Side Dot Matrices */
+.ob-dot-matrix-left {
+  position: absolute;
+  left: 0;
+  top: 90px;
+  width: 140px;
+  height: 520px;
+  background-image: radial-gradient(#CBD5E1 1.25px, transparent 1.25px);
+  background-size: 20px 20px;
+  opacity: 0.65;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+}
+
+.ob-dot-matrix-right {
+  position: absolute;
+  right: 0;
+  top: 90px;
+  width: 140px;
+  height: 520px;
+  background-image: radial-gradient(#CBD5E1 1.25px, transparent 1.25px);
+  background-size: 20px 20px;
+  opacity: 0.65;
+  pointer-events: none;
+  mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%);
 }
 
 /* Header Navbar */
 .ob-header {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.03);
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.02);
 }
 
 /* Main Container Card */
 .ob-card-shell {
   background: var(--ob-card-bg);
-  border: 1px solid rgba(226, 232, 240, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: var(--ob-radius-3xl);
-  box-shadow: var(--ob-shadow-xl);
+  box-shadow: 0 20px 45px -15px rgba(11, 18, 32, 0.05), 0 0 1px 1px rgba(226, 232, 240, 0.6);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -87,9 +114,9 @@
 
 .ob-stepper-line {
   position: absolute;
-  top: 20px;
-  left: 36px;
-  right: 36px;
+  top: 22px;
+  left: 42px;
+  right: 42px;
   height: 2px;
   background-color: #E2E8F0;
   z-index: 1;
@@ -97,7 +124,7 @@
 
 .ob-stepper-progress {
   height: 100%;
-  background: linear-gradient(90deg, #2563EB, #3B82F6);
+  background: #2563EB;
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -117,38 +144,39 @@
 }
 
 .ob-step-node.is-clickable:hover .ob-step-circle {
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .ob-step-circle {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.ob-step-circle.completed {
-  background-color: var(--ob-blue-600);
+.ob-step-circle.active {
+  background-color: #2563EB;
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 0 5px #DBEAFE, 0 4px 14px rgba(37, 99, 235, 0.28);
+  border: none;
 }
 
-.ob-step-circle.active {
-  background-color: var(--ob-navy);
+.ob-step-circle.completed {
+  background-color: #2563EB;
   color: #FFFFFF;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), var(--ob-shadow-md);
-  border: 2px solid var(--ob-blue-600);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .ob-step-circle.upcoming {
-  background-color: #F1F5F9;
+  background-color: #FFFFFF;
   color: #94A3B8;
-  border: 1px solid #E2E8F0;
+  border: 1.5px solid #E2E8F0;
+  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.02);
 }
 
 /* Form Inputs Styling */
@@ -191,6 +219,10 @@
   resize: vertical;
 }
 
+.ob-textarea.has-icon {
+  padding-left: 40px;
+}
+
 .ob-textarea:focus {
   border-color: var(--ob-blue-600);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
@@ -208,6 +240,10 @@
   transition: all 0.2s ease;
   outline: none;
   cursor: pointer;
+}
+
+.ob-select.has-icon {
+  padding-left: 38px;
 }
 
 .ob-select:focus {
@@ -235,62 +271,127 @@
   background: linear-gradient(90deg, #2563EB, #60A5FA);
 }
 
+/* Custom Contained Scrollbar for Desktop Industry Discovery Hub */
+.ob-custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.ob-custom-scroll::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 8px;
+}
+.ob-custom-scroll::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 8px;
+}
+.ob-custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Category Filter Chips */
+.ob-category-chip {
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+}
+
+.ob-category-chip.is-active {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+}
+
+.ob-category-chip.not-active {
+  background-color: #F1F5F9;
+  color: #475569;
+  border-color: #E2E8F0;
+}
+
+.ob-category-chip.not-active:hover {
+  background-color: #E2E8F0;
+  color: #1E293B;
+  border-color: #CBD5E1;
+}
+
 /* Industry Selection Cards */
 .ob-industry-card {
   position: relative;
-  border-radius: 16px;
-  border: 2px solid #E2E8F0;
+  min-height: 138px;
+  border-radius: 14px;
+  border: 1.5px solid #E2E8F0;
   background-color: #FFFFFF;
-  padding: 18px;
+  padding: 13px 13px 11px 13px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(11, 18, 32, 0.02);
 }
 
 .ob-industry-card:hover {
   border-color: #CBD5E1;
   background-color: #F8FAFC;
-  transform: translateY(-2px);
-  box-shadow: var(--ob-shadow-sm);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -3px rgba(11, 18, 32, 0.06), 0 2px 4px -2px rgba(11, 18, 32, 0.02);
 }
 
 .ob-industry-card:focus-visible {
   outline: none;
   border-color: var(--ob-blue-600);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
 }
 
 .ob-industry-card.is-selected {
   border-color: var(--ob-blue-600);
-  background: linear-gradient(145deg, #EFF6FF 0%, #FFFFFF 100%);
-  box-shadow: 0 0 0 1px var(--ob-blue-600), var(--ob-shadow-glow), var(--ob-shadow-md);
-  transform: translateY(-2px);
+  background: linear-gradient(165deg, #EFF6FF 0%, #F8FAFC 50%, #FFFFFF 100%);
+  box-shadow: 0 0 0 1.5px var(--ob-blue-600), 0 10px 20px -5px rgba(37, 99, 235, 0.14);
+  transform: translateY(-1.5px);
+}
+
+.ob-industry-card.is-selected:hover {
+  border-color: var(--ob-blue-600);
+  background: linear-gradient(165deg, #EFF6FF 0%, #F8FAFC 50%, #FFFFFF 100%);
+  box-shadow: 0 0 0 1.5px var(--ob-blue-600), 0 12px 24px -5px rgba(37, 99, 235, 0.18);
 }
 
 /* Industry Icon Badge */
 .ob-industry-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ob-industry-icon.is-selected {
   background-color: var(--ob-blue-600);
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
+  border: 1px solid var(--ob-blue-600);
 }
 
 .ob-industry-icon.not-selected {
   background-color: #EFF6FF;
   color: var(--ob-blue-600);
   border: 1px solid #DBEAFE;
+}
+
+.ob-industry-card:hover .ob-industry-icon.not-selected {
+  background-color: #DBEAFE;
+  color: #1D4ED8;
+  border-color: #BFDBFE;
 }
 
 /* Drag and Drop Upload Dropzone */
@@ -314,6 +415,28 @@
   background-color: #EFF6FF;
   transform: scale(1.01);
   box-shadow: var(--ob-shadow-glow);
+}
+
+.ob-dropzone-compact {
+  padding: 22px 18px;
+}
+
+/* Step 4 Miniature UI Previews */
+.ob-mini-sidebar {
+  background-color: var(--ob-navy);
+  border: 1px solid #1E293B;
+  border-radius: 14px;
+  padding: 12px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(11, 18, 32, 0.08);
+}
+
+.ob-mini-topbar {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 1px 3px rgba(11, 18, 32, 0.03);
 }
 
 /* Buttons */
@@ -375,6 +498,95 @@
 .ob-btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Step 3 Live Workspace Preview Styling */
+.ob-step3-preview {
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(11, 18, 32, 0.03);
+}
+
+.ob-metric-tile {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  transition: all 0.2s ease;
+}
+
+/* Step 5 Review & Workspace Launch Console */
+.ob-review-hero {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(11, 18, 32, 0.03);
+  transition: all 0.2s ease;
+}
+
+.ob-review-group {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(11, 18, 32, 0.02);
+  transition: all 0.2s ease;
+}
+
+.ob-review-group:hover {
+  border-color: #CBD5E1;
+}
+
+.ob-review-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.ob-review-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  word-break: break-word;
+}
+
+.ob-stat-tile {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: all 0.2s ease;
+}
+
+.ob-stat-tile:hover {
+  border-color: #BFDBFE;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.ob-workflow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ob-workflow-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #2563EB;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* Micro-animations */

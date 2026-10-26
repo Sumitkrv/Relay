@@ -8,6 +8,7 @@ import {
   CRM_TOKEN_REGEX,
   extractCrmTokens,
   resolveCrmVariables,
+  resolveContactVariables,
   resolveSampleContext
 } from '../src/utils/crmVariables.js';
 
@@ -90,4 +91,26 @@ test('Frontend Universal Industry — 7. App.jsx mounts /dev/industry-preview an
   const devCenterPath = path.resolve(__dirname, '../src/components/DeveloperTestingCenter.jsx');
   const devCode = fs.readFileSync(devCenterPath, 'utf8');
   assert.ok(devCode.includes('/dev/industry-preview'), 'DeveloperTestingCenter must link to /dev/industry-preview');
+});
+
+test('Frontend Universal Industry — 8. Null-safety regression: resolveCrmVariables and resolveContactVariables never throw on null contact or workspace', () => {
+  const text = 'Hello {{customer_name}}, welcome to {{business_name}}! Service: {{service_name}}.';
+  // Must not throw with null/undefined contact
+  assert.doesNotThrow(() => {
+    const res = resolveContactVariables(text, null, null);
+    assert.ok(typeof res === 'string');
+    assert.ok(res.includes('{{customer_name}}')); // Preserves missing in contact resolution
+  });
+
+  // Must not throw with null definitions
+  assert.doesNotThrow(() => {
+    const res = resolveCrmVariables(text, null, null, null);
+    assert.ok(typeof res === 'string');
+    assert.ok(res.includes('[customer name]')); // Bracket fallback
+  });
+
+  // Valid resolution with partial contact
+  const resPartial = resolveContactVariables(text, { name: 'Alex' }, { name: 'Agency Prime' });
+  assert.ok(resPartial.includes('Hello Alex'));
+  assert.ok(resPartial.includes('welcome to Agency Prime'));
 });
